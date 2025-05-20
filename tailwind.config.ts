@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,33 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				spice: {
+					"100": "#FFF1E7",
+					"200": "#FFE0C9",
+					"300": "#FFC193",
+					"400": "#FF9B4E",
+					"500": "#E67324", // primary spice color
+					"600": "#C65D1A",
+					"700": "#8B4012",
+				},
+				earth: {
+					"100": "#F5F0E6",
+					"200": "#E6DACB",
+					"300": "#C9B393",
+					"400": "#A38D69",
+					"500": "#7A6845", // secondary earth color
+					"600": "#5C4F34",
+					"700": "#3E3522",
+				},
+				leaf: {
+					"100": "#E8F5E9",
+					"200": "#C8E6C9",
+					"300": "#A5D6A7",
+					"400": "#81C784",
+					"500": "#66BB6A", // accent green
+					"600": "#4CAF50",
+					"700": "#388E3C",
 				}
 			},
 			borderRadius: {
