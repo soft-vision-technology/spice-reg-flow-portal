@@ -34,7 +34,7 @@ const MainLayout = ({ children }) => {
           }}
         >
           <div className="p-4 h-16 flex items-center justify-center">
-            <h1 className={"text-spice-500 font-custom"}>
+            <h1 className={`text-spice-500 font-bold ${collapsed ? 'text-xl' : 'text-2xl'}`}>
               {collapsed ? 'SC' : 'SpiceConnect'}
             </h1>
           </div>

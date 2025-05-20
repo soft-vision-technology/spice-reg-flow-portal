@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Form, Input, Select, InputNumber, DatePicker, Upload, Button, Row, Col, Checkbox } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
@@ -33,10 +32,11 @@ const spiceProductOptions = [
   { label: "Turmeric", value: "turmeric" },
 ];
 
-const EntrepreneurForm: React.FC<{ isExisting: boolean }> = ({ isExisting }) => {
+const EntrepreneurForm = (props) => {
+  const { isExisting } = props;
   const { updateFormData } = useFormContext();
 
-  const handleChange = (_: any, allValues: any) => {
+  const handleChange = (_, allValues) => {
     updateFormData(allValues);
   };
 
@@ -45,7 +45,7 @@ const EntrepreneurForm: React.FC<{ isExisting: boolean }> = ({ isExisting }) => 
       <h3 className="text-xl font-medium text-earth-700 mb-6">
         {isExisting ? "Existing Business Information" : "Business Startup Information"}
       </h3>
-      
+
       <Form layout="vertical" onValuesChange={handleChange}>
         <Row gutter={16}>
           <Col xs={24} sm={12}>
@@ -137,7 +137,7 @@ const EntrepreneurForm: React.FC<{ isExisting: boolean }> = ({ isExisting }) => 
                 <InputNumber
                   className="w-full"
                   formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+                  parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
                   placeholder="1,000,000"
                 />
               </Form.Item>
@@ -166,10 +166,7 @@ const EntrepreneurForm: React.FC<{ isExisting: boolean }> = ({ isExisting }) => 
           <>
             <Row gutter={16}>
               <Col xs={24}>
-                <Form.Item
-                  label="Certifications"
-                  name="certifications"
-                >
+                <Form.Item label="Certifications" name="certifications">
                   <Checkbox.Group options={certificateOptions} />
                 </Form.Item>
               </Col>
@@ -177,10 +174,7 @@ const EntrepreneurForm: React.FC<{ isExisting: boolean }> = ({ isExisting }) => 
 
             <Row gutter={16}>
               <Col xs={24}>
-                <Form.Item
-                  label="Upload Business Registration"
-                  name="businessRegistrationDoc"
-                >
+                <Form.Item label="Upload Business Registration" name="businessRegistrationDoc">
                   <Upload maxCount={1} accept=".pdf,.jpg,.png">
                     <Button icon={<UploadOutlined />}>Click to Upload</Button>
                   </Upload>
@@ -206,10 +200,7 @@ const EntrepreneurForm: React.FC<{ isExisting: boolean }> = ({ isExisting }) => 
 
         <Row gutter={16}>
           <Col span={24}>
-            <Form.Item
-              label="Additional Information"
-              name="additionalInfo"
-            >
+            <Form.Item label="Additional Information" name="additionalInfo">
               <Input.TextArea rows={4} placeholder="Any additional information about your business..." />
             </Form.Item>
           </Col>

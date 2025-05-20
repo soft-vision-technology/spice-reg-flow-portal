@@ -1,14 +1,13 @@
-
 import React from "react";
 import { Form, Input, DatePicker, Select, Col, Row } from "antd";
 import { useFormContext } from "../../contexts/FormContext";
 
 const { Option } = Select;
 
-const BasicInfoForm: React.FC = () => {
+const BasicInfoForm = () => {
   const { updateFormData } = useFormContext();
 
-  const handleChange = (_: any, allValues: any) => {
+  const handleChange = (_, allValues) => {
     updateFormData(allValues);
   };
 
@@ -32,7 +31,10 @@ const BasicInfoForm: React.FC = () => {
               name="nic"
               rules={[
                 { required: true, message: "Please enter your NIC" },
-                { pattern: /^[0-9]{9}[vVxX]$|^[0-9]{12}$/, message: "Please enter a valid NIC number" }
+                {
+                  pattern: /^[0-9]{9}[vVxX]$|^[0-9]{12}$/,
+                  message: "Please enter a valid NIC number",
+                },
               ]}
             >
               <Input placeholder="123456789V or 123456789012" />
@@ -84,7 +86,7 @@ const BasicInfoForm: React.FC = () => {
               name="email"
               rules={[
                 { required: true, message: "Please enter your email" },
-                { type: "email", message: "Please enter a valid email" }
+                { type: "email", message: "Please enter a valid email" },
               ]}
             >
               <Input placeholder="john.doe@example.com" />
@@ -96,7 +98,10 @@ const BasicInfoForm: React.FC = () => {
               name="mobileNumber"
               rules={[
                 { required: true, message: "Please enter your mobile number" },
-                { pattern: /^[0-9]{10}$/, message: "Please enter a valid 10-digit mobile number" }
+                {
+                  pattern: /^[0-9]{10}$/,
+                  message: "Please enter a valid 10-digit mobile number",
+                },
               ]}
             >
               <Input placeholder="0712345678" />
