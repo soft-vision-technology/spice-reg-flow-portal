@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Layout } from "antd";
 import SidebarMenu from "./SidebarMenu";
@@ -7,7 +6,7 @@ import { useLocation } from "react-router-dom";
 
 const { Header, Content, Sider } = Layout;
 
-const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const MainLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
@@ -35,7 +34,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           }}
         >
           <div className="p-4 h-16 flex items-center justify-center">
-            <h1 className={`text-spice-500 font-bold ${collapsed ? 'text-xl' : 'text-2xl'}`}>
+            <h1 className={"text-spice-500 font-custom"}>
               {collapsed ? 'SC' : 'SpiceConnect'}
             </h1>
           </div>
