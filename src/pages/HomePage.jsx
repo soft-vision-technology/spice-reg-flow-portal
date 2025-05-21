@@ -1,14 +1,15 @@
 import React from "react";
-import { Button, Typography, Card, Row, Col } from "antd";
-import { RightOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Typography, Card, Row, Col } from "antd";
+import LoginModal from "../components/layout/LoginModal";
+import FallingSpicesBackground from "../components/layout/FallingSpicesBackground";
 
 const { Title, Paragraph } = Typography;
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-spice-100 to-earth-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-spice-100 to-earth-100 relative overflow-hidden">
+      <FallingSpicesBackground />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="py-24">
           <div className="text-center mb-16">
             <Title className="text-4xl md:text-5xl lg:text-6xl font-bold text-earth-700">
@@ -19,15 +20,9 @@ const HomePage = () => {
               services in our comprehensive industry database to access
               resources and connect with stakeholders.
             </Paragraph>
-            <Link to="/select">
-              <Button
-                type="primary"
-                size="large"
-                className="mt-8 h-12 px-8 text-lg bg-spice-500 hover:bg-spice-600"
-              >
-                Start Registration <RightOutlined />
-              </Button>
-            </Link>
+            
+            {/* Use the separated LoginModal component */}
+            <LoginModal />
           </div>
 
           <Row gutter={[24, 24]} className="mt-16">
