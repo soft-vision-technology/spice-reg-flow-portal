@@ -1,13 +1,10 @@
 import * as React from "react"
 import { OTPInput, OTPInputContext } from "input-otp"
 import { Dot } from "lucide-react"
+import { cn } from "../../lib/utils"
 
-import { cn } from "@/lib/utils"
-
-const InputOTP = React.forwardRef<
-  React.ElementRef<typeof OTPInput>,
-  React.ComponentPropsWithoutRef<typeof OTPInput>
->(({ className, containerClassName, ...props }, ref) => (
+// Main OTP input wrapper, adds container styling & ref forwarding
+const InputOTP = React.forwardRef(({ className, containerClassName, ...props }, ref) => (
   <OTPInput
     ref={ref}
     containerClassName={cn(
@@ -20,20 +17,16 @@ const InputOTP = React.forwardRef<
 ))
 InputOTP.displayName = "InputOTP"
 
-const InputOTPGroup = React.forwardRef<
-  React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div">
->(({ className, ...props }, ref) => (
+// Group wrapper for layout, flexbox
+const InputOTPGroup = React.forwardRef(({ className, ...props }, ref) => (
   <div ref={ref} className={cn("flex items-center", className)} {...props} />
 ))
 InputOTPGroup.displayName = "InputOTPGroup"
 
-const InputOTPSlot = React.forwardRef<
-  React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div"> & { index: number }
->(({ index, className, ...props }, ref) => {
-  const inputOTPContext = React.useContext(OTPInputContext)
-  const { char, hasFakeCaret, isActive } = inputOTPContext.slots[index]
+// Individual OTP slot (each digit box)
+const InputOTPSlot = React.forwardRef(({ index, className, ...props }, ref) => {
+  const { slots } = React.useContext(OTPInputContext)
+  const { char, hasFakeCaret, isActive } = slots[index]
 
   return (
     <div
@@ -56,10 +49,8 @@ const InputOTPSlot = React.forwardRef<
 })
 InputOTPSlot.displayName = "InputOTPSlot"
 
-const InputOTPSeparator = React.forwardRef<
-  React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div">
->(({ ...props }, ref) => (
+// Simple separator with a dot icon between OTP digits (optional)
+const InputOTPSeparator = React.forwardRef(({ ...props }, ref) => (
   <div ref={ref} role="separator" {...props}>
     <Dot />
   </div>
