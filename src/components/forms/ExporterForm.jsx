@@ -1,6 +1,15 @@
-
 import React from "react";
-import { Form, Input, Select, InputNumber, DatePicker, Upload, Button, Row, Col, Checkbox } from "antd";
+import {
+  Form,
+  Input,
+  Select,
+  InputNumber,
+  Upload,
+  Button,
+  Row,
+  Col,
+  Checkbox
+} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../contexts/FormContext";
 
@@ -11,7 +20,7 @@ const certificateOptions = [
   { label: "GMP", value: 2 },
   { label: "Organic", value: 3 },
   { label: "Fair Trade", value: 4 },
-  { label: "HACCP", value: 5 },
+  { label: "HACCP", value: 5 }
 ];
 
 const marketRegionOptions = [
@@ -20,7 +29,7 @@ const marketRegionOptions = [
   { label: "Middle East", value: "middle_east" },
   { label: "Asia", value: "asia" },
   { label: "Australia", value: "australia" },
-  { label: "Africa", value: "africa" },
+  { label: "Africa", value: "africa" }
 ];
 
 const spiceExportOptions = [
@@ -29,20 +38,20 @@ const spiceExportOptions = [
   { label: "Cardamom", value: "cardamom" },
   { label: "Cloves", value: "cloves" },
   { label: "Nutmeg", value: "nutmeg" },
-  { label: "Turmeric", value: "turmeric" },
+  { label: "Turmeric", value: "turmeric" }
 ];
 
-const ExporterForm: React.FC = () => {
+const ExporterForm = () => {
   const { updateFormData } = useFormContext();
 
-  const handleChange = (_: any, allValues: any) => {
+  const handleChange = (_, allValues) => {
     updateFormData(allValues);
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h3 className="text-xl font-medium text-earth-700 mb-6">Export Operation Information</h3>
-      
+
       <Form layout="vertical" onValuesChange={handleChange}>
         <Row gutter={16}>
           <Col xs={24} sm={12}>

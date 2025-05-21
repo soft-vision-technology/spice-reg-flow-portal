@@ -1,11 +1,10 @@
-
 import React from "react";
 import { Result, Button } from "antd";
 import { Link } from "react-router-dom";
 import FormSummary from "../components/common/FormSummary";
 import { useFormContext } from "../contexts/FormContext";
 
-const ReportsPage: React.FC = () => {
+const ReportsPage = () => {
   const { formData } = useFormContext();
   
   // Check if there's form data to display

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Steps, Button, message } from "antd";
 import { useNavigate } from "react-router-dom";
@@ -8,12 +7,11 @@ import { useFormContext } from "../contexts/FormContext";
 
 const { Step } = Steps;
 
-const IntermediaryPage: React.FC = () => {
+const IntermediaryPage = () => {
   const navigate = useNavigate();
   const { role, status, formData } = useFormContext();
   const [current, setCurrent] = React.useState(0);
 
-  // Redirect if no role or status is selected or wrong combination
   React.useEffect(() => {
     if (role === "" || status === "" || role !== "intermediary" || status !== "existing") {
       navigate("/select");
@@ -66,18 +64,13 @@ const IntermediaryPage: React.FC = () => {
       <div className="mb-8">{steps[current].content}</div>
 
       <div className="flex justify-between mt-8">
-        {current > 0 && (
-          <Button onClick={prev}>Previous</Button>
-        )}
-        
+        {current > 0 && <Button onClick={prev}>Previous</Button>}
         <div className="flex-1"></div>
-        
         {current < steps.length - 1 && (
           <Button type="primary" onClick={next} className="bg-spice-500">
             Next
           </Button>
         )}
-        
         {current === steps.length - 1 && (
           <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
             Submit

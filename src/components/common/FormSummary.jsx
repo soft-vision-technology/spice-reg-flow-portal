@@ -1,21 +1,20 @@
-
 import React from "react";
 import { Card, Descriptions, Divider, Tag } from "antd";
-import { useFormContext } from "../../contexts/FormContext";
 import { CheckCircleOutlined } from "@ant-design/icons";
+import { useFormContext } from "../../contexts/FormContext";
 
-const formatDate = (dateString: string) => {
+const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
   return date.toLocaleDateString();
 };
 
-const capitalizeFirst = (text: string) => {
+const capitalizeFirst = (text) => {
   if (!text) return '';
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
 
-const FormSummary: React.FC = () => {
+const FormSummary = () => {
   const { role, status, formData } = useFormContext();
 
   return (
@@ -25,7 +24,7 @@ const FormSummary: React.FC = () => {
         <h2 className="text-2xl font-bold mt-4 text-earth-700">Registration Summary</h2>
         <p className="text-gray-500">Thank you for completing your registration</p>
       </div>
-      
+
       <Divider>Basic Information</Divider>
       <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 3, md: 2, sm: 1, xs: 1 }}>
         <Descriptions.Item label="Full Name">{formData.fullName}</Descriptions.Item>
@@ -36,7 +35,7 @@ const FormSummary: React.FC = () => {
         <Descriptions.Item label="Mobile">{formData.mobileNumber}</Descriptions.Item>
         <Descriptions.Item label="Address" span={3}>{formData.address}</Descriptions.Item>
       </Descriptions>
-      
+
       <Divider>Registration Details</Divider>
       <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}>
         <Descriptions.Item label="Role">
@@ -46,7 +45,7 @@ const FormSummary: React.FC = () => {
           <Tag color="green" className="text-sm py-1 px-2">{capitalizeFirst(status)}</Tag>
         </Descriptions.Item>
       </Descriptions>
-      
+
       {/* Role-specific information */}
       {role === "entrepreneur" && (
         <>
@@ -62,7 +61,7 @@ const FormSummary: React.FC = () => {
           </Descriptions>
         </>
       )}
-      
+
       {role === "exporter" && (
         <>
           <Divider>Export Information</Divider>
@@ -75,7 +74,7 @@ const FormSummary: React.FC = () => {
           </Descriptions>
         </>
       )}
-      
+
       {role === "intermediary" && (
         <>
           <Divider>Trading Information</Divider>

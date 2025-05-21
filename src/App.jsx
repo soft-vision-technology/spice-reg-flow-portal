@@ -1,12 +1,9 @@
-
 import { Toaster } from "sonner";
 import { Toaster as Sonner } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { FormProvider } from "./contexts/FormContext";
 import MainLayout from "./components/layout/MainLayout";
-import HomePage from "./pages/HomePage";
 import SelectPage from "./pages/SelectPage";
 import StartingBusinessPage from "./pages/StartingBusinessPage";
 import ExistingBusinessPage from "./pages/ExistingBusinessPage";
@@ -14,6 +11,7 @@ import ExporterPage from "./pages/ExporterPage";
 import IntermediaryPage from "./pages/IntermediaryPage";
 import ReportsPage from "./pages/ReportsPage";
 import NotFound from "./pages/NotFound";
+import { FormProvider } from "./contexts/FormContext";
 
 const queryClient = new QueryClient();
 

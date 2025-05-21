@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Steps, Button, message } from "antd";
 import { useNavigate } from "react-router-dom";
@@ -8,16 +7,16 @@ import { useFormContext } from "../contexts/FormContext";
 
 const { Step } = Steps;
 
-const ExistingBusinessPage: React.FC = () => {
+const StartingBusinessPage = () => {
   const navigate = useNavigate();
   const { role, status, formData } = useFormContext();
   const [current, setCurrent] = React.useState(0);
 
-  // Redirect if no role or status is selected or wrong combination
+  // Redirect if no role or status is selected
   React.useEffect(() => {
-    if (role === "" || status === "" || role !== "entrepreneur" || status !== "existing") {
+    if (role === "" || status === "") {
       navigate("/select");
-      message.warning("Please select the entrepreneur role and existing business status first");
+      message.warning("Please select your role and status first");
     }
   }, [role, status, navigate]);
 
@@ -27,8 +26,8 @@ const ExistingBusinessPage: React.FC = () => {
       content: <BasicInfoForm />,
     },
     {
-      title: "Business Information",
-      content: <EntrepreneurForm isExisting={true} />,
+      title: "Business Plan",
+      content: <EntrepreneurForm isExisting={false} />,
     },
   ];
 
@@ -53,8 +52,8 @@ const ExistingBusinessPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-earth-700">Existing Business Registration</h1>
-        <p className="text-gray-500">Complete the following steps to register your existing business</p>
+        <h1 className="text-2xl font-bold text-earth-700">New Business Registration</h1>
+        <p className="text-gray-500">Complete the following steps to register your new business</p>
       </div>
       
       <Steps current={current} className="mb-12">
@@ -88,4 +87,4 @@ const ExistingBusinessPage: React.FC = () => {
   );
 };
 
-export default ExistingBusinessPage;
+export default StartingBusinessPage;

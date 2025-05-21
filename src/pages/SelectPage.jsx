@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Steps, Button, message } from "antd";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +6,7 @@ import { useFormContext } from "../contexts/FormContext";
 
 const { Step } = Steps;
 
-const SelectPage: React.FC = () => {
+const SelectPage = () => {
   const navigate = useNavigate();
   const { role, status } = useFormContext();
   const [current, setCurrent] = React.useState(0);

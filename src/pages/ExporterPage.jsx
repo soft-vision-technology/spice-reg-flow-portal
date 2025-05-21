@@ -1,23 +1,21 @@
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Steps, Button, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import BasicInfoForm from "../components/forms/BasicInfoForm";
-import EntrepreneurForm from "../components/forms/EntrepreneurForm";
+import ExporterForm from "../components/forms/ExporterForm";
 import { useFormContext } from "../contexts/FormContext";
 
 const { Step } = Steps;
 
-const StartingBusinessPage: React.FC = () => {
+const ExporterPage = () => {
   const navigate = useNavigate();
   const { role, status, formData } = useFormContext();
-  const [current, setCurrent] = React.useState(0);
+  const [current, setCurrent] = useState(0);
 
-  // Redirect if no role or status is selected
-  React.useEffect(() => {
-    if (role === "" || status === "") {
+  useEffect(() => {
+    if (role === "" || status === "" || role !== "exporter" || status !== "existing") {
       navigate("/select");
-      message.warning("Please select your role and status first");
+      message.warning("Please select the exporter role and existing business status first");
     }
   }, [role, status, navigate]);
 
@@ -27,8 +25,8 @@ const StartingBusinessPage: React.FC = () => {
       content: <BasicInfoForm />,
     },
     {
-      title: "Business Plan",
-      content: <EntrepreneurForm isExisting={false} />,
+      title: "Export Information",
+      content: <ExporterForm />,
     },
   ];
 
@@ -53,10 +51,10 @@ const StartingBusinessPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-earth-700">New Business Registration</h1>
-        <p className="text-gray-500">Complete the following steps to register your new business</p>
+        <h1 className="text-2xl font-bold text-earth-700">Exporter Registration</h1>
+        <p className="text-gray-500">Complete the following steps to register your export operations</p>
       </div>
-      
+
       <Steps current={current} className="mb-12">
         {steps.map((item) => (
           <Step key={item.title} title={item.title} />
@@ -69,15 +67,15 @@ const StartingBusinessPage: React.FC = () => {
         {current > 0 && (
           <Button onClick={prev}>Previous</Button>
         )}
-        
+
         <div className="flex-1"></div>
-        
+
         {current < steps.length - 1 && (
           <Button type="primary" onClick={next} className="bg-spice-500">
             Next
           </Button>
         )}
-        
+
         {current === steps.length - 1 && (
           <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
             Submit
@@ -88,4 +86,4 @@ const StartingBusinessPage: React.FC = () => {
   );
 };
 
-export default StartingBusinessPage;
+export default ExporterPage;

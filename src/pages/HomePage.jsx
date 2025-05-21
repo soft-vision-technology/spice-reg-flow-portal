@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 const { Title, Paragraph } = Typography;
 
-const HomePage: React.FC = () => {
+const HomePage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-spice-100 to-earth-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

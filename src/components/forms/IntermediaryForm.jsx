@@ -1,6 +1,14 @@
-
 import React from "react";
-import { Form, Input, Select, InputNumber, DatePicker, Upload, Button, Row, Col } from "antd";
+import {
+  Form,
+  Input,
+  Select,
+  InputNumber,
+  Upload,
+  Button,
+  Row,
+  Col
+} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../contexts/FormContext";
 
@@ -10,7 +18,7 @@ const traderTypeOptions = [
   { label: "Collector", value: "collector" },
   { label: "Wholesaler", value: "wholesaler" },
   { label: "Distributor", value: "distributor" },
-  { label: "Agent", value: "agent" },
+  { label: "Agent", value: "agent" }
 ];
 
 const spiceTradeOptions = [
@@ -19,27 +27,31 @@ const spiceTradeOptions = [
   { label: "Cardamom", value: "cardamom" },
   { label: "Cloves", value: "cloves" },
   { label: "Nutmeg", value: "nutmeg" },
-  { label: "Turmeric", value: "turmeric" },
+  { label: "Turmeric", value: "turmeric" }
 ];
 
-const IntermediaryForm: React.FC = () => {
+const IntermediaryForm = () => {
   const { updateFormData } = useFormContext();
 
-  const handleChange = (_: any, allValues: any) => {
+  const handleChange = (_, allValues) => {
     updateFormData(allValues);
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
-      <h3 className="text-xl font-medium text-earth-700 mb-6">Intermediary Trading Information</h3>
-      
+      <h3 className="text-xl font-medium text-earth-700 mb-6">
+        Intermediary Trading Information
+      </h3>
+
       <Form layout="vertical" onValuesChange={handleChange}>
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
               label="Trading Business Name"
               name="tradingName"
-              rules={[{ required: true, message: "Please enter trading business name" }]}
+              rules={[
+                { required: true, message: "Please enter trading business name" }
+              ]}
             >
               <Input placeholder="Spice Trading Co." />
             </Form.Item>
@@ -48,7 +60,9 @@ const IntermediaryForm: React.FC = () => {
             <Form.Item
               label="Trading License Number"
               name="tradingLicense"
-              rules={[{ required: true, message: "Please enter trading license" }]}
+              rules={[
+                { required: true, message: "Please enter trading license" }
+              ]}
             >
               <Input placeholder="TL12345" />
             </Form.Item>
@@ -90,7 +104,9 @@ const IntermediaryForm: React.FC = () => {
             <Form.Item
               label="Spice Products Traded"
               name="tradedProducts"
-              rules={[{ required: true, message: "Please select at least one product" }]}
+              rules={[
+                { required: true, message: "Please select at least one product" }
+              ]}
             >
               <Select
                 mode="multiple"
@@ -107,7 +123,9 @@ const IntermediaryForm: React.FC = () => {
             <Form.Item
               label="Annual Trading Volume (Tons)"
               name="tradingVolume"
-              rules={[{ required: true, message: "Please enter trading volume" }]}
+              rules={[
+                { required: true, message: "Please enter trading volume" }
+              ]}
             >
               <InputNumber min={1} className="w-full" placeholder="50" />
             </Form.Item>
@@ -116,7 +134,9 @@ const IntermediaryForm: React.FC = () => {
             <Form.Item
               label="Number of Farmers/Suppliers"
               name="supplierCount"
-              rules={[{ required: true, message: "Please enter supplier count" }]}
+              rules={[
+                { required: true, message: "Please enter supplier count" }
+              ]}
             >
               <InputNumber min={1} className="w-full" placeholder="25" />
             </Form.Item>
@@ -128,7 +148,9 @@ const IntermediaryForm: React.FC = () => {
             <Form.Item
               label="Primary Supplier Networks"
               name="supplierNetwork"
-              rules={[{ required: true, message: "Please enter supplier networks" }]}
+              rules={[
+                { required: true, message: "Please enter supplier networks" }
+              ]}
             >
               <Input.TextArea
                 rows={2}
@@ -143,7 +165,9 @@ const IntermediaryForm: React.FC = () => {
             <Form.Item
               label="Primary Buyer Types"
               name="buyerTypes"
-              rules={[{ required: true, message: "Please enter buyer types" }]}
+              rules={[
+                { required: true, message: "Please enter buyer types" }
+              ]}
             >
               <Select mode="multiple" placeholder="Select buyer types">
                 <Option value="exporters">Exporters</Option>
@@ -161,7 +185,9 @@ const IntermediaryForm: React.FC = () => {
             <Form.Item
               label="Upload Trading License"
               name="tradingLicenseDoc"
-              rules={[{ required: true, message: "Please upload trading license" }]}
+              rules={[
+                { required: true, message: "Please upload trading license" }
+              ]}
             >
               <Upload maxCount={1} accept=".pdf,.jpg,.png">
                 <Button icon={<UploadOutlined />}>Upload License</Button>
@@ -183,9 +209,14 @@ const IntermediaryForm: React.FC = () => {
             <Form.Item
               label="Trading Facility Address"
               name="tradingAddress"
-              rules={[{ required: true, message: "Please enter trading address" }]}
+              rules={[
+                { required: true, message: "Please enter trading address" }
+              ]}
             >
-              <Input.TextArea rows={2} placeholder="123 Trading Street, Market Area, Colombo" />
+              <Input.TextArea
+                rows={2}
+                placeholder="123 Trading Street, Market Area, Colombo"
+              />
             </Form.Item>
           </Col>
         </Row>
