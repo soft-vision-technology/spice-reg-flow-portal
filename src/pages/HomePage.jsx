@@ -1,15 +1,13 @@
 import React from "react";
 import { Typography, Card, Row, Col } from "antd";
 import LoginModal from "../components/layout/LoginModal";
-import FallingSpicesBackground from "../components/layout/FallingSpicesBackground";
 
 const { Title, Paragraph } = Typography;
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-spice-100 to-earth-100 relative overflow-hidden">
-      <FallingSpicesBackground />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div className="min-h-screen bg-gradient-to-br from-spice-100 to-earth-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-24">
           <div className="text-center mb-16">
             <Title className="text-4xl md:text-5xl lg:text-6xl font-bold text-earth-700">
@@ -21,7 +19,6 @@ const HomePage = () => {
               resources and connect with stakeholders.
             </Paragraph>
             
-            {/* Use the separated LoginModal component */}
             <LoginModal />
           </div>
 
