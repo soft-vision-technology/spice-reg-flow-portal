@@ -4,14 +4,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
-import SelectPage from "./pages/SelectPage";
-import StartingBusinessPage from "./pages/StartingBusinessPage";
 import ExistingBusinessPage from "./pages/ExistingBusinessPage";
 import ExporterPage from "./pages/ExporterPage";
 import IntermediaryPage from "./pages/IntermediaryPage";
 import ReportsPage from "./pages/ReportsPage";
 import NotFound from "./pages/NotFound";
 import { FormProvider } from "./contexts/FormContext";
+import HomePage from "./pages/HomePage";
+import SelectPage from "./pages/SelectPage";
+import StartingBusinessPage from "./pages/StartingBusinessPage";
 
 const queryClient = new QueryClient();
 

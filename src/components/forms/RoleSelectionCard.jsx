@@ -3,6 +3,7 @@ import { Card, Radio, Space, Button } from "antd";
 import { UserOutlined, GlobalOutlined, ShopOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../contexts/FormContext";
 
+
 const RoleSelectionCard = ({ onContinue }) => {
   const { role, setRole, status, setStatus } = useFormContext();
 

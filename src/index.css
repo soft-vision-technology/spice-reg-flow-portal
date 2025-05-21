@@ -109,11 +109,3 @@
     @apply bg-spice-500;
   }
 }
-
-
-@font-face {
-    font-family: 'Sugar and Spice HandSans';
-    src: url('/public/Sugar\ and\ Spice\ HandSans.ttf') format('truetype'); /* Correct format */
-    font-weight: normal;
-    font-style: normal;
-}
