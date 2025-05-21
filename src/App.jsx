@@ -1,6 +1,5 @@
 import { Toaster } from "sonner";
 import { Toaster as Sonner } from "sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
@@ -13,6 +12,7 @@ import { FormProvider } from "./contexts/FormContext";
 import HomePage from "./pages/HomePage";
 import SelectPage from "./pages/SelectPage";
 import StartingBusinessPage from "./pages/StartingBusinessPage";
+import { TooltipProvider } from "./components/ui/tooltip";
 
 const queryClient = new QueryClient();
 
