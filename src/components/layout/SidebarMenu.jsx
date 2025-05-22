@@ -9,6 +9,7 @@ import {
   BankOutlined,
   ShopOutlined,
   GlobalOutlined,
+  FileDoneOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useFormContext } from "../../contexts/FormContext";
@@ -68,7 +69,7 @@ const SidebarMenu = () => {
         </Menu.SubMenu>
       )}
 
-      <Menu.Item key="/reports" icon={<CheckCircleOutlined />}>
+      <Menu.Item key="/reports" icon={<FileDoneOutlined />}>
         <Link to="/reports">
           Reports
           <Badge count={0} className="ml-2" />

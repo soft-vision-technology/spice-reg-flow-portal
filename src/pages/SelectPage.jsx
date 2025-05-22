@@ -41,14 +41,14 @@ const SelectPage = () => {
         nic: formData.nic,
         address: formData.address,
         email: formData.email,
-        mobileNumber: formData.mobileNumber,
-        province: formData.province,
-        district: formData.district,
+        contactNumber: formData.mobileNumber,
+        provinceId: formData.province,
+        districtId: formData.district,
         dsDivision: formData.dsDivision,
         gnDivision: formData.gnDivision,
         // You might also want to include registration type and role
-        registrationType: registrationType,
-        role: role
+        businessStatus: 'EXISTING' || registrationType,
+        roleId: 2
       };
 
       // Dispatch the saveBasicInfo action

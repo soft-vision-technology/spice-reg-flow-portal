@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Button, Modal, Input, Checkbox, message } from "antd";
-import { RightOutlined } from "@ant-design/icons";
+import { Button, Modal, Input, Checkbox, message, Select, Divider } from "antd";
+import { RightOutlined, UserOutlined, LockOutlined, ShopOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -14,11 +14,12 @@ import {
   clearError
 } from "../../store/slices/authSlice";
 
+const { Option } = Select;
+
 const LoginModal = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // Get state from Redux store with proper fallbacks
   const {
     isModalOpen,
     email,
@@ -26,22 +27,17 @@ const LoginModal = () => {
     rememberMe,
     loading,
     error,
-    user,
-    isAuthenticated
   } = useSelector((state) => state.auth || {});
 
-  // Local state for validation errors
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // Handle login error
   useEffect(() => {
     if (error) {
       message.error(error);
     }
   }, [error]);
 
-  // Clear errors when modal closes
   useEffect(() => {
     if (!isModalOpen) {
       setEmailError('');
@@ -78,8 +74,8 @@ const LoginModal = () => {
     if (!password?.trim()) {
       setPasswordError('Please input your password!');
       return false;
-    } else if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters!');
+    } else if (password.length < 4) {
+      setPasswordError('Password must be at least 8 characters for security!');
       return false;
     }
     setPasswordError('');
@@ -94,12 +90,16 @@ const LoginModal = () => {
       try {
         await dispatch(loginUser({ 
           email: email.trim(), 
-          password: password.trim() 
+          password: password.trim(),
         })).unwrap();
         
-        // Close modal and navigate after successful login
         dispatch(hideModal());
+        
+
+        
         navigate('/select');
+        
+        message.success(`Welcome to Spice Industry Data System!`);
       } catch (err) {
         console.error('Login failed:', err);
       }
@@ -126,7 +126,6 @@ const LoginModal = () => {
     dispatch(setRememberMe(e.target.checked));
   };
 
-  // Handle Enter key press
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       handleSubmit();
@@ -141,17 +140,23 @@ const LoginModal = () => {
         size="large"
         className="mt-8 h-12 px-8 text-lg bg-spice-500 hover:bg-spice-600"
       >
-        Start Registration <RightOutlined />
+        Access Spice Data System <RightOutlined />
       </Button>
 
       <Modal
-        title="Login to Continue"
+        title={
+          <div className="flex items-center space-x-2">
+            <ShopOutlined className="text-spice-500" />
+            <span>Spice Industry Data Collection System</span>
+          </div>
+        }
         open={isModalOpen}
         onCancel={handleCancel}
         footer={null}
         centered
         maskClosable={false}
         keyboard={false}
+        width={450}
         styles={{ 
           backdropFilter: 'blur(8px)', 
           background: 'rgba(0, 0, 0, 0.5)' 
@@ -159,18 +164,28 @@ const LoginModal = () => {
         className="login-modal"
         destroyOnHidden={true}
       >
-        <div className="mt-4">
+        <div className="mt-6">
+          <div className="text-center mb-6">
+            <div className="text-sm text-gray-600">
+              Secure access for spice industry stakeholders
+            </div>
+          </div>
+
           <div className="mb-4">
-            <div className="mb-1 font-medium">Email</div>
+            <div className="mb-2 font-medium flex items-center">
+              <UserOutlined className="mr-2 text-spice-500" />
+              Email Address
+            </div>
             <Input 
               size="large" 
-              placeholder="Enter your email" 
+              placeholder="Enter your registered email" 
               value={email || ''}
               onChange={handleEmailChange}
               onKeyUp={handleKeyPress}
               status={emailError ? "error" : ""}
               disabled={loading}
               autoComplete="email"
+              prefix={<UserOutlined className="text-gray-400" />}
             />
             {emailError && (
               <div className="text-red-500 text-sm mt-1">{emailError}</div>
@@ -178,32 +193,36 @@ const LoginModal = () => {
           </div>
 
           <div className="mb-4">
-            <div className="mb-1 font-medium">Password</div>
+            <div className="mb-2 font-medium flex items-center">
+              <LockOutlined className="mr-2 text-spice-500" />
+              Password
+            </div>
             <Input.Password 
               size="large" 
-              placeholder="Enter your password" 
+              placeholder="Enter your secure password" 
               value={password || ''}
               onChange={handlePasswordChange}
               onKeyUp={handleKeyPress}
               status={passwordError ? "error" : ""}
               disabled={loading}
               name="password"
+              prefix={<LockOutlined className="text-gray-400" />}
             />
             {passwordError && (
               <div className="text-red-500 text-sm mt-1">{passwordError}</div>
             )}
           </div>
 
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-6">
             <Checkbox 
               checked={rememberMe || false}
               onChange={handleRememberMeChange}
               disabled={loading}
             >
-              Remember me
+              Keep me signed in
             </Checkbox>
             <a 
-              className="text-spice-500 hover:text-spice-600" 
+              className="text-spice-500 hover:text-spice-600 text-sm" 
               href="#"
               onClick={(e) => e.preventDefault()}
             >
@@ -216,13 +235,19 @@ const LoginModal = () => {
             onClick={handleSubmit}
             loading={loading}
             disabled={loading}
-            className="w-full bg-spice-500 hover:bg-spice-600 border-spice-500 h-10"
+            className="w-full bg-spice-500 hover:bg-spice-600 border-spice-500 h-12 text-base font-medium"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Authenticating...' : 'Access Data System'}
           </Button>
 
+          <Divider />
+
+          <div className="text-center text-xs text-gray-500">
+            Secure data collection system for the spice industry supply chain
+          </div>
+
           {error && (
-            <div className="text-red-500 text-sm mt-2 text-center">
+            <div className="text-red-500 text-sm mt-3 text-center bg-red-50 p-2 rounded">
               {error}
             </div>
           )}

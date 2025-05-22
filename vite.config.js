@@ -5,6 +5,7 @@ import path from "path";
 
 export default defineConfig(({ mode }) => ({
   server: {
+    host: true,
     port: 8083,
   },
   plugins: [
