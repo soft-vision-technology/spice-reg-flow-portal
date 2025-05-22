@@ -1,41 +1,72 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Modal, Input, Checkbox, message } from "antd";
 import { RightOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  showModal,
+  hideModal,
+  setEmail,
+  setPassword,
+  setRememberMe,
+  resetLoginForm,
+  loginUser,
+  clearError
+} from "../../store/slices/authSlice";
 
 const LoginModal = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  // Get state from Redux store with proper fallbacks
+  const {
+    isModalOpen,
+    email,
+    password,
+    rememberMe,
+    loading,
+    error,
+    user,
+    isAuthenticated
+  } = useSelector((state) => state.auth || {});
+
+  // Local state for validation errors
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const navigate = useNavigate();
 
-  const showModal = () => {
-    setIsModalOpen(true);
+  // Handle login error
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+    }
+  }, [error]);
+
+  // Clear errors when modal closes
+  useEffect(() => {
+    if (!isModalOpen) {
+      setEmailError('');
+      setPasswordError('');
+      dispatch(clearError());
+    }
+  }, [isModalOpen, dispatch]);
+
+  const handleShowModal = () => {
+    dispatch(showModal());
   };
 
   const handleCancel = () => {
-    setIsModalOpen(false);
-    resetForm();
-  };
-
-  const resetForm = () => {
-    setEmail('');
-    setPassword('');
+    dispatch(hideModal());
+    dispatch(resetLoginForm());
     setEmailError('');
     setPasswordError('');
-    setRememberMe(false);
   };
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
+    if (!email?.trim()) {
       setEmailError('Please input your email!');
       return false;
-    } else if (!re.test(email)) {
+    } else if (!re.test(email.trim())) {
       setEmailError('Please enter a valid email!');
       return false;
     }
@@ -44,36 +75,68 @@ const LoginModal = () => {
   };
 
   const validatePassword = (password) => {
-    if (!password) {
+    if (!password?.trim()) {
       setPasswordError('Please input your password!');
+      return false;
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters!');
       return false;
     }
     setPasswordError('');
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
 
     if (isEmailValid && isPasswordValid) {
-      setLoading(true);
-      // Simulate API call for login
-      setTimeout(() => {
-        setLoading(false);
-        message.success('Login successful!');
-        setIsModalOpen(false);
-        resetForm();
-        // Redirect to /select after successful login
+      try {
+        await dispatch(loginUser({ 
+          email: email.trim(), 
+          password: password.trim() 
+        })).unwrap();
+        
+        // Close modal and navigate after successful login
+        dispatch(hideModal());
         navigate('/select');
-      }, 1500);
+      } catch (err) {
+        console.error('Login failed:', err);
+      }
+    }
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    dispatch(setEmail(value));
+    if (emailError && value.trim()) {
+      setEmailError('');
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    dispatch(setPassword(value));
+    if (passwordError && value.trim()) {
+      setPasswordError('');
+    }
+  };
+
+  const handleRememberMeChange = (e) => {
+    dispatch(setRememberMe(e.target.checked));
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSubmit();
     }
   };
 
   return (
     <>
       <Button
-        onClick={showModal}
+        onClick={handleShowModal}
         type="primary"
         size="large"
         className="mt-8 h-12 px-8 text-lg bg-spice-500 hover:bg-spice-600"
@@ -81,15 +144,20 @@ const LoginModal = () => {
         Start Registration <RightOutlined />
       </Button>
 
-      {/* Modal Overlay with Blur Effect */}
       <Modal
         title="Login to Continue"
         open={isModalOpen}
         onCancel={handleCancel}
         footer={null}
         centered
-        maskStyle={{ backdropFilter: 'blur(8px)', background: 'rgba(0, 0, 0, 0.5)' }}
+        maskClosable={false}
+        keyboard={false}
+        styles={{ 
+          backdropFilter: 'blur(8px)', 
+          background: 'rgba(0, 0, 0, 0.5)' 
+        }}
         className="login-modal"
+        destroyOnHidden={true}
       >
         <div className="mt-4">
           <div className="mb-4">
@@ -97,11 +165,16 @@ const LoginModal = () => {
             <Input 
               size="large" 
               placeholder="Enter your email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={email || ''}
+              onChange={handleEmailChange}
+              onKeyUp={handleKeyPress}
               status={emailError ? "error" : ""}
+              disabled={loading}
+              autoComplete="email"
             />
-            {emailError && <div className="text-red-500 text-sm mt-1">{emailError}</div>}
+            {emailError && (
+              <div className="text-red-500 text-sm mt-1">{emailError}</div>
+            )}
           </div>
 
           <div className="mb-4">
@@ -109,21 +182,31 @@ const LoginModal = () => {
             <Input.Password 
               size="large" 
               placeholder="Enter your password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={password || ''}
+              onChange={handlePasswordChange}
+              onKeyUp={handleKeyPress}
               status={passwordError ? "error" : ""}
+              disabled={loading}
+              name="password"
             />
-            {passwordError && <div className="text-red-500 text-sm mt-1">{passwordError}</div>}
+            {passwordError && (
+              <div className="text-red-500 text-sm mt-1">{passwordError}</div>
+            )}
           </div>
 
           <div className="flex justify-between items-center mb-4">
             <Checkbox 
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
+              checked={rememberMe || false}
+              onChange={handleRememberMeChange}
+              disabled={loading}
             >
               Remember me
             </Checkbox>
-            <a className="text-spice-500 hover:text-spice-600" href="#">
+            <a 
+              className="text-spice-500 hover:text-spice-600" 
+              href="#"
+              onClick={(e) => e.preventDefault()}
+            >
               Forgot password?
             </a>
           </div>
@@ -132,10 +215,17 @@ const LoginModal = () => {
             type="primary"
             onClick={handleSubmit}
             loading={loading}
+            disabled={loading}
             className="w-full bg-spice-500 hover:bg-spice-600 border-spice-500 h-10"
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </Button>
+
+          {error && (
+            <div className="text-red-500 text-sm mt-2 text-center">
+              {error}
+            </div>
+          )}
         </div>
       </Modal>
     </>

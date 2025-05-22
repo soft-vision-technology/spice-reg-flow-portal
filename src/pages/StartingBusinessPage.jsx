@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { Steps, Button, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import BasicInfoForm from "../components/forms/BasicInfoForm";
 import EntrepreneurForm from "../components/forms/EntrepreneurForm";
 import { useFormContext } from "../contexts/FormContext";
 
@@ -21,10 +20,10 @@ const StartingBusinessPage = () => {
   }, [role, status, navigate]);
 
   const steps = [
-    {
-      title: "Personal Information",
-      content: <BasicInfoForm />,
-    },
+    // {
+    //   title: "Personal Information",
+    //   content: <BasicInfoForm />,
+    // },
     {
       title: "Business Plan",
       content: <EntrepreneurForm isExisting={false} />,

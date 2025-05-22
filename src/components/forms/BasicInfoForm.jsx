@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import { Form, Input, Select, Col, Row } from "antd";
 import { useFormContext } from "../../contexts/FormContext";
 import { provinces, districts } from "../../constants/locations";
+import { updateBasicInfo, saveBasicInfo, fetchBasicInfo } from "../../store/slices/basicInfoSlice";
+import { useDispatch } from "react-redux";
 
 const { Option } = Select;
 
 const BasicInfoForm = () => {
+  const dispatch = useDispatch();
   const { updateFormData } = useFormContext();
   const [selectedProvince, setSelectedProvince] = useState(null);
 
