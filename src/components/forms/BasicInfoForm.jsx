@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Form, Input, DatePicker, Select, Col, Row } from "antd";
+import { Form, Input, Select, Col, Row } from "antd";
 import { useFormContext } from "../../contexts/FormContext";
-import { provinces, districts } from "../../constants/locations";// Adjust the import path as necessary
+import { provinces, districts } from "../../constants/locations";
 
 const { Option } = Select;
 
@@ -12,7 +12,7 @@ const BasicInfoForm = () => {
   const handleProvinceChange = (value) => {
     setSelectedProvince(value);
   };
-  
+
   const filteredDistricts = districts.filter(
     (d) => d.province_id === selectedProvince
   );
@@ -27,6 +27,33 @@ const BasicInfoForm = () => {
         Basic Information
       </h3>
       <Form layout="vertical" onValuesChange={handleChange}>
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Title"
+              name="title"
+              rules={[{ required: true, message: "Please select your title" }]}
+            >
+              <Select placeholder="Select title">
+                <Option value="mr">Mr.</Option>
+                <Option value="miss">Miss</Option>
+                <Option value="mrs">Mrs.</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Initials"
+              name="initials"
+              rules={[
+                { required: true, message: "Please enter your initials" },
+              ]}
+            >
+              <Input placeholder="T. N." />
+            </Form.Item>
+          </Col>
+        </Row>
+
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
@@ -52,33 +79,6 @@ const BasicInfoForm = () => {
               ]}
             >
               <Input placeholder="123456789V or 123456789012" />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Date of Birth"
-              name="dob"
-              rules={[
-                { required: true, message: "Please select your date of birth" },
-              ]}
-            >
-              <DatePicker className="w-full" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Gender"
-              name="gender"
-              rules={[{ required: true, message: "Please select your gender" }]}
-            >
-              <Select placeholder="Select gender">
-                <Option value="male">Male</Option>
-                <Option value="female">Female</Option>
-                <Option value="other">Other</Option>
-              </Select>
             </Form.Item>
           </Col>
         </Row>
@@ -124,6 +124,7 @@ const BasicInfoForm = () => {
             </Form.Item>
           </Col>
         </Row>
+        
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
@@ -168,47 +169,28 @@ const BasicInfoForm = () => {
             </Form.Item>
           </Col>
         </Row>
+        
         <Row gutter={16}>
           <Col xs={24} sm={12}>
-            <Form.Item
-              label="Province"
-              name="province"
+            <Form.Item 
+              label="DS Division" 
+              name="dsDivision"
               rules={[
-                { required: true, message: "Please select your province" },
+                { required: true, message: "Please enter your DS Division" },
               ]}
             >
-              <Select
-                placeholder="Select province"
-                onChange={handleProvinceChange}
-                allowClear
-              >
-                {provinces.map((province) => (
-                  <Option key={province.id} value={province.id}>
-                    {province.name}
-                  </Option>
-                ))}
-              </Select>
+              <Input placeholder="Gampaha" />
             </Form.Item>
           </Col>
-
           <Col xs={24} sm={12}>
-            <Form.Item
-              label="District"
-              name="district"
+            <Form.Item 
+              label="GN Division" 
+              name="gnDivision"
               rules={[
-                { required: true, message: "Please select your district" },
+                { required: true, message: "Please enter your GN Division" },
               ]}
             >
-              <Select
-                placeholder="Select district"
-                disabled={!selectedProvince}
-              >
-                {filteredDistricts.map((district) => (
-                  <Option key={district.id} value={district.id}>
-                    {district.name}
-                  </Option>
-                ))}
-              </Select>
+              <Input placeholder="Ethgala" />
             </Form.Item>
           </Col>
         </Row>

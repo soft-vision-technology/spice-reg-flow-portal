@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Steps, Button, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import BasicInfoForm from "../components/forms/BasicInfoForm";
@@ -9,11 +9,11 @@ const { Step } = Steps;
 
 const StartingBusinessPage = () => {
   const navigate = useNavigate();
-  const { role, status, formData } = useFormContext();
+  const { registrationType, role, formData } = useFormContext();
   const [current, setCurrent] = React.useState(0);
 
   // Redirect if no role or status is selected
-  React.useEffect(() => {
+  useEffect(() => {
     if (role === "" || status === "") {
       navigate("/select");
       message.warning("Please select your role and status first");

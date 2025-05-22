@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Steps, Button, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import BasicInfoForm from "../components/forms/BasicInfoForm";
 import IntermediaryForm from "../components/forms/IntermediaryForm";
 import { useFormContext } from "../contexts/FormContext";
 
@@ -9,21 +8,30 @@ const { Step } = Steps;
 
 const IntermediaryPage = () => {
   const navigate = useNavigate();
-  const { role, status, formData } = useFormContext();
+  const { registrationType, role, formData } = useFormContext();
   const [current, setCurrent] = React.useState(0);
 
-  React.useEffect(() => {
-    if (role === "" || status === "" || role !== "intermediary" || status !== "existing") {
+  useEffect(() => {
+    if (!registrationType ||  !role || role !== "intermediary") {
       navigate("/select");
       message.warning("Please select the intermediary trader role and existing business status first");
     }
-  }, [role, status, navigate]);
+
+    const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
+        if (!hasBasicInfo) {
+          navigate("/select");
+          message.warning("Please complete your basic information first");
+          return;
+        }
+  }, [registrationType, role, formData, navigate]);
+
+  const isExistingBusiness = registrationType === "have-business";
 
   const steps = [
-    {
-      title: "Personal Information",
-      content: <BasicInfoForm />,
-    },
+    // {
+    //   title: "Personal Information",
+    //   content: <BasicInfoForm />,
+    // },
     {
       title: "Trading Information",
       content: <IntermediaryForm />,

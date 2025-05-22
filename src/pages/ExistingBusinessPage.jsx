@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Steps, Button, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import BasicInfoForm from "../components/forms/BasicInfoForm";
 import EntrepreneurForm from "../components/forms/EntrepreneurForm";
 import { useFormContext } from "../contexts/FormContext";
 
@@ -9,21 +8,31 @@ const { Step } = Steps;
 
 const ExistingBusinessPage = () => {
   const navigate = useNavigate();
-  const { role, status, formData } = useFormContext();
+  const { registrationType, role, formData } = useFormContext();
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    if (role === "" || status === "" || role !== "entrepreneur" || status !== "existing") {
+    if (!registrationType || !role || role !=="entrepreneur") {
       navigate("/select");
-      message.warning("Please select the entrepreneur role and existing business status first");
+      message.warning("Please complete the registration selection first");
+      return;
     }
-  }, [role, status, navigate]);
+
+    const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
+        if (!hasBasicInfo) {
+          navigate("/select");
+          message.warning("Please complete your basic information first");
+          return;
+        }
+  }, [registrationType, role, formData, navigate]);
+
+  const isExistingBusiness = registrationType === "have-business";
 
   const steps = [
-    {
-      title: "Personal Information",
-      content: <BasicInfoForm />,
-    },
+    // {
+    //   title: "Personal Information",
+    //   content: <BasicInfoForm />,
+    // },
     {
       title: "Business Information",
       content: <EntrepreneurForm isExisting={true} />,

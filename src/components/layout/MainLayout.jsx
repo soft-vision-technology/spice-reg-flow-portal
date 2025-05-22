@@ -7,7 +7,7 @@ import SidebarMenu from "./SidebarMenu"
 const { Header, Content, Sider } = Layout;
 
 const MainLayout = ({ children }) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const location = useLocation();
 
   // Hide sidebar on home page
