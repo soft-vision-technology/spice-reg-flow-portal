@@ -168,6 +168,50 @@ const BasicInfoForm = () => {
             </Form.Item>
           </Col>
         </Row>
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Province"
+              name="province"
+              rules={[
+                { required: true, message: "Please select your province" },
+              ]}
+            >
+              <Select
+                placeholder="Select province"
+                onChange={handleProvinceChange}
+                allowClear
+              >
+                {provinces.map((province) => (
+                  <Option key={province.id} value={province.id}>
+                    {province.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="District"
+              name="district"
+              rules={[
+                { required: true, message: "Please select your district" },
+              ]}
+            >
+              <Select
+                placeholder="Select district"
+                disabled={!selectedProvince}
+              >
+                {filteredDistricts.map((district) => (
+                  <Option key={district.id} value={district.id}>
+                    {district.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
       </Form>
     </div>
   );
