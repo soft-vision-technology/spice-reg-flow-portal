@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Button, Modal, Input, Checkbox, message, Select, Divider } from "antd";
+import { useState, useEffect } from "react";
+import { Button, Modal, Input, Checkbox, message, Divider } from "antd";
 import { RightOutlined, UserOutlined, LockOutlined, ShopOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,8 +13,6 @@ import {
   loginUser,
   clearError
 } from "../../store/slices/authSlice";
-
-const { Option } = Select;
 
 const LoginModal = () => {
   const dispatch = useDispatch();
@@ -74,7 +72,7 @@ const LoginModal = () => {
     if (!password?.trim()) {
       setPasswordError('Please input your password!');
       return false;
-    } else if (password.length < 4) {
+    } else if (password.length < 8) {
       setPasswordError('Password must be at least 8 characters for security!');
       return false;
     }
@@ -202,7 +200,7 @@ const LoginModal = () => {
               placeholder="Enter your secure password" 
               value={password || ''}
               onChange={handlePasswordChange}
-              onKeyUp={handleKeyPress}
+              onKeyDown={handleKeyPress}
               status={passwordError ? "error" : ""}
               disabled={loading}
               name="password"

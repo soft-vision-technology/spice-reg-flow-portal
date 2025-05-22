@@ -2,6 +2,7 @@ import React from "react";
 import { Form, Input, Select, InputNumber, DatePicker, Upload, Button, Row, Col, Checkbox } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../contexts/FormContext";
+import { useDispatch } from "react-redux";
 
 
 
@@ -35,6 +36,7 @@ const spiceProductOptions = [
 ];
 
 const EntrepreneurForm = (props) => {
+  const dispatch = useDispatch();
   const { isExisting } = props;
   const { updateFormData } = useFormContext();
 

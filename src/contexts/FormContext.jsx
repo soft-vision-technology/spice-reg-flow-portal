@@ -3,9 +3,9 @@ import React, { createContext, useContext, useState } from "react";
 const FormContext = createContext(undefined);
 
 export const FormProvider = ({ children }) => {
-  const [registrationType, setRegistrationType] = useState(""); // "like-to-start" or "have-business"
+  const [registrationType, setRegistrationType] = useState("");
   const [role, setRole] = useState("");
-  const [status, setStatus] = useState(""); // Keep this for backward compatibility if needed
+  const [status, setStatus] = useState("");
   const [formData, setFormData] = useState({});
 
   const updateFormData = (newData) => {

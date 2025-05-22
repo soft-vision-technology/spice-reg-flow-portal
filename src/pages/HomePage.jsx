@@ -27,14 +27,11 @@ const HomePage = () => {
                 className="h-full border-0 shadow-md rounded-xl hover:shadow-lg transition-shadow"
                 cover={
                   <div className="h-40 bg-gradient-to-br from-spice-400 to-spice-600 rounded-t-xl flex items-center justify-center">
-                    <img
+                    <img loading="lazy"
                       src="/src/assets/adult-nature-coffee-harvesting.jpg"
                       alt="Spice exports illustration"
                       className="w-full h-40 object-cover rounded-t-xl"
                     />
-                    {/* <span className="text-4xl absolute top-2 left-2 z-10">
-                      🌱
-                    </span> */}
                   </div>
                 }
               >
@@ -53,14 +50,11 @@ const HomePage = () => {
                 className="h-full border-0 shadow-md rounded-xl hover:shadow-lg transition-shadow"
                 cover={
                   <div className="h-40 bg-gradient-to-br from-earth-400 to-earth-600 rounded-t-xl relative">
-                    <img
+                    <img loading="lazy"
                       src="/src/assets/spices-near-pan.jpg"
                       alt="Spice exports illustration"
                       className="w-full h-40 object-cover rounded-t-xl"
                     />
-                    {/* <span className="text-4xl absolute top-2 left-2 z-10">
-                      🌍
-                    </span> */}
                   </div>
                 }
               >
@@ -80,14 +74,11 @@ const HomePage = () => {
                 className="h-full border-0 shadow-md rounded-xl hover:shadow-lg transition-shadow"
                 cover={
                   <div className="h-40 bg-gradient-to-br from-leaf-400 to-leaf-600 rounded-t-xl flex items-center justify-center">
-                    <img
+                    <img loading="lazy"
                       src="/src/assets/openair-market-with-traders-selling-spices-herbs-aromatic-colorful.jpg"
                       alt="Spice exports illustration"
                       className="w-full h-40 object-cover rounded-t-xl"
                     />
-                    {/* <span className="text-4xl absolute top-2 left-2 z-10">
-                      🤝
-                    </span> */}
                   </div>
                 }
               >

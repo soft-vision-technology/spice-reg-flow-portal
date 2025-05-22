@@ -139,6 +139,7 @@ const RoleSelectionCard = ({ onContinue }) => {
 
   const handleRegistrationTypeChange = (e) => {
     const newType = e.target.value;
+    console.log('Registration Type Changed:', newType); // Debug log
     setRegistrationType(newType);
     
     // Reset role when registration type changes
@@ -146,13 +147,34 @@ const RoleSelectionCard = ({ onContinue }) => {
     
     // If "Like to start" is selected, automatically set role to "exporter"
     if (newType === "like-to-start") {
+      console.log('Auto-setting role to exporter'); // Debug log
       setRole("exporter");
     }
   };
 
   const handleRoleChange = (e) => {
-    setRole(e.target.value);
+    const newRole = e.target.value;
+    console.log('Role Changed:', newRole); // Debug log
+    setRole(newRole);
   };
+
+  // Add useEffect hooks for debugging state changes
+  React.useEffect(() => {
+    console.log('Current Registration Type:', registrationType);
+  }, [registrationType]);
+
+  React.useEffect(() => {
+    console.log('Current Role:', role);
+  }, [role]);
+
+  React.useEffect(() => {
+    console.log('Can Continue:', canContinue, {
+      isRegistrationTypeSelected,
+      isRoleSelected,
+      registrationType,
+      role
+    });
+  }, [registrationType, role]);
 
   const isRegistrationTypeSelected = registrationType !== "";
   const isRoleSelected = role !== "";
@@ -162,6 +184,20 @@ const RoleSelectionCard = ({ onContinue }) => {
   const canContinue = isRegistrationTypeSelected && 
     (registrationType === "like-to-start" || 
      (registrationType === "have-business" && isRoleSelected));
+
+  // Add debug display in development environment
+  const DebugInfo = () => {
+    if (process.env.NODE_ENV !== 'development') return null;
+    
+    return (
+      <div className="mt-4 p-2 bg-gray-100 rounded text-xs font-mono">
+        <div>Debug Info:</div>
+        <div>Registration Type: {registrationType || 'none'}</div>
+        <div>Role: {role || 'none'}</div>
+        <div>Can Continue: {canContinue.toString()}</div>
+      </div>
+    );
+  };
 
   return (
     <Card className="shadow-md rounded-lg border-0 max-w-lg mx-auto">
@@ -275,6 +311,9 @@ const RoleSelectionCard = ({ onContinue }) => {
             Continue
           </Button>
         )}
+
+        {/* Add DebugInfo component before the end of the card */}
+        <DebugInfo />
       </div>
     </Card>
   );

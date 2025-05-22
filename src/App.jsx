@@ -1,5 +1,4 @@
 import { Toaster } from "sonner";
-import { Toaster as Sonner } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
@@ -21,7 +20,6 @@ const App = () => (
     <TooltipProvider>
       <FormProvider>
         <Toaster />
-        <Sonner />
         <BrowserRouter>
           <MainLayout>
             <Routes>

@@ -15,8 +15,12 @@ const SelectPage = () => {
 
   const handleContinue = async () => {
     // Check if basic info is filled
-    const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
-    
+    const hasBasicInfo =
+      formData.fullName &&
+      formData.email &&
+      formData.mobileNumber &&
+      formData.nic;
+
     if (!hasBasicInfo) {
       message.error("Please complete all required basic information fields.");
       return;
@@ -47,13 +51,14 @@ const SelectPage = () => {
         dsDivision: formData.dsDivision,
         gnDivision: formData.gnDivision,
         // You might also want to include registration type and role
-        businessStatus: 'EXISTING' || registrationType,
-        roleId: 2
+        businessStatus:
+          registrationType === "have-business" ? "EXISTING" : "NEW",
+        roleId: 2,
       };
 
       // Dispatch the saveBasicInfo action
       const result = await dispatch(saveBasicInfo(basicInfoData)).unwrap();
-      
+
       // Show success message
       message.success("Basic information saved successfully!");
 
@@ -67,17 +72,25 @@ const SelectPage = () => {
           navigate("/export-form");
         } else if (role === "intermediary") {
           navigate("/intermediary-form");
+        } else {
+          message.error("Unsupported role selected. Please contact admin.");
         }
       }
     } catch (error) {
       // Handle API errors
       console.error("Error saving basic info:", error);
-      message.error(error?.message || "Failed to save basic information. Please try again.");
+      message.error(
+        error?.message || "Failed to save basic information. Please try again."
+      );
     }
   };
 
   // Check if all required fields are completed
-  const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
+  const hasBasicInfo =
+    formData.fullName &&
+    formData.email &&
+    formData.mobileNumber &&
+    formData.nic;
   const hasRegistrationInfo = registrationType !== "" && role !== "";
   const canContinue = hasBasicInfo && hasRegistrationInfo;
 
@@ -88,7 +101,8 @@ const SelectPage = () => {
           Complete Your Registration
         </h1>
         <p className="text-gray-600 text-center">
-          Please provide your information and select your registration preferences
+          Please provide your information and select your registration
+          preferences
         </p>
       </div>
 
@@ -125,12 +139,28 @@ const SelectPage = () => {
       {/* Progress indicator */}
       <div className="mt-8 text-center">
         <div className="flex justify-center items-center space-x-4 text-sm text-gray-500">
-          <div className={`flex items-center ${hasRegistrationInfo ? 'text-green-600' : 'text-gray-400'}`}>
-            <span className={`w-4 h-4 rounded-full mr-2 ${hasRegistrationInfo ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+          <div
+            className={`flex items-center ${
+              hasRegistrationInfo ? "text-green-600" : "text-gray-400"
+            }`}
+          >
+            <span
+              className={`w-4 h-4 rounded-full mr-2 ${
+                hasRegistrationInfo ? "bg-green-500" : "bg-gray-300"
+              }`}
+            ></span>
             Registration Type
           </div>
-          <div className={`flex items-center ${hasBasicInfo ? 'text-green-600' : 'text-gray-400'}`}>
-            <span className={`w-4 h-4 rounded-full mr-2 ${hasBasicInfo ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+          <div
+            className={`flex items-center ${
+              hasBasicInfo ? "text-green-600" : "text-gray-400"
+            }`}
+          >
+            <span
+              className={`w-4 h-4 rounded-full mr-2 ${
+                hasBasicInfo ? "bg-green-500" : "bg-gray-300"
+              }`}
+            ></span>
             Basic Information
           </div>
         </div>
