@@ -29,13 +29,9 @@ const ExistingBusinessPage = () => {
   const isExistingBusiness = registrationType === "have-business";
 
   const steps = [
-    // {
-    //   title: "Personal Information",
-    //   content: <BasicInfoForm />,
-    // },
     {
       title: "Business Information",
-      content: <EntrepreneurForm isExisting={true} />,
+      content: <EntrepreneurForm isExisting={isExistingBusiness} />,
     },
   ];
 

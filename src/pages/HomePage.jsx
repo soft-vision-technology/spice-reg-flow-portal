@@ -18,7 +18,6 @@ const HomePage = () => {
               services in our comprehensive industry database to access
               resources and connect with stakeholders.
             </Paragraph>
-            
             <LoginModal />
           </div>
 

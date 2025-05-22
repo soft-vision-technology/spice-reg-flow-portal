@@ -14,7 +14,7 @@ const StartingBusinessPage = () => {
 
   // Redirect if no role or status is selected
   useEffect(() => {
-    if (role === "" || status === "") {
+    if (!registrationType) {
       navigate("/select");
       message.warning("Please select your role and status first");
     }

@@ -18,13 +18,13 @@ const MainLayout = ({ children }) => {
   };
 
   return (
-    <Layout className="min-h-screen">
+    <Layout className="h-screen overflow-hidden">
       {!isHomePage && (
         <Sider
           trigger={null}
           collapsible
           collapsed={collapsed}
-          className="bg-sidebar"
+          className="bg-sidebar overflow-y-auto"
           width={250}
           breakpoint="lg"
           onBreakpoint={(broken) => {
@@ -33,17 +33,19 @@ const MainLayout = ({ children }) => {
             }
           }}
         >
-          <div className="p-4 h-16 flex items-center justify-center">
+          <div className="p-4 h-16 flex items-center justify-center flex-shrink-0">
             <h1 className={`text-spice-500 font-bold ${collapsed ? 'text-xl' : 'text-2xl'}`}>
               {collapsed ? 'SC' : 'SpiceConnect'}
             </h1>
           </div>
-          <SidebarMenu />
+          <div className="flex-1 overflow-y-auto">
+            <SidebarMenu />
+          </div>
         </Sider>
       )}
-      <Layout>
+      <Layout className="flex flex-col h-full">
         {!isHomePage && (
-          <Header className="p-0 bg-white border-b border-gray-200 flex items-center">
+          <Header className="p-0 bg-white border-b border-gray-200 flex items-center flex-shrink-0">
             <div onClick={toggle} className="px-6 h-16 flex items-center cursor-pointer">
               {collapsed ? <MenuUnfoldOutlined className="text-xl" /> : <MenuFoldOutlined className="text-xl" />}
             </div>
@@ -52,7 +54,7 @@ const MainLayout = ({ children }) => {
             </div>
           </Header>
         )}
-        <Content className={isHomePage ? "" : "p-6"}>
+        <Content className={`flex-1 overflow-y-auto ${isHomePage ? "" : "p-6"}`}>
           <div>{children}</div>
         </Content>
       </Layout>

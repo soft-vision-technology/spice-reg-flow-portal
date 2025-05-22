@@ -111,7 +111,7 @@ const EntrepreneurForm = (props) => {
         </Row>
 
         <Row gutter={16}>
-          <Col xs={24} sm={isExisting ? 8 : 12}>
+          <Col xs={24} sm={12}>
             <Form.Item
               label="Business Experience"
               name="businessExperience"
@@ -120,7 +120,7 @@ const EntrepreneurForm = (props) => {
               <Select placeholder="Select experience level" options={businessExperienceOptions} />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={isExisting ? 8 : 12}>
+          <Col xs={24} sm={12}>
             <Form.Item
               label={isExisting ? "Number of Employees" : "Expected Employees"}
               name="numberOfEmployees"
@@ -129,22 +129,6 @@ const EntrepreneurForm = (props) => {
               <Select placeholder="Select count" options={numberOfEmployeeOptions} />
             </Form.Item>
           </Col>
-          {isExisting && (
-            <Col xs={24} sm={8}>
-              <Form.Item
-                label="Annual Revenue (LKR)"
-                name="annualRevenue"
-                rules={[{ required: true, message: "Please enter annual revenue" }]}
-              >
-                <InputNumber
-                  className="w-full"
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
-                  placeholder="1,000,000"
-                />
-              </Form.Item>
-            </Col>
-          )}
         </Row>
 
         <Row gutter={16}>
