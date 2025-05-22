@@ -1,15 +1,19 @@
 import React from "react";
 import { Button, message, Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import BasicInfoForm from "../components/forms/BasicInfoForm";
 import RoleSelectionCard from "../components/forms/RoleSelectionCard";
 import { useFormContext } from "../contexts/FormContext";
+import { saveBasicInfo } from "../store/slices/basicInfoSlice";
 
 const SelectPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { registrationType, role, formData } = useFormContext();
+  const { loading, error } = useSelector((state) => state.basicInfo);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     // Check if basic info is filled
     const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
     
@@ -28,17 +32,47 @@ const SelectPage = () => {
       return;
     }
 
-    // Navigate based on registration type and role combination
-    if (registrationType === "like-to-start") {
-      navigate("/like-to-start");
-    } else if (registrationType === "have-business") {
-      if (role === "entrepreneur") {
-        navigate("/have-business");
-      } else if (role === "exporter") {
-        navigate("/export-form");
-      } else if (role === "intermediary") {
-        navigate("/intermediary-form");
+    try {
+      // Prepare the data to send to API
+      const basicInfoData = {
+        title: formData.title,
+        initials: formData.initials,
+        name: formData.fullName,
+        nic: formData.nic,
+        address: formData.address,
+        email: formData.email,
+        mobileNumber: formData.mobileNumber,
+        province: formData.province,
+        district: formData.district,
+        dsDivision: formData.dsDivision,
+        gnDivision: formData.gnDivision,
+        // You might also want to include registration type and role
+        registrationType: registrationType,
+        role: role
+      };
+
+      // Dispatch the saveBasicInfo action
+      const result = await dispatch(saveBasicInfo(basicInfoData)).unwrap();
+      
+      // Show success message
+      message.success("Basic information saved successfully!");
+
+      // Navigate based on registration type and role combination
+      if (registrationType === "like-to-start") {
+        navigate("/like-to-start");
+      } else if (registrationType === "have-business") {
+        if (role === "entrepreneur") {
+          navigate("/have-business");
+        } else if (role === "exporter") {
+          navigate("/export-form");
+        } else if (role === "intermediary") {
+          navigate("/intermediary-form");
+        }
       }
+    } catch (error) {
+      // Handle API errors
+      console.error("Error saving basic info:", error);
+      message.error(error?.message || "Failed to save basic information. Please try again.");
     }
   };
 
@@ -81,16 +115,17 @@ const SelectPage = () => {
           size="large"
           onClick={handleContinue}
           disabled={!canContinue}
+          loading={loading}
           className="bg-spice-500 hover:bg-spice-600 px-12 py-2 h-12 text-lg"
         >
-          Continue to Next Step
+          {loading ? "Saving..." : "Continue to Next Step"}
         </Button>
       </div>
 
       {/* Progress indicator */}
       <div className="mt-8 text-center">
         <div className="flex justify-center items-center space-x-4 text-sm text-gray-500">
-        <div className={`flex items-center ${hasRegistrationInfo ? 'text-green-600' : 'text-gray-400'}`}>
+          <div className={`flex items-center ${hasRegistrationInfo ? 'text-green-600' : 'text-gray-400'}`}>
             <span className={`w-4 h-4 rounded-full mr-2 ${hasRegistrationInfo ? 'bg-green-500' : 'bg-gray-300'}`}></span>
             Registration Type
           </div>

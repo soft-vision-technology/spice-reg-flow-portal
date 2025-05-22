@@ -1,12 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../../api/axiosInstance';
 
-// Async thunk for login
 export const loginUser = createAsyncThunk(
-  'auth/loginUser', // Fixed: changed from 'login/loginUser' to match slice name
+  'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.post('/api/auth/login', { email, password });
+      console.log(response.data);
+      localStorage.setItem('token', response.data?.token);
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Login failed');
@@ -17,7 +18,7 @@ export const loginUser = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    isModalOpen: false, // Fixed: changed from true to false (modal should be closed by default)
+    isModalOpen: false, 
     email: '',
     password: '',
     rememberMe: false,
