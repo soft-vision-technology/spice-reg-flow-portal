@@ -136,15 +136,6 @@ const LoginModal = () => {
           >
             Login
           </Button>
-
-          <div className="text-center mt-4">
-            <p>
-              Don't have an account?{' '}
-              <a className="text-spice-500 hover:text-spice-600" href="#">
-                Register now
-              </a>
-            </p>
-          </div>
         </div>
       </Modal>
     </>

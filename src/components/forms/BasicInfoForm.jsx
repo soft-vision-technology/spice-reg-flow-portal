@@ -1,11 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { Form, Input, DatePicker, Select, Col, Row } from "antd";
 import { useFormContext } from "../../contexts/FormContext";
+import { provinces, districts } from "../../constants/locations";// Adjust the import path as necessary
 
 const { Option } = Select;
 
 const BasicInfoForm = () => {
   const { updateFormData } = useFormContext();
+  const [selectedProvince, setSelectedProvince] = useState(null);
+
+  const handleProvinceChange = (value) => {
+    setSelectedProvince(value);
+  };
+  
+  const filteredDistricts = districts.filter(
+    (d) => d.province_id === selectedProvince
+  );
 
   const handleChange = (_, allValues) => {
     updateFormData(allValues);
@@ -13,14 +23,18 @@ const BasicInfoForm = () => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
-      <h3 className="text-xl font-medium text-earth-700 mb-6">Basic Information</h3>
+      <h3 className="text-xl font-medium text-earth-700 mb-6">
+        Basic Information
+      </h3>
       <Form layout="vertical" onValuesChange={handleChange}>
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
               label="Full Name"
               name="fullName"
-              rules={[{ required: true, message: "Please enter your full name" }]}
+              rules={[
+                { required: true, message: "Please enter your full name" },
+              ]}
             >
               <Input placeholder="John Doe" />
             </Form.Item>
@@ -47,7 +61,9 @@ const BasicInfoForm = () => {
             <Form.Item
               label="Date of Birth"
               name="dob"
-              rules={[{ required: true, message: "Please select your date of birth" }]}
+              rules={[
+                { required: true, message: "Please select your date of birth" },
+              ]}
             >
               <DatePicker className="w-full" />
             </Form.Item>
@@ -105,6 +121,50 @@ const BasicInfoForm = () => {
               ]}
             >
               <Input placeholder="0712345678" />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Province"
+              name="province"
+              rules={[
+                { required: true, message: "Please select your province" },
+              ]}
+            >
+              <Select
+                placeholder="Select province"
+                onChange={handleProvinceChange}
+                allowClear
+              >
+                {provinces.map((province) => (
+                  <Option key={province.id} value={province.id}>
+                    {province.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="District"
+              name="district"
+              rules={[
+                { required: true, message: "Please select your district" },
+              ]}
+            >
+              <Select
+                placeholder="Select district"
+                disabled={!selectedProvince}
+              >
+                {filteredDistricts.map((district) => (
+                  <Option key={district.id} value={district.id}>
+                    {district.name}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
           </Col>
         </Row>
