@@ -21,7 +21,7 @@ import {
   selectExperienceOptions,
   selectCertificateOptions,
   selectNumEmployeeOptions,
-} from "../../store/slices/utilSlice";
+} from "../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
 
