@@ -12,6 +12,7 @@ import HomePage from "./pages/HomePage";
 import SelectPage from "./pages/SelectPage";
 import StartingBusinessPage from "./pages/StartingBusinessPage";
 import { TooltipProvider } from "./components/ui/tooltip";
+import ProductPage from "./pages/ProductPage";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
               <Route path="/have-business" element={<ExistingBusinessPage />} />
               <Route path="/export-form" element={<ExporterPage />} />
               <Route path="/intermediary-form" element={<IntermediaryPage />} />
+              <Route path="/products" element={<ProductPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

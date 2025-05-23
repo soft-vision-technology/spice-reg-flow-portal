@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, message, Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,6 +12,9 @@ const SelectPage = () => {
   const dispatch = useDispatch();
   const { registrationType, role, formData } = useFormContext();
   const { loading, error } = useSelector((state) => state.basicInfo);
+const [roleId,setRoleId]=useState(3)
+
+// console.log(roleId)
 
   const handleContinue = async () => {
     // Check if basic info is filled
@@ -52,22 +55,23 @@ const SelectPage = () => {
         gnDivision: formData.gnDivision,
         // You might also want to include registration type and role
         businessStatus:
-          registrationType === "have-business" ? "EXISTING" : "NEW",
-        roleId: 2,
+          registrationType === "have-business" ? "EXISTING" : "STARTING",
+        roleId: roleId,
       };
 
       // Dispatch the saveBasicInfo action
       const result = await dispatch(saveBasicInfo(basicInfoData)).unwrap();
+      console.log(result)
 
       // Show success message
       message.success("Basic information saved successfully!");
 
       // Navigate based on registration type and role combination
       if (registrationType === "like-to-start") {
-        navigate("/like-to-start");
+        navigate("/like-to-start", { userId: { result } });
       } else if (registrationType === "have-business") {
         if (role === "entrepreneur") {
-          navigate("/have-business");
+          navigate("/have-business", { state: { result } });
         } else if (role === "exporter") {
           navigate("/export-form");
         } else if (role === "intermediary") {
@@ -110,7 +114,7 @@ const SelectPage = () => {
         {/* Left Side - Registration Type & Role Selection */}
         <Col xs={24} lg={12}>
           <div className="h-full">
-            <RoleSelectionCard />
+            <RoleSelectionCard setRoleId={setRoleId} />
           </div>
         </Col>
 

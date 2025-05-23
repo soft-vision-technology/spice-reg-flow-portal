@@ -43,6 +43,7 @@ const initialState = {
     dsDivision: '',
     gnDivision: ''
   },
+  userId: null,
   loading: false,
   error: null,
   success: false
@@ -68,7 +69,8 @@ const basicInfoSlice = createSlice({
       .addCase(saveBasicInfo.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.data = action.payload;
+        // state.data = action.payload;
+        state.userId = action.payload;
       })
       .addCase(saveBasicInfo.rejected, (state, action) => {
         state.loading = false;

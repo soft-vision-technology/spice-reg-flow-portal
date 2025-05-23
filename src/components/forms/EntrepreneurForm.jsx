@@ -1,30 +1,31 @@
-import React from "react";
-import { Form, Input, Select, InputNumber, DatePicker, Upload, Button, Row, Col, Checkbox } from "antd";
+import React, { useEffect, useState } from "react";
+import {
+  Form,
+  Input,
+  Select,
+  InputNumber,
+  DatePicker,
+  Upload,
+  Button,
+  Row,
+  Col,
+  Checkbox,
+} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../contexts/FormContext";
-import { useDispatch } from "react-redux";
-
-
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchCertificateOptions,
+  fetchExperienceOptions,
+  fetchNumEmployeeOptions,
+  selectExperienceOptions,
+  selectCertificateOptions,
+  selectNumEmployeeOptions,
+} from "../../store/slices/utilSlice";
+import { useLocation } from "react-router-dom";
+import axiosInstance from "../../api/axiosInstance";
 
 const { Option } = Select;
-
-const businessExperienceOptions = [
-  { label: "Less than 1 year", value: 1 },
-  { label: "1-3 years", value: 2 },
-  { label: "More than 3 years", value: 3 },
-];
-
-const numberOfEmployeeOptions = [
-  { label: "1-10", value: 1 },
-  { label: "11-50", value: 2 },
-  { label: "51+", value: 3 },
-];
-
-const certificateOptions = [
-  { label: "ISO", value: 1 },
-  { label: "GMP", value: 2 },
-  { label: "Organic", value: 3 },
-];
 
 const spiceProductOptions = [
   { label: "Cinnamon", value: "cinnamon" },
@@ -40,14 +41,75 @@ const EntrepreneurForm = (props) => {
   const { isExisting } = props;
   const { updateFormData } = useFormContext();
 
+ const location = useLocation();
+  console.log(location?.state?.result);
+
+  const load = async () => {
+    await dispatch(fetchCertificateOptions());
+    await dispatch(fetchNumEmployeeOptions());
+    await dispatch(fetchExperienceOptions());
+  }
+
+  useEffect(() => {
+    load()
+  }, [dispatch]);
+
   const handleChange = (_, allValues) => {
     updateFormData(allValues);
   };
 
+  const experienceOptions = useSelector(selectExperienceOptions) || [];
+  const certificateOptions = useSelector(selectCertificateOptions) || [];
+  const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
+
+const formatSelects = (data) => {
+  return (data || [])
+    .filter((item) => item?.id && item?.name)
+    .map((item) => ({
+      label: item.name.toString(),
+      value: item.id.toString(), // enforce string
+    }));
+};
+
+const [formData,setFormData] = useState(
+  {
+    businessName: "JMC Stores",
+    businessRegNo: "BIS2556",
+    businessAddress: " Walapane",
+    numberOfEmployeeId: 2,
+    certificateId: 3,
+    businessExperienceId: 1,
+    userId: location?.state?.result ,
+    products: [
+      {
+        "productId": 2,
+        "value": 200.0
+      },
+      {
+        "productId": 3,
+        "value": 420.10
+      }
+    ]
+  }
+)
+
+const handleB = async() => {
+  try {
+    const response = await axiosInstance.post("/api/entrepreneur", formData);
+    console.log(response)
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h3 className="text-xl font-medium text-earth-700 mb-6">
-        {isExisting ? "Existing Business Information" : "Business Startup Information"}
+        {isExisting
+          ? "Existing Business Information"
+          : "Business Startup Information"}
       </h3>
 
       <Form layout="vertical" onValuesChange={handleChange}>
@@ -56,7 +118,9 @@ const EntrepreneurForm = (props) => {
             <Form.Item
               label="Business Name"
               name="businessName"
-              rules={[{ required: true, message: "Please enter business name" }]}
+              rules={[
+                { required: true, message: "Please enter business name" },
+              ]}
             >
               <Input placeholder="Spice Enterprises" />
             </Form.Item>
@@ -65,14 +129,11 @@ const EntrepreneurForm = (props) => {
             <Form.Item
               label="Business Type"
               name="businessType"
-              rules={[{ required: true, message: "Please select business type" }]}
+              rules={[
+                { required: true, message: "Please select business type" },
+              ]}
             >
-              <Select placeholder="Select business type">
-                <Option value="sole_proprietor">Sole Proprietorship</Option>
-                <Option value="partnership">Partnership</Option>
-                <Option value="ltd_company">Limited Company</Option>
-                <Option value="corporation">Corporation</Option>
-              </Select>
+             
             </Form.Item>
           </Col>
         </Row>
@@ -83,7 +144,12 @@ const EntrepreneurForm = (props) => {
               <Form.Item
                 label="Business Registration Number"
                 name="businessRegistrationNumber"
-                rules={[{ required: true, message: "Please enter registration number" }]}
+                rules={[
+                  {
+                    required: true,
+                    message: "Please enter registration number",
+                  },
+                ]}
               >
                 <Input placeholder="BRN123456" />
               </Form.Item>
@@ -92,7 +158,12 @@ const EntrepreneurForm = (props) => {
               <Form.Item
                 label="Registration Date"
                 name="registrationDate"
-                rules={[{ required: true, message: "Please select registration date" }]}
+                rules={[
+                  {
+                    required: true,
+                    message: "Please select registration date",
+                  },
+                ]}
               >
                 <DatePicker className="w-full" />
               </Form.Item>
@@ -105,9 +176,14 @@ const EntrepreneurForm = (props) => {
             <Form.Item
               label="Business Address"
               name="businessAddress"
-              rules={[{ required: true, message: "Please enter business address" }]}
+              rules={[
+                { required: true, message: "Please enter business address" },
+              ]}
             >
-              <Input.TextArea rows={2} placeholder="123 Spice Road, Industrial Zone, Colombo" />
+              <Input.TextArea
+                rows={2}
+                placeholder="123 Spice Road, Industrial Zone, Colombo"
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -119,16 +195,24 @@ const EntrepreneurForm = (props) => {
               name="businessExperience"
               rules={[{ required: true, message: "Please select experience" }]}
             >
-              <Select placeholder="Select experience level" options={businessExperienceOptions} />
+              <Select
+                placeholder="Select experience level"
+                options={formatSelects(experienceOptions)}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
             <Form.Item
               label={isExisting ? "Number of Employees" : "Expected Employees"}
               name="numberOfEmployees"
-              rules={[{ required: true, message: "Please select employee count" }]}
+              rules={[
+                { required: true, message: "Please select employee count" },
+              ]}
             >
-              <Select placeholder="Select count" options={numberOfEmployeeOptions} />
+              <Select
+                placeholder="Select count"
+                options={formatSelects(numberOfEmployeeOptions)}
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -138,7 +222,12 @@ const EntrepreneurForm = (props) => {
             <Form.Item
               label="Spice Products"
               name="spiceProducts"
-              rules={[{ required: true, message: "Please select at least one product" }]}
+              rules={[
+                {
+                  required: true,
+                  message: "Please select at least one product",
+                },
+              ]}
             >
               <Select
                 mode="multiple"
@@ -155,20 +244,12 @@ const EntrepreneurForm = (props) => {
             <Row gutter={16}>
               <Col xs={24}>
                 <Form.Item label="Certifications" name="certifications">
-                  <Checkbox.Group options={certificateOptions} />
+                  <Checkbox.Group options={formatSelects(certificateOptions)} />
                 </Form.Item>
               </Col>
             </Row>
 
-            <Row gutter={16}>
-              <Col xs={24}>
-                <Form.Item label="Upload Business Registration" name="businessRegistrationDoc">
-                  <Upload maxCount={1} accept=".pdf,.jpg,.png">
-                    <Button icon={<UploadOutlined />}>Click to Upload</Button>
-                  </Upload>
-                </Form.Item>
-              </Col>
-            </Row>
+
           </>
         )}
 
@@ -178,7 +259,12 @@ const EntrepreneurForm = (props) => {
               <Form.Item
                 label="Expected Launch Date"
                 name="expectedLaunchDate"
-                rules={[{ required: true, message: "Please select expected launch date" }]}
+                rules={[
+                  {
+                    required: true,
+                    message: "Please select expected launch date",
+                  },
+                ]}
               >
                 <DatePicker className="w-full" />
               </Form.Item>
@@ -189,10 +275,18 @@ const EntrepreneurForm = (props) => {
         <Row gutter={16}>
           <Col span={24}>
             <Form.Item label="Additional Information" name="additionalInfo">
-              <Input.TextArea rows={4} placeholder="Any additional information about your business..." />
+              <Input.TextArea
+                rows={4}
+                placeholder="Any additional information about your business..."
+              />
             </Form.Item>
           </Col>
         </Row>
+
+<button onClick={handleB}>
+  s
+</button>
+
       </Form>
     </div>
   );

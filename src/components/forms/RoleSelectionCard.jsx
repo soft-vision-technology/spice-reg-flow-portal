@@ -134,13 +134,14 @@ import { Card, Radio, Space, Button } from "antd";
 import { UserOutlined, GlobalOutlined, ShopOutlined, RocketOutlined, BuildOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../contexts/FormContext";
 
-const RoleSelectionCard = ({ onContinue }) => {
+const RoleSelectionCard = ({ onContinue,setRoleId }) => {
   const { registrationType, setRegistrationType, role, setRole } = useFormContext();
 
   const handleRegistrationTypeChange = (e) => {
     const newType = e.target.value;
     console.log('Registration Type Changed:', newType); // Debug log
     setRegistrationType(newType);
+    
     
     // Reset role when registration type changes
     setRole("");
@@ -149,6 +150,7 @@ const RoleSelectionCard = ({ onContinue }) => {
     if (newType === "like-to-start") {
       console.log('Auto-setting role to exporter'); // Debug log
       setRole("exporter");
+      setRoleId(3)
     }
   };
 
@@ -156,6 +158,22 @@ const RoleSelectionCard = ({ onContinue }) => {
     const newRole = e.target.value;
     console.log('Role Changed:', newRole); // Debug log
     setRole(newRole);
+
+    // Set roleId based on selected role
+    switch (newRole) {
+      case "exporter":
+        setRoleId(3);
+        break;
+      case "intermediary":
+        setRoleId(2);
+        break;
+      case "entrepreneur":
+        setRoleId(1);
+        break;
+      default:
+        setRoleId(3)
+    }
+
   };
 
   // Add useEffect hooks for debugging state changes
