@@ -42,7 +42,7 @@ import {
   fetchExperienceOptions,
   selectNumEmployeeOptions,
   selectExperienceOptions
-} from "../store/slices/utilSlice";
+} from "../store/slices/utilsSlice";
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';

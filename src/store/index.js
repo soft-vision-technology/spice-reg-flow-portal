@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice';
 import basicInfoReducer from './slices/basicInfoSlice';
 import entrepreneurReducer from './slices/entrepreneurSlice';
-import utilsReducer from './slices/utilSlice';
+import utilsReducer from './slices/utilsSlice';
 import reportReducer from './slices/reportSlice'
 
 export const store = configureStore({
