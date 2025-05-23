@@ -11,19 +11,19 @@ const IntermediaryPage = () => {
   const { registrationType, role, formData } = useFormContext();
   const [current, setCurrent] = React.useState(0);
 
-  useEffect(() => {
-    if (!registrationType ||  !role || role !== "intermediary") {
-      navigate("/select");
-      message.warning("Please select the intermediary trader role and existing business status first");
-    }
+  // useEffect(() => {
+  //   if (!registrationType ||  !role || role !== "intermediary") {
+  //     navigate("/select");
+  //     message.warning("Please select the intermediary trader role and existing business status first");
+  //   }
 
-    const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
-        if (!hasBasicInfo) {
-          navigate("/select");
-          message.warning("Please complete your basic information first");
-          return;
-        }
-  }, [registrationType, role, formData, navigate]);
+  //   const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
+  //       if (!hasBasicInfo) {
+  //         navigate("/select");
+  //         message.warning("Please complete your basic information first");
+  //         return;
+  //       }
+  // }, [registrationType, role, formData, navigate]);
 
   const isExistingBusiness = registrationType === "have-business";
 

@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Form,
   Input,
   Select,
   InputNumber,
   DatePicker,
-  Upload,
   Button,
   Row,
   Col,
-  Checkbox,
+  Radio,
+  Card,
+  Space,
 } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -33,18 +34,22 @@ const EntrepreneurForm = (props) => {
   const dispatch = useDispatch();
   const { isExisting } = props;
   const { updateFormData } = useFormContext();
+  const [form] = Form.useForm();
+  const [exportProducts, setExportProducts] = useState([
+    { productId: null, value: null },
+  ]);
 
- const location = useLocation();
+  const location = useLocation();
 
   const load = async () => {
     await dispatch(fetchCertificateOptions());
     await dispatch(fetchNumEmployeeOptions());
     await dispatch(fetchExperienceOptions());
     await dispatch(fetchProductOptions());
-  }
+  };
 
   useEffect(() => {
-    load()
+    load();
   }, [dispatch]);
 
   const handleChange = (_, allValues) => {
@@ -56,47 +61,73 @@ const EntrepreneurForm = (props) => {
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
   const productOptions = useSelector(selectProductOptions) || [];
 
-const formatSelects = (data) => {
-  return (data || [])
-    .filter((item) => item?.id && item?.name)
-    .map((item) => ({
-      label: item.name.toString(),
-      value: item.id.toString(),
-    }));
-};
+  const formatSelects = (data) => {
+    return (data || [])
+      .filter((item) => item?.id && item?.name)
+      .map((item) => ({
+        label: item.name.toString(),
+        value: item.id.toString(),
+      }));
+  };
 
-const [formData,setFormData] = useState(
-  {
-    businessName: "JMC Stores",
-    businessRegNo: "BIS2556",
-    businessAddress: " Walapane",
-    numberOfEmployeeId: 2,
-    certificateId: 3,
-    businessExperienceId: 1,
-    userId: location?.state?.result,
-    products: [
-      {
-        "productId": 2,
-        "value": 200.0
-      },
-      {
-        "productId": 3,
-        "value": 420.10
-      }
-    ]
-  }
-)
+  const addExportProduct = () => {
+    setExportProducts([...exportProducts, { productId: null, value: null }]);
+  };
 
-const handleB = async() => {
-  try {
-    const response = await axiosInstance.post("/api/entrepreneur", formData);
-    console.log(response)
-  } catch (error) {
-    console.log(error)
-  }
-}
+  const removeExportProduct = (index) => {
+    const newProducts = exportProducts.filter((_, i) => i !== index);
+    setExportProducts(newProducts);
+    updateFormData({ products: newProducts });
+  };
 
+  const updateExportProduct = (index, field, value) => {
+    const newProducts = [...exportProducts];
+    newProducts[index][field] = value;
+    setExportProducts(newProducts);
+    updateFormData({ products: newProducts });
+  };
 
+  // Format form data to match API structure
+  const formatFormData = (values) => {
+    const formattedData = {
+      businessName: values.businessName || null,
+      businessRegNo: values.businessRegistrationNumber || null,
+      businessAddress: values.businessAddress || null,
+      numberOfEmployeeId: values.numberOfEmployees
+        ? parseInt(values.numberOfEmployees)
+        : null,
+      certificateId: values.certifications
+        ? parseInt(values.certifications)
+        : null,
+      businessExperienceId: values.yearsExporting ? parseInt(values.yearsExporting) : null,
+      userId: location?.state?.result || null,
+      products: exportProducts
+        .filter((product) => product.productId && product.value)
+        .map((product) => ({
+          productId: parseInt(product.productId),
+          value: parseFloat(product.value),
+        })),
+    };
+
+    return formattedData;
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const formattedData = formatFormData(values);
+
+      console.log("Formatted data to send:", formattedData);
+
+      const response = await axiosInstance.post(
+        "/api/entrepreneur",
+        formattedData
+      );
+      console.log("Response:", response);
+    } catch (error) {
+      console.log("Error:", error);
+    }
+  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -106,7 +137,7 @@ const handleB = async() => {
           : "Business Startup Information"}
       </h3>
 
-      <Form layout="vertical" onValuesChange={handleChange}>
+      <Form form={form} layout="vertical" onValuesChange={handleChange}>
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
@@ -120,19 +151,19 @@ const handleB = async() => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
-              <Form.Item
-                label="Business Registration Number"
-                name="businessRegistrationNumber"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter registration number",
-                  },
-                ]}
-              >
-                <Input placeholder="BRN123456" />
-              </Form.Item>
-            </Col>
+            <Form.Item
+              label="Business Registration Number"
+              name="businessRegistrationNumber"
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter registration number",
+                },
+              ]}
+            >
+              <Input placeholder="BRN123456" />
+            </Form.Item>
+          </Col>
         </Row>
 
         <Row gutter={16}>
@@ -154,7 +185,6 @@ const handleB = async() => {
 
         {!isExisting && (
           <Row gutter={16}>
-            
             <Col xs={24} sm={12}>
               <Form.Item
                 label="Registration Date"
@@ -170,22 +200,110 @@ const handleB = async() => {
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
-            <Form.Item
-              label="Business Experience"
-              name="businessExperience"
-              rules={[{ required: true, message: "Please select experience" }]}
-            >
-              <Select
-                placeholder="Select experience level"
-                options={formatSelects(experienceOptions)}
-              />
-            </Form.Item>
-          </Col>
+              <Form.Item
+                label="Business Experience"
+                name="businessExperience"
+                rules={[
+                  { required: true, message: "Please select experience" },
+                ]}
+              >
+                <Select
+                  placeholder="Select experience level"
+                  options={formatSelects(experienceOptions)}
+                />
+              </Form.Item>
+            </Col>
           </Row>
-          
         )}
 
-        
+        <Row gutter={16}>
+          <Col xs={24}>
+            <Form.Item
+              label="Export Spice Products & Values (in USD)"
+              rules={[
+                {
+                  validator: () => {
+                    const hasValidProduct = exportProducts.some(
+                      (product) => product.productId && product.value
+                    );
+                    return hasValidProduct
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error(
+                            "Please add at least one spice product with value"
+                          )
+                        );
+                  },
+                },
+              ]}
+            >
+              <div className="space-y-4">
+                {exportProducts.map((product, index) => (
+                  <Card key={index} size="small" className="bg-gray-50">
+                    <Row gutter={12} align="middle">
+                      <Col xs={24} sm={10}>
+                        <Select
+                          placeholder="Select spice product"
+                          value={product.productId}
+                          onChange={(value) =>
+                            updateExportProduct(index, "productId", value)
+                          }
+                          className="w-full"
+                          showSearch
+                          filterOption={(input, option) =>
+                            option.label
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          options={formatSelects(productOptions)}
+                        />
+                      </Col>
+                      <Col xs={24} sm={8}>
+                        <InputNumber
+                          placeholder="Export value (USD)"
+                          value={product.value}
+                          onChange={(value) =>
+                            updateExportProduct(index, "value", value)
+                          }
+                          min={0.01}
+                          step={0.01}
+                          className="w-full"
+                          formatter={(value) =>
+                            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                        />
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <Space>
+                          {index === exportProducts.length - 1 && (
+                            <Button
+                              type="dashed"
+                              icon={<PlusOutlined />}
+                              onClick={addExportProduct}
+                              size="small"
+                            >
+                              Add
+                            </Button>
+                          )}
+                          {exportProducts.length > 1 && (
+                            <Button
+                              type="text"
+                              danger
+                              icon={<DeleteOutlined />}
+                              onClick={() => removeExportProduct(index)}
+                              size="small"
+                            />
+                          )}
+                        </Space>
+                      </Col>
+                    </Row>
+                  </Card>
+                ))}
+              </div>
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Row gutter={16}>
           <Col xs={24} sm={12}>
@@ -202,62 +320,21 @@ const handleB = async() => {
               />
             </Form.Item>
           </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24}>
+          <Col xs={24} sm={12}>
             <Form.Item
-              label="Spice Products"
-              name="spiceProducts"
+              label="Years in Export Business"
+              name="yearsExporting"
               rules={[
-                {
-                  required: true,
-                  message: "Please select at least one product",
-                },
+                { required: true, message: "Please enter years in exports" },
               ]}
             >
               <Select
-                mode="multiple"
-                placeholder="Select spice products"
-                options={formatSelects(productOptions)}
-                className="w-full"
+                placeholder="Select years"
+                options={formatSelects(experienceOptions)}
               />
             </Form.Item>
           </Col>
         </Row>
-
-        {!isExisting && (
-          <>
-            <Row gutter={16}>
-              <Col xs={24}>
-                <Form.Item label="Certifications" name="certifications">
-                  <Checkbox.Group options={formatSelects(certificateOptions)} />
-                </Form.Item>
-              </Col>
-            </Row>
-
-
-          </>
-        )}
-
-        {!isExisting && (
-          <Row gutter={16}>
-            <Col xs={24}>
-              <Form.Item
-                label="Expected Launch Date"
-                name="expectedLaunchDate"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select expected launch date",
-                  },
-                ]}
-              >
-                <DatePicker className="w-full" />
-              </Form.Item>
-            </Col>
-          </Row>
-        )}
 
         <Row gutter={16}>
           <Col span={24}>
@@ -270,10 +347,32 @@ const handleB = async() => {
           </Col>
         </Row>
 
-<button onClick={handleB}>
-  s
-</button>
+        <Row gutter={16}>
+          <Col xs={24}>
+            <Form.Item
+              label="Certifications"
+              name="certifications"
+              rules={[
+                {
+                  required: true,
+                  message: "Please select a certification",
+                },
+              ]}
+            >
+              <Radio.Group>
+                {formatSelects(certificateOptions).map((opt) => (
+                  <Radio key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </Radio>
+                ))}
+              </Radio.Group>
+            </Form.Item>
+          </Col>
+        </Row>
 
+        <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
+          Submit
+        </Button>
       </Form>
     </div>
   );

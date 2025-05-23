@@ -11,20 +11,20 @@ const ExistingBusinessPage = () => {
   const { registrationType, role, formData } = useFormContext();
   const [current, setCurrent] = useState(0);
 
-  // useEffect(() => {
-  //   if (!registrationType || !role || role !=="entrepreneur") {
-  //     navigate("/select");
-  //     message.warning("Please complete the registration selection first");
-  //     return;
-  //   }
+  useEffect(() => {
+    if (!registrationType || !role || role !=="entrepreneur") {
+      navigate("/select");
+      message.warning("Please complete the registration selection first");
+      return;
+    }
 
-  //   const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
-  //       if (!hasBasicInfo) {
-  //         navigate("/select");
-  //         message.warning("Please complete your basic information first");
-  //         return;
-  //       }
-  // }, [registrationType, role, formData, navigate]);
+    const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
+        if (!hasBasicInfo) {
+          navigate("/select");
+          message.warning("Please complete your basic information first");
+          return;
+        }
+  }, [registrationType, role, formData, navigate]);
 
   const isExistingBusiness = registrationType === "have-business";
 
@@ -76,16 +76,16 @@ const ExistingBusinessPage = () => {
         <div className="flex-1"></div>
 
         {current < steps.length - 1 && (
-          <Button type="primary" onClick={next} className="bg-spice-500">
+          {/* <Button type="primary" onClick={next} className="bg-spice-500">
             Next
-          </Button>
+          </Button> */}
         )}
 
-        {current === steps.length - 1 && (
+        {/* {current === steps.length - 1 && (
           <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
             Submit
           </Button>
-        )}
+        )} */}
       </div>
     </div>
   );
