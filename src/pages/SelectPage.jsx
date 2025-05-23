@@ -68,14 +68,14 @@ const [roleId,setRoleId]=useState(3)
 
       // Navigate based on registration type and role combination
       if (registrationType === "like-to-start") {
-        navigate("/like-to-start", { userId: { result } });
+        navigate("/like-to-start", { state: { result } });
       } else if (registrationType === "have-business") {
         if (role === "entrepreneur") {
           navigate("/have-business", { state: { result } });
         } else if (role === "exporter") {
-          navigate("/export-form");
+          navigate("/export-form", { state: { result } });
         } else if (role === "intermediary") {
-          navigate("/intermediary-form");
+          navigate("/intermediary-form", { state: { result } });
         } else {
           message.error("Unsupported role selected. Please contact admin.");
         }

@@ -31,13 +31,25 @@ export const fetchCertificateOptions = createAsyncThunk(
 );
 
 export const fetchNumEmployeeOptions = createAsyncThunk(
-  "utils/fetchNumEmployeeOptions", // ✅ Correct type
+  "utils/fetchNumEmployeeOptions",
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get("/api/number_of_employees");
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch number of employee options.");
+    }
+  }
+);
+
+export const fetchProductOptions = createAsyncThunk(
+  "utils/fetchProductOptions", 
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get("/api/products");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch product options.");
     }
   }
 );
@@ -49,6 +61,7 @@ const utilsSlice = createSlice({
     experienceOptions: [],
     certificateOptions: [],
     numEmployeeOptions: [],
+    productOptions: [],
     loading: false,
     error: null,
   },
@@ -57,6 +70,7 @@ const utilsSlice = createSlice({
       state.experienceOptions = [];
       state.certificateOptions = [];
       state.numEmployeeOptions = [];
+      state.productOptions = [];
       state.loading = false;
       state.error = null;
     },
@@ -103,6 +117,20 @@ const utilsSlice = createSlice({
       .addCase(fetchNumEmployeeOptions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      // Product Options
+      .addCase(fetchProductOptions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProductOptions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.productOptions = action.payload;
+      })
+      .addCase(fetchProductOptions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
@@ -113,6 +141,7 @@ export const { resetUtilsState } = utilsSlice.actions;
 export const selectExperienceOptions = (state) => state.utils.experienceOptions;
 export const selectCertificateOptions = (state) => state.utils.certificateOptions;
 export const selectNumEmployeeOptions = (state) => state.utils.numEmployeeOptions;
+export const selectProductOptions = (state) => state.utils.productOptions;
 export const selectUtilsLoading = (state) => state.utils.loading;
 export const selectUtilsError = (state) => state.utils.error;
 

@@ -3,12 +3,14 @@ import { Steps, Button, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import ExporterForm from "../components/forms/ExporterForm";
 import { useFormContext } from "../contexts/FormContext";
+import axiosInstance from "../api/axiosInstance";
 
 const { Step } = Steps;
 
 const ExporterPage = () => {
   const navigate = useNavigate();
   const { registrationType, role, formData } = useFormContext();
+  console.log(registrationType);
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -34,7 +36,7 @@ const ExporterPage = () => {
   const steps = [
     {
       title: "Export Business Information",
-      content: <ExporterForm isExisting={isExistingBusiness} />,
+      content: <ExporterForm  isExisting={isExistingBusiness} />,
     },
     {
       title: "Review & Submit",
@@ -49,10 +51,10 @@ const ExporterPage = () => {
             <div className="border-b pb-4">
               <h4 className="font-medium text-gray-700 mb-3">Personal Information</h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="font-medium">Name:</span> {formData.fullName}</div>
-                <div><span className="font-medium">Email:</span> {formData.email}</div>
-                <div><span className="font-medium">Mobile:</span> {formData.mobileNumber}</div>
-                <div><span className="font-medium">NIC:</span> {formData.nic}</div>
+                <div><span className="font-medium">Name:</span> {formData.fullName || 'N/A'}</div>
+                <div><span className="font-medium">Email:</span> {formData.email || 'N/A'}</div>
+                <div><span className="font-medium">Mobile:</span> {formData.mobileNumber || 'N/A'}</div>
+                <div><span className="font-medium">NIC:</span> {formData.nic || 'N/A'}</div>
               </div>
             </div>
 
@@ -69,22 +71,49 @@ const ExporterPage = () => {
             </div>
 
             {/* Export Information Summary */}
-            {formData.companyName && (
-              <div>
-                <h4 className="font-medium text-gray-700 mb-3">Export Business Information</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {formData.companyName && (
-                    <div><span className="font-medium">Company:</span> {formData.companyName}</div>
-                  )}
-                  {formData.exportProducts && (
-                    <div><span className="font-medium">Products:</span> {Array.isArray(formData.exportProducts) ? formData.exportProducts.join(', ') : formData.exportProducts}</div>
-                  )}
-                  {formData.exportExperience && (
-                    <div><span className="font-medium">Experience:</span> {formData.exportExperience}</div>
-                  )}
-                </div>
+            <div>
+              <h4 className="font-medium text-gray-700 mb-3">Export Business Information</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {formData.businessName && (
+                  <div><span className="font-medium">Business Name:</span> {formData.businessName}</div>
+                )}
+                {formData.businessRegNo && (
+                  <div><span className="font-medium">Registration Number:</span> {formData.businessRegNo}</div>
+                )}
+                {formData.businessExperienceId && (
+                  <div><span className="font-medium">Years of Experience:</span> {formData.businessExperienceId}</div>
+                )}
+                {formData.numberOfEmployeeId && (
+                  <div><span className="font-medium">Number of Employees:</span> {formData.numberOfEmployeeId}</div>
+                )}
+                {formData.exportingCountries && formData.exportingCountries.length > 0 && (
+                  <div><span className="font-medium">Export Countries:</span> {formData.exportingCountries.join(', ')}</div>
+                )}
+                {formData.exportStartMonth && formData.exportStartYear && (
+                  <div><span className="font-medium">Export Start Date:</span> {formData.exportStartMonth} {formData.exportStartYear}</div>
+                )}
+                {formData.productRange && (
+                  <div><span className="font-medium">Product Range:</span> {formData.productRange}</div>
+                )}
+                {formData.businessDescription && (
+                  <div className="col-span-2"><span className="font-medium">Business Description:</span> {formData.businessDescription}</div>
+                )}
               </div>
-            )}
+              
+              {/* Products Summary */}
+              {formData.products && formData.products.length > 0 && (
+                <div className="mt-4">
+                  <h5 className="font-medium text-gray-600 mb-2">Export Products:</h5>
+                  <div className="space-y-1">
+                    {formData.products.map((product, index) => (
+                      <div key={index} className="text-sm">
+                        Product ID: {product.productId}, Value: ${product.value?.toLocaleString()}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="mt-6 p-4 bg-blue-50 rounded-md">
@@ -99,11 +128,19 @@ const ExporterPage = () => {
   ];
 
   const next = () => {
-    // Add validation based on the current step
+    //Add validation based on the current step
     if (current === 0) {
-      // Validate export form fields - you can customize this based on ExporterForm requirements
-      if (isExistingBusiness && !formData.companyName) {
-        message.warning("Please fill out the required export information");
+      // Validate required export form fields
+      if (!formData.businessName) {
+        message.warning("Please enter business name");
+        return;
+      }
+      if (!formData.businessExperienceId) {
+        message.warning("Please select years of experience");
+        return;
+      }
+      if (!formData.numberOfEmployeeId) {
+        message.warning("Please select number of employees");
         return;
       }
     }
@@ -114,19 +151,37 @@ const ExporterPage = () => {
     setCurrent(current - 1);
   };
 
-  const handleSubmit = () => {
-    // TODO: API call to submit the data
-    const submissionData = {
-      ...formData,
-      registrationType,
-      role,
-      submittedAt: new Date().toISOString(),
-    };
-    
-    console.log("Submitting data:", submissionData);
-    
-    message.success("Exporter registration submitted successfully!");
-    navigate("/reports");
+  const handleSubmit = async () => {
+    try {
+      // Format the final submission data according to API requirements
+      const submissionData = {
+        businessName: formData.businessName || null,
+        businessRegNo: formData.businessRegNo || null,
+        numberOfEmployeeId: formData.numberOfEmployeeId || null,
+        businessExperienceId: formData.businessExperienceId || null,
+        productRange: formData.productRange || null,
+        businessDescription: formData.businessDescription || null,
+        exportingCountries: formData.exportingCountries || null,
+        exportStartMonth: formData.exportStartMonth || null,
+        exportStartYear: formData.exportStartYear || null,
+        certificateId: formData.certificateId || null,
+        userId: formData.userId || null,
+        products: formData.products || [],
+        startDate: formData.startDate || null
+      };
+      
+      console.log("Submitting data:", submissionData);
+      
+      // TODO: Replace with actual API call
+      // const response = await submitExporterRegistration(submissionData);
+      const response = await axiosInstance.post("/api/exporter/", submissionData);
+      console.log("API response:", response);
+      message.success("Exporter registration submitted successfully!");
+      navigate("/reports");
+    } catch (error) {
+      console.error("Submission error:", error);
+      message.error("Failed to submit registration. Please try again.");
+    }
   };
 
   // Show loading or redirect message while checking prerequisites

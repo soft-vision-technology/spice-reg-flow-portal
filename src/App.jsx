@@ -26,7 +26,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/select" element={<SelectPage />} />
-              <Route path="/like-to-start" element={<StartingBusinessPage />} />
+              <Route path="/like-to-start" element={<ExporterPage />} />
               <Route path="/have-business" element={<ExistingBusinessPage />} />
               <Route path="/export-form" element={<ExporterPage />} />
               <Route path="/intermediary-form" element={<IntermediaryPage />} />

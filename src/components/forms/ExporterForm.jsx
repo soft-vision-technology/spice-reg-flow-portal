@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -10,207 +10,286 @@ import {
   Col,
   Checkbox,
   Space,
-  Card
+  Card,
+  DatePicker,
+  Radio,
 } from "antd";
-import { UploadOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  UploadOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
 import { useFormContext } from "../../contexts/FormContext";
+import countries from "country-json/src/country-by-name.json";
+import {
+  fetchCertificateOptions,
+  fetchExperienceOptions,
+  fetchNumEmployeeOptions,
+  fetchProductOptions,
+  selectExperienceOptions,
+  selectCertificateOptions,
+  selectNumEmployeeOptions,
+  selectProductOptions,
+} from "../../store/slices/utilsSlice";
+import { useDispatch, useSelector } from "react-redux";
+import dayjs from "dayjs";
+import { useLocation } from "react-router-dom";
 
-const { Option } = Select;
+const ExporterForm = ({ isExisting }) => {
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const { updateFormData, formData } = useFormContext();
+  const [form] = Form.useForm();
+  const [exportProducts, setExportProducts] = useState([
+    { productId: null, value: null },
+  ]);
+console.log(isExisting)
+  const load = async () => {
+    await dispatch(fetchCertificateOptions());
+    await dispatch(fetchNumEmployeeOptions());
+    await dispatch(fetchExperienceOptions());
+    await dispatch(fetchProductOptions());
+  };
 
-const certificateOptions = [
-  { label: "ISO", value: 1 },
-  { label: "GMP", value: 2 },
-  { label: "Organic", value: 3 },
-  { label: "Fair Trade", value: 4 },
-  { label: "HACCP", value: 5 }
-];
+  useEffect(() => {
+    load();
+  }, [dispatch]);
 
-const marketRegionOptions = [
-  { label: "North America", value: "north_america" },
-  { label: "Europe", value: "europe" },
-  { label: "Middle East", value: "middle_east" },
-  { label: "Asia", value: "asia" },
-  { label: "Australia", value: "australia" },
-  { label: "Africa", value: "africa" }
-];
+  const experienceOptions = useSelector(selectExperienceOptions) || [];
+  const certificateOptions = useSelector(selectCertificateOptions) || [];
+  const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
+  const productOptions = useSelector(selectProductOptions) || [];
 
-const spiceOptions = [
-  { label: "Cinnamon", value: "cinnamon" },
-  { label: "Pepper", value: "pepper" },
-  { label: "Cardamom", value: "cardamom" },
-  { label: "Cloves", value: "cloves" },
-  { label: "Nutmeg", value: "nutmeg" },
-  { label: "Turmeric", value: "turmeric" },
-  { label: "Coriander", value: "coriander" },
-  { label: "Cumin", value: "cumin" },
-  { label: "Fennel", value: "fennel" },
-  { label: "Ginger", value: "ginger" },
-  { label: "Star Anise", value: "star_anise" },
-  { label: "Mace", value: "mace" }
-];
-
-const unitOptions = [
-  { label: "Kilograms (kg)", value: "kg" },
-  { label: "Tons", value: "tons" },
-  { label: "Pounds (lbs)", value: "lbs" },
-  { label: "Metric Tons", value: "mt" }
-];
-
-const ExporterForm = () => {
-  const { updateFormData } = useFormContext();
-  const [exportProducts, setExportProducts] = useState([{ spice: "", quantity: "", unit: "kg" }]);
-  const [customSpice, setCustomSpice] = useState("");
-
-  const handleChange = (_, allValues) => {
-    // Include export products in the form data
-    const formDataWithProducts = {
-      ...allValues,
-      exportProducts: exportProducts
-    };
-    updateFormData(formDataWithProducts);
+  const formatSelects = (data) => {
+    return (data || [])
+      .filter((item) => item?.id && item?.name)
+      .map((item) => ({
+        label: item.name.toString(),
+        value: item.id.toString(),
+      }));
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { spice: "", quantity: "", unit: "kg" }]);
+    setExportProducts([...exportProducts, { productId: null, value: null }]);
   };
 
   const removeExportProduct = (index) => {
     const newProducts = exportProducts.filter((_, i) => i !== index);
     setExportProducts(newProducts);
-    // Update form data when products are removed
-    updateFormData({ exportProducts: newProducts });
+    updateFormData({ products: newProducts });
   };
 
   const updateExportProduct = (index, field, value) => {
     const newProducts = [...exportProducts];
     newProducts[index][field] = value;
     setExportProducts(newProducts);
-    // Update form data when products are updated
-    updateFormData({ exportProducts: newProducts });
+    updateFormData({ products: newProducts });
   };
+console.log(location?.state?.result)
+  const handleChange = (changedValues, allValues) => {
+    // Format the data according to API requirements
+    const formattedData = {
+      businessName: allValues.businessName || null,
+      businessRegNo: allValues.businessRegNumber || null,
+      numberOfEmployeeId: allValues.numberOfEmployees ? parseInt(allValues.numberOfEmployees) : null,
+      businessExperienceId: allValues.yearsExporting ? parseInt(allValues.yearsExporting) : null,
+      productRange: allValues.productRange || null,
+      businessDescription: allValues.businessDescription || null,
+      exportingCountries: allValues.exportCountries || null,
+      exportStartMonth: allValues.exportStartDate ? dayjs(allValues.exportStartDate).format('MMMM') : null,
+      exportStartYear: allValues.exportStartDate ? dayjs(allValues.exportStartDate).format('YYYY') : null,
+      certificateId: allValues.exportCertifications ? parseInt(allValues.exportCertifications) : null,
+      startDate: allValues.exportStartDate ? dayjs(allValues.exportStartDate).toISOString() : null,
+      products: exportProducts.filter(product => product.productId && product.value).map(product => ({
+        productId: parseInt(product.productId),
+        value: parseFloat(product.value)
+      })),
+      userId: location?.state?.result,
+    };
 
-  const addCustomSpice = () => {
-    if (customSpice && !spiceOptions.find(option => option.value === customSpice.toLowerCase().replace(/\s+/g, '_'))) {
-      const newSpiceOption = {
-        label: customSpice,
-        value: customSpice.toLowerCase().replace(/\s+/g, '_')
-      };
-      spiceOptions.push(newSpiceOption);
-      setCustomSpice("");
-    }
+    updateFormData(formattedData);
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
-      <h3 className="text-xl font-medium text-earth-700 mb-6">Export Operation Information</h3>
+      <h3 className="text-xl font-medium text-earth-700 mb-6">
+        Export Operation Information
+      </h3>
 
-      <Form layout="vertical" onValuesChange={handleChange}>
+      <Form 
+        form={form}
+        layout="vertical" 
+        onValuesChange={handleChange}
+        initialValues={formData}
+      >
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
               label="Business Name"
               name="businessName"
-              rules={[{ required: true, message: "Please enter business name" }]}
+              rules={[
+                { required: true, message: "Please enter business name" },
+              ]}
             >
               <Input placeholder="Global Spice Exports Ltd." />
             </Form.Item>
           </Col>
+          {isExisting && (
+
           <Col xs={24} sm={12}>
             <Form.Item
               label="Business Registration Number"
               name="businessRegNumber"
-              rules={[{ required: true, message: "Please enter business registration number" }]}
+              rules={[
+                {
+                  required: true,
+                  message: "Please enter business registration number",
+                },
+              ]}
             >
               <Input placeholder="EXP12345" />
             </Form.Item>
           </Col>
-        </Row>
-
-        <Row gutter={16}>
+          )}
           <Col xs={24} sm={12}>
             <Form.Item
               label="Years in Export Business"
               name="yearsExporting"
-              rules={[{ required: true, message: "Please enter years in exports" }]}
+              rules={[
+                { required: true, message: "Please enter years in exports" },
+              ]}
             >
-              <Select placeholder="Select years">
-                <Option value="less_than_1">Less than 1 year</Option>
-                <Option value="1_to_3">1 - 3 years</Option>
-                <Option value="4_to_10">4 - 10 years</Option>
-                <Option value="more_than_10">More than 10 years</Option>
-              </Select>
+              <Select
+                placeholder="Select years"
+                options={formatSelects(experienceOptions)}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
             <Form.Item
-              label="Annual Export Volume (Tons)"
-              name="exportVolume"
-              rules={[{ required: true, message: "Please enter export volume" }]}
+              label="Started Date of Export Business"
+              name="exportStartDate"
+              rules={[{ required: true, message: "Please enter started date" }]}
             >
-              <InputNumber min={1} className="w-full" placeholder="100" />
+              <DatePicker
+                format="YYYY-MM-DD"
+                style={{ width: "100%" }}
+                placeholder="Select date"
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Number of Employees"
+              name="numberOfEmployees"
+              rules={[
+                { required: true, message: "Please select employee count" },
+              ]}
+            >
+              <Select
+                placeholder="Select count"
+                options={formatSelects(numberOfEmployeeOptions)}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Name of Country / Countries of Export"
+              name="exportCountries"
+              rules={[
+                { required: true, message: "Please select at least one" },
+              ]}
+            >
+              <Select
+                mode="multiple"
+                placeholder="Select target markets"
+                options={countries.map((country) => ({
+                  label: country.country,
+                  value: country.country,
+                }))}
+                className="w-full"
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Product Range"
+              name="productRange"
+            >
+              <Input placeholder="Describe your product range" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Business Description"
+              name="businessDescription"
+            >
+              <Input.TextArea 
+                placeholder="Describe your business"
+                rows={3}
+              />
             </Form.Item>
           </Col>
         </Row>
 
-        {/* Custom Spice Input */}
-        <Row gutter={16}>
-          <Col xs={24}>
-            <Form.Item label="Add Custom Spice (Optional)">
-              <Space.Compact style={{ display: 'flex' }}>
-                <Input
-                  placeholder="Enter custom spice name"
-                  value={customSpice}
-                  onChange={(e) => setCustomSpice(e.target.value)}
-                  onPressEnter={addCustomSpice}
-                />
-                <Button type="primary" onClick={addCustomSpice} disabled={!customSpice}>
-                  Add Spice
-                </Button>
-              </Space.Compact>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        {/* Export Products with Quantities */}
+{isExisting && (
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
-              label="Export Spice Products & Quantities"
-              rules={[{ 
-                validator: () => {
-                  const hasValidProduct = exportProducts.some(product => product.spice && product.quantity);
-                  return hasValidProduct ? Promise.resolve() : Promise.reject(new Error('Please add at least one spice product with quantity'));
-                }
-              }]}
+              label="Export Spice Products & Values (in USD)"
+              rules={[
+                {
+                  validator: () => {
+                    const hasValidProduct = exportProducts.some(
+                      (product) => product.productId && product.value
+                    );
+                    return hasValidProduct
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error(
+                            "Please add at least one spice product with value"
+                          )
+                        );
+                  },
+                },
+              ]}
             >
               <div className="space-y-4">
                 {exportProducts.map((product, index) => (
                   <Card key={index} size="small" className="bg-gray-50">
                     <Row gutter={12} align="middle">
-                      <Col xs={24} sm={8}>
+                      <Col xs={24} sm={10}>
                         <Select
-                          placeholder="Select spice"
-                          value={product.spice}
-                          onChange={(value) => updateExportProduct(index, 'spice', value)}
+                          placeholder="Select spice product"
+                          value={product.productId}
+                          onChange={(value) =>
+                            updateExportProduct(index, "productId", value)
+                          }
                           className="w-full"
                           showSearch
                           filterOption={(input, option) =>
-                            option.label.toLowerCase().includes(input.toLowerCase())
+                            option.label
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
                           }
-                          options={spiceOptions}
+                          options={formatSelects(productOptions)}
                         />
                       </Col>
                       <Col xs={24} sm={8}>
                         <InputNumber
-                          placeholder="Value added"
-                          value={product.quantity}
-                          onChange={(value) => updateExportProduct(index, 'quantity', value)}
+                          placeholder="Export value (USD)"
+                          value={product.value}
+                          onChange={(value) =>
+                            updateExportProduct(index, "value", value)
+                          }
                           min={0.01}
                           step={0.01}
                           className="w-full"
+                          formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                          parser={value => value.replace(/\$\s?|(,*)/g, '')}
                         />
                       </Col>
-                      <Col xs={24} sm={8}>
+                      <Col xs={24} sm={6}>
                         <Space>
                           {index === exportProducts.length - 1 && (
                             <Button
@@ -228,7 +307,7 @@ const ExporterForm = () => {
                               danger
                               icon={<DeleteOutlined />}
                               onClick={() => removeExportProduct(index)}
-                              size="medium"
+                              size="small"
                             />
                           )}
                         </Space>
@@ -240,68 +319,27 @@ const ExporterForm = () => {
             </Form.Item>
           </Col>
         </Row>
-
-        <Row gutter={16}>
-          <Col xs={24}>
-            <Form.Item
-              label="Name of Country / Countries of Export"
-              name="exportCountries"
-              rules={[{ required: true, message: "Please select at least one" }]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="Select target markets"
-                options={marketRegionOptions}
-                className="w-full"
-              />
-            </Form.Item>
-          </Col>
-        </Row>
+)}
 
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
               label="Export Certifications"
               name="exportCertifications"
-              rules={[{ required: true, message: "Please select at least one certification" }]}
+              rules={[
+                {
+                  required: true,
+                  message: "Please select a certification",
+                },
+              ]}
             >
-              <Checkbox.Group options={certificateOptions} />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Upload Export License"
-              name="exportLicenseDoc"
-              rules={[{ required: true, message: "Please upload export license" }]}
-            >
-              <Upload maxCount={1} accept=".pdf,.jpg,.png">
-                <Button icon={<UploadOutlined />}>Upload License</Button>
-              </Upload>
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Upload Certification Documents"
-              name="certificationDocs"
-            >
-              <Upload multiple accept=".pdf,.jpg,.png">
-                <Button icon={<UploadOutlined />}>Upload Certificates</Button>
-              </Upload>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={24}>
-            <Form.Item
-              label="Export Processing Facility Address"
-              name="facilityAddress"
-              rules={[{ required: true, message: "Please enter facility address" }]}
-            >
-              <Input.TextArea rows={2} placeholder="123 Export Zone, Colombo" />
+              <Radio.Group>
+                {formatSelects(certificateOptions).map((opt) => (
+                  <Radio key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </Radio>
+                ))}
+              </Radio.Group>
             </Form.Item>
           </Col>
         </Row>

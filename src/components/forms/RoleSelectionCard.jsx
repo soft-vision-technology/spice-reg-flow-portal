@@ -171,7 +171,7 @@ const RoleSelectionCard = ({ onContinue,setRoleId }) => {
         setRoleId(1);
         break;
       default:
-        setRoleId(3)
+        setRoleId(2)
     }
 
   };

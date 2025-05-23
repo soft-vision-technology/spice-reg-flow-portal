@@ -18,23 +18,16 @@ import {
   fetchCertificateOptions,
   fetchExperienceOptions,
   fetchNumEmployeeOptions,
+  fetchProductOptions,
   selectExperienceOptions,
   selectCertificateOptions,
   selectNumEmployeeOptions,
+  selectProductOptions,
 } from "../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
 
 const { Option } = Select;
-
-const spiceProductOptions = [
-  { label: "Cinnamon", value: "cinnamon" },
-  { label: "Pepper", value: "pepper" },
-  { label: "Cardamom", value: "cardamom" },
-  { label: "Cloves", value: "cloves" },
-  { label: "Nutmeg", value: "nutmeg" },
-  { label: "Turmeric", value: "turmeric" },
-];
 
 const EntrepreneurForm = (props) => {
   const dispatch = useDispatch();
@@ -42,12 +35,12 @@ const EntrepreneurForm = (props) => {
   const { updateFormData } = useFormContext();
 
  const location = useLocation();
-  console.log(location?.state?.result);
 
   const load = async () => {
     await dispatch(fetchCertificateOptions());
     await dispatch(fetchNumEmployeeOptions());
     await dispatch(fetchExperienceOptions());
+    await dispatch(fetchProductOptions());
   }
 
   useEffect(() => {
@@ -61,13 +54,14 @@ const EntrepreneurForm = (props) => {
   const experienceOptions = useSelector(selectExperienceOptions) || [];
   const certificateOptions = useSelector(selectCertificateOptions) || [];
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
+  const productOptions = useSelector(selectProductOptions) || [];
 
 const formatSelects = (data) => {
   return (data || [])
     .filter((item) => item?.id && item?.name)
     .map((item) => ({
       label: item.name.toString(),
-      value: item.id.toString(), // enforce string
+      value: item.id.toString(),
     }));
 };
 
@@ -79,7 +73,7 @@ const [formData,setFormData] = useState(
     numberOfEmployeeId: 2,
     certificateId: 3,
     businessExperienceId: 1,
-    userId: location?.state?.result ,
+    userId: location?.state?.result,
     products: [
       {
         "productId": 2,
@@ -126,21 +120,6 @@ const handleB = async() => {
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
-            <Form.Item
-              label="Business Type"
-              name="businessType"
-              rules={[
-                { required: true, message: "Please select business type" },
-              ]}
-            >
-             
-            </Form.Item>
-          </Col>
-        </Row>
-
-        {isExisting && (
-          <Row gutter={16}>
-            <Col xs={24} sm={12}>
               <Form.Item
                 label="Business Registration Number"
                 name="businessRegistrationNumber"
@@ -154,22 +133,7 @@ const handleB = async() => {
                 <Input placeholder="BRN123456" />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Registration Date"
-                name="registrationDate"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select registration date",
-                  },
-                ]}
-              >
-                <DatePicker className="w-full" />
-              </Form.Item>
-            </Col>
-          </Row>
-        )}
+        </Row>
 
         <Row gutter={16}>
           <Col span={24}>
@@ -188,8 +152,24 @@ const handleB = async() => {
           </Col>
         </Row>
 
-        <Row gutter={16}>
-          <Col xs={24} sm={12}>
+        {!isExisting && (
+          <Row gutter={16}>
+            
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Registration Date"
+                name="registrationDate"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please select registration date",
+                  },
+                ]}
+              >
+                <DatePicker className="w-full" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
             <Form.Item
               label="Business Experience"
               name="businessExperience"
@@ -201,6 +181,13 @@ const handleB = async() => {
               />
             </Form.Item>
           </Col>
+          </Row>
+          
+        )}
+
+        
+
+        <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
               label={isExisting ? "Number of Employees" : "Expected Employees"}
@@ -232,14 +219,14 @@ const handleB = async() => {
               <Select
                 mode="multiple"
                 placeholder="Select spice products"
-                options={spiceProductOptions}
+                options={formatSelects(productOptions)}
                 className="w-full"
               />
             </Form.Item>
           </Col>
         </Row>
 
-        {isExisting && (
+        {!isExisting && (
           <>
             <Row gutter={16}>
               <Col xs={24}>
