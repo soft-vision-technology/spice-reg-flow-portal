@@ -1,206 +1,150 @@
-import React from "react";
-import {
-  Form,
+import {   Form,
   Input,
   Select,
   InputNumber,
-  Upload,
+  DatePicker,
   Button,
   Row,
-  Col
-} from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+  Col,
+  Radio,
+  Card,
+  Space, } from "antd";
+  import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../contexts/FormContext";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { fetchExperienceOptions, fetchNumEmployeeOptions, fetchProductOptions, selectExperienceOptions, selectNumEmployeeOptions, selectProductOptions } from "../../store/slices/utilsSlice";
+import { useLocation } from "react-router-dom";
+import axiosInstance from "../../api/axiosInstance";
 
 
-const { Option } = Select;
-
-const traderTypeOptions = [
-  { label: "Collector", value: "collector" },
-  { label: "Wholesaler", value: "wholesaler" },
-  { label: "Distributor", value: "distributor" },
-  { label: "Agent", value: "agent" }
-];
-
-const spiceTradeOptions = [
-  { label: "Cinnamon", value: "cinnamon" },
-  { label: "Pepper", value: "pepper" },
-  { label: "Cardamom", value: "cardamom" },
-  { label: "Cloves", value: "cloves" },
-  { label: "Nutmeg", value: "nutmeg" },
-  { label: "Turmeric", value: "turmeric" }
-];
-
-const IntermediaryForm = () => {
+const IntermediaryForm = (props) => {
+  const dispatch = useDispatch();
+  const { isExisting } = props;
   const { updateFormData } = useFormContext();
+  const [form] = Form.useForm();
+  const [exportProducts, setExportProducts] = useState([
+    { productId: null, value: null },
+  ]);
+
+  const location = useLocation();
+
+  const load = async () => {
+    await dispatch(fetchNumEmployeeOptions());
+    await dispatch(fetchExperienceOptions());
+    await dispatch(fetchProductOptions());
+  };
+
+  useEffect(() => {
+    load();
+  }, [dispatch]);
 
   const handleChange = (_, allValues) => {
     updateFormData(allValues);
   };
 
+  const experienceOptions = useSelector(selectExperienceOptions) || [];
+  const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
+  const productOptions = useSelector(selectProductOptions) || [];
+
+  const formatSelects = (data) => {
+    return (data || [])
+      .filter((item) => item?.id && item?.name)
+      .map((item) => ({
+        label: item.name.toString(),
+        value: item.id.toString(),
+      }));
+  };
+
+  const addExportProduct = () => {
+    setExportProducts([...exportProducts, { productId: null, value: null }]);
+  };
+
+  const removeExportProduct = (index) => {
+    const newProducts = exportProducts.filter((_, i) => i !== index);
+    setExportProducts(newProducts);
+    updateFormData({ products: newProducts });
+  };
+
+  const updateExportProduct = (index, field, value) => {
+    const newProducts = [...exportProducts];
+    newProducts[index][field] = value;
+    setExportProducts(newProducts);
+    updateFormData({ products: newProducts });
+  };
+
+  // Format form data to match API structure
+  const formatFormData = (values) => {
+    const formattedData = {
+      businessName: values.businessName || null,
+      businessRegNo: values.businessRegistrationNumber || null,
+      businessAddress: values.businessAddress || null,
+      numberOfEmployeeId: values.numberOfEmployees
+        ? parseInt(values.numberOfEmployees)
+        : null,
+      businessExperienceId: values.yearsTrading ? parseInt(values.yearsTrading) : null,
+      userId: location?.state?.result || null,
+      products: exportProducts
+        .filter((product) => product.productId && product.value)
+        .map((product) => ({
+          productId: parseInt(product.productId),
+          value: parseFloat(product.value),
+        })),
+    };
+
+    return formattedData;
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const formattedData = formatFormData(values);
+
+      console.log("Formatted data to send:", formattedData);
+
+      const response = await axiosInstance.post(
+        "/api/trader/",
+        formattedData
+      );
+      console.log("Response:", response);
+    } catch (error) {
+      console.log("Error:", error);
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h3 className="text-xl font-medium text-earth-700 mb-6">
-        Intermediary Trading Information
+        {isExisting
+          ? "Existing Business Information"
+          : "Business Startup Information"}
       </h3>
 
-      <Form layout="vertical" onValuesChange={handleChange}>
+      <Form form={form} layout="vertical" onValuesChange={handleChange}>
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
-              label="Trading Business Name"
-              name="tradingName"
+              label="Business Name"
+              name="businessName"
               rules={[
-                { required: true, message: "Please enter trading business name" }
+                { required: true, message: "Please enter business name" },
               ]}
             >
-              <Input placeholder="Spice Trading Co." />
+              <Input placeholder="Spice Enterprises" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
             <Form.Item
-              label="Trading License Number"
-              name="tradingLicense"
+              label="Business Registration Number"
+              name="businessRegistrationNumber"
               rules={[
-                { required: true, message: "Please enter trading license" }
+                {
+                  required: true,
+                  message: "Please enter registration number",
+                },
               ]}
             >
-              <Input placeholder="TL12345" />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Type of Trader"
-              name="traderType"
-              rules={[{ required: true, message: "Please select trader type" }]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="Select trader type(s)"
-                options={traderTypeOptions}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Years in Trading Business"
-              name="yearsTrading"
-              rules={[{ required: true, message: "Please select years in business" }]}
-            >
-              <Select placeholder="Select years">
-                <Option value="less_than_1">Less than 1 year</Option>
-                <Option value="1_to_3">1 - 3 years</Option>
-                <Option value="4_to_10">4 - 10 years</Option>
-                <Option value="more_than_10">More than 10 years</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24}>
-            <Form.Item
-              label="Spice Products Traded"
-              name="tradedProducts"
-              rules={[
-                { required: true, message: "Please select at least one product" }
-              ]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="Select traded products"
-                options={spiceTradeOptions}
-                className="w-full"
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Annual Trading Volume (Tons)"
-              name="tradingVolume"
-              rules={[
-                { required: true, message: "Please enter trading volume" }
-              ]}
-            >
-              <InputNumber min={1} className="w-full" placeholder="50" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Number of Farmers/Suppliers"
-              name="supplierCount"
-              rules={[
-                { required: true, message: "Please enter supplier count" }
-              ]}
-            >
-              <InputNumber min={1} className="w-full" placeholder="25" />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24}>
-            <Form.Item
-              label="Primary Supplier Networks"
-              name="supplierNetwork"
-              rules={[
-                { required: true, message: "Please enter supplier networks" }
-              ]}
-            >
-              <Input.TextArea
-                rows={2}
-                placeholder="Describe your supplier network (e.g., Small-scale farmers in Central Province)"
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24}>
-            <Form.Item
-              label="Primary Buyer Types"
-              name="buyerTypes"
-              rules={[
-                { required: true, message: "Please enter buyer types" }
-              ]}
-            >
-              <Select mode="multiple" placeholder="Select buyer types">
-                <Option value="exporters">Exporters</Option>
-                <Option value="processors">Processors</Option>
-                <Option value="retailers">Retailers</Option>
-                <Option value="wholesalers">Wholesalers</Option>
-                <Option value="hotels">Hotels & Restaurants</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Upload Trading License"
-              name="tradingLicenseDoc"
-              rules={[
-                { required: true, message: "Please upload trading license" }
-              ]}
-            >
-              <Upload maxCount={1} accept=".pdf,.jpg,.png">
-                <Button icon={<UploadOutlined />}>Upload License</Button>
-              </Upload>
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Storage Facility Capacity (tons)"
-              name="storageCapacity"
-            >
-              <InputNumber min={0} className="w-full" placeholder="10" />
+              <Input placeholder="BRN123456" />
             </Form.Item>
           </Col>
         </Row>
@@ -208,19 +152,175 @@ const IntermediaryForm = () => {
         <Row gutter={16}>
           <Col span={24}>
             <Form.Item
-              label="Trading Facility Address"
-              name="tradingAddress"
+              label="Business Address"
+              name="businessAddress"
               rules={[
-                { required: true, message: "Please enter trading address" }
+                { required: true, message: "Please enter business address" },
               ]}
             >
               <Input.TextArea
                 rows={2}
-                placeholder="123 Trading Street, Market Area, Colombo"
+                placeholder="123 Spice Road, Industrial Zone, Colombo"
               />
             </Form.Item>
           </Col>
         </Row>
+
+        {!isExisting && (
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Registration Date"
+                name="registrationDate"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please select registration date",
+                  },
+                ]}
+              >
+                <DatePicker className="w-full" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Trading Experience"
+                name="yearsTrading"
+                rules={[
+                  { required: true, message: "Please select experience" },
+                ]}
+              >
+                <Select
+                  placeholder="Select experience level"
+                  options={formatSelects(experienceOptions)}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        )}
+
+        <Row gutter={16}>
+          <Col xs={24}>
+            <Form.Item
+              label="Export Spice Products & Values (in USD)"
+              rules={[
+                {
+                  validator: () => {
+                    const hasValidProduct = exportProducts.some(
+                      (product) => product.productId && product.value
+                    );
+                    return hasValidProduct
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error(
+                            "Please add at least one spice product with value"
+                          )
+                        );
+                  },
+                },
+              ]}
+            >
+              <div className="space-y-4">
+                {exportProducts.map((product, index) => (
+                  <Card key={index} size="small" className="bg-gray-50">
+                    <Row gutter={12} align="middle">
+                      <Col xs={24} sm={10}>
+                        <Select
+                          placeholder="Select spice product"
+                          value={product.productId}
+                          onChange={(value) =>
+                            updateExportProduct(index, "productId", value)
+                          }
+                          className="w-full"
+                          showSearch
+                          filterOption={(input, option) =>
+                            option.label
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          options={formatSelects(productOptions)}
+                        />
+                      </Col>
+                      <Col xs={24} sm={8}>
+                        <InputNumber
+                          placeholder="Export value (USD)"
+                          value={product.value}
+                          onChange={(value) =>
+                            updateExportProduct(index, "value", value)
+                          }
+                          min={0.01}
+                          step={0.01}
+                          className="w-full"
+                          formatter={(value) =>
+                            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                        />
+                      </Col>
+                      <Col xs={24} sm={6}>
+                        <Space>
+                          {index === exportProducts.length - 1 && (
+                            <Button
+                              type="dashed"
+                              icon={<PlusOutlined />}
+                              onClick={addExportProduct}
+                              size="small"
+                            >
+                              Add
+                            </Button>
+                          )}
+                          {exportProducts.length > 1 && (
+                            <Button
+                              type="text"
+                              danger
+                              icon={<DeleteOutlined />}
+                              onClick={() => removeExportProduct(index)}
+                              size="small"
+                            />
+                          )}
+                        </Space>
+                      </Col>
+                    </Row>
+                  </Card>
+                ))}
+              </div>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label={isExisting ? "Number of Employees" : "Expected Employees"}
+              name="numberOfEmployees"
+              rules={[
+                { required: true, message: "Please select employee count" },
+              ]}
+            >
+              <Select
+                placeholder="Select count"
+                options={formatSelects(numberOfEmployeeOptions)}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item label="Additional Information" name="additionalInfo">
+              <Input.TextArea
+                rows={4}
+                placeholder="Any additional information about your business..."
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        
+
+        <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
+          Submit
+        </Button>
       </Form>
     </div>
   );
