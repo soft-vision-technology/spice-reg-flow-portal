@@ -3,12 +3,14 @@ import authReducer from './slices/authSlice';
 import basicInfoReducer from './slices/basicInfoSlice';
 import entrepreneurReducer from './slices/entrepreneurSlice';
 import utilsReducer from './slices/utilSlice';
+import reportReducer from './slices/reportSlice'
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     basicInfo: basicInfoReducer,
     entrepreneur: entrepreneurReducer,
-    utils: utilsReducer
+    utils: utilsReducer,
+    report: reportReducer
   },
 });
