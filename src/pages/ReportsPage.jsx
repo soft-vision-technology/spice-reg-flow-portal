@@ -1,140 +1,173 @@
-import React, { useState, useMemo } from "react";
-import { 
-  Tabs, 
-  Table, 
-  Card, 
-  Select, 
-  Button, 
-  Space, 
-  Row, 
-  Col, 
+import React, { useState, useMemo, useEffect } from "react";
+import {
+  Tabs,
+  Table,
+  Card,
+  Select,
+  Button,
+  Space,
+  Row,
+  Col,
   Statistic,
   Tag,
   Input,
   DatePicker,
   Dropdown,
-  message
+  message,
+  Tooltip
 } from "antd";
-import { 
-  DownloadOutlined, 
-  FilterOutlined, 
+import {
+  DownloadOutlined,
+  FilterOutlined,
   UserOutlined,
   ShopOutlined,
   GlobalOutlined,
   FileExcelOutlined,
   FilePdfOutlined,
   SearchOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  MoneyCollectOutlined
 } from "@ant-design/icons";
-import { useFormContext } from "../contexts/FormContext";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchExistingEntrepreneurs,
+  fetchExistingExporters,
+  fetchExistingTraders,
+  fetchStartingEntrepreneurs,
+  fetchStartingExporters,
+  fetchStartingTraders
+} from "../store/slices/reportSlice";
+import {
+  fetchNumEmployeeOptions,
+  fetchExperienceOptions,
+  selectNumEmployeeOptions,
+  selectExperienceOptions
+} from "../store/slices/utilSlice";
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 const { TabPane } = Tabs;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-const mockData = [
-  {
-    id: 1,
-    fullName: "John Doe",
-    role: "entrepreneur",
-    businessSize: "small",
-    spiceType: "cinnamon",
-    province: "Western",
-    district: "Colombo",
-    dsDivision: "Colombo",
-    gnDivision: "Colombo 01",
-    businessName: "Spice Masters Ltd",
-    email: "john@spicemasters.com",
-    mobile: "+94771234567",
-    registrationDate: "2024-01-15",
-    status: "active"
-  },
-  {
-    id: 2,
-    fullName: "Jane Smith",
-    role: "exporter",
-    businessSize: "medium",
-    spiceType: "pepper",
-    province: "Southern",
-    district: "Galle",
-    dsDiv: "Galle",
-    gnDivision: "Galle Town",
-    companyName: "Ceylon Exports Co.",
-    email: "jane@ceylonexports.com",
-    mobile: "+94771234568",
-    registrationDate: "2024-02-20",
-    status: "active"
-  },
-  {
-    id: 3,
-    fullName: "Mike Johnson",
-    role: "intermediary",
-    businessSize: "micro",
-    spiceType: "cardamom",
-    province: "Central",
-    district: "Kandy",
-    dsDiv: "Kandy",
-    gnDivision: "Kandy City",
-    tradingName: "Spice Link Trading",
-    email: "mike@spicelink.com",
-    mobile: "+94771234569",
-    registrationDate: "2024-03-10",
-    status: "pending"
-  }
-];
-
 const ReportsPage = () => {
-  const { formData } = useFormContext();
-  
+  const dispatch = useDispatch();
+
+  const loading = useSelector(state => state.report.loading);
+  const error = useSelector(state => state.report.error);
+
+  const {
+    existingExporters,
+    startingExporters,
+    existingEntrepreneurs,
+    startingEntrepreneurs,
+    existingTraders,
+    startingTraders
+  } = useSelector(state => state.report);
+
+  const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
+  const experienceOptions = useSelector(selectExperienceOptions) || [];
+
   const [filters, setFilters] = useState({
     role: 'all',
-    businessSize: 'all',
-    spiceType: 'all',
+    businessStatus: 'all',
     province: 'all',
     district: 'all',
-    dsDiv: 'all',
-    gnDivision: 'all',
-    status: 'all',
+    numberOfEmployees: 'all',
+    businessExperience: 'all',
     searchText: '',
     dateRange: null
   });
 
   const [activeTab, setActiveTab] = useState('overview');
 
-  const filterOptions = {
-    roles: ['entrepreneur', 'exporter', 'intermediary'],
-    businessSizes: ['micro', 'small', 'medium'],
-    spiceTypes: ['cinnamon', 'pepper', 'cardamom', 'cloves', 'nutmeg'],
-    provinces: ['Western', 'Central', 'Southern', 'Northern', 'Eastern', 'North Western', 'North Central', 'Uva', 'Sabaragamuwa'],
-    districts: ['Colombo', 'Galle', 'Kandy', 'Jaffna', 'Batticaloa'],
-    statuses: ['active', 'pending', 'inactive']
+  const fetchData = async () => {
+    await Promise.all([
+      dispatch(fetchExistingEntrepreneurs()),
+      dispatch(fetchStartingEntrepreneurs()),
+      dispatch(fetchExistingExporters()),
+      dispatch(fetchStartingExporters()),
+      dispatch(fetchStartingTraders()),
+      dispatch(fetchExistingTraders()),
+      dispatch(fetchNumEmployeeOptions()),
+      dispatch(fetchExperienceOptions())
+    ]);
   };
 
-  const filteredData = useMemo(() => {
-    return mockData.filter(item => {
-      const matchesRole = filters.role === 'all' || item.role === filters.role;
-      const matchesSize = filters.businessSize === 'all' || item.businessSize === filters.businessSize;
-      const matchesSpice = filters.spiceType === 'all' || item.spiceType === filters.spiceType;
-      const matchesProvince = filters.province === 'all' || item.province === filters.province;
-      const matchesDistrict = filters.district === 'all' || item.district === filters.district;
-      const matchesStatus = filters.status === 'all' || item.status === filters.status;
-      const matchesSearch = filters.searchText === '' || 
-        item.fullName.toLowerCase().includes(filters.searchText.toLowerCase()) ||
-        item.email.toLowerCase().includes(filters.searchText.toLowerCase());
+  useEffect(() => {
+    fetchData();
+  }, [dispatch]);
 
-      return matchesRole && matchesSize && matchesSpice && matchesProvince && 
-             matchesDistrict && matchesStatus && matchesSearch;
+  // Combine all data into one array
+  const allData = useMemo(() => {
+    const combinedData = [
+      ...(existingEntrepreneurs || []),
+      ...(startingEntrepreneurs || []),
+      ...(existingExporters || []),
+      ...(startingExporters || []),
+      ...(existingTraders || []),
+      ...(startingTraders || [])
+    ];
+    return combinedData;
+  }, [existingEntrepreneurs, startingEntrepreneurs, existingExporters, startingExporters, existingTraders, startingTraders]);
+
+  // Get unique filter options from the data
+  const filterOptions = useMemo(() => {
+    const provinces = [...new Set(allData.map(item => item.province?.name).filter(Boolean))];
+    const districts = [...new Set(allData.map(item => item.district?.name).filter(Boolean))];
+    const roles = [...new Set(allData.map(item => item.role?.name).filter(Boolean))];
+    const businessStatuses = [...new Set(allData.map(item => item.businessStatus).filter(Boolean))];
+
+    return {
+      provinces,
+      districts,
+      roles,
+      businessStatuses
+    };
+  }, [allData]);
+
+  const filteredData = useMemo(() => {
+    return allData.filter(item => {
+      const matchesRole = filters.role === 'all' || item.role?.name === filters.role;
+      const matchesBusinessStatus = filters.businessStatus === 'all' || item.businessStatus === filters.businessStatus;
+      const matchesProvince = filters.province === 'all' || item.province?.name === filters.province;
+      const matchesDistrict = filters.district === 'all' || item.district?.name === filters.district;
+
+      // Check business-specific filters
+      const businessData = item.exporter || item.entrepreneur || item.intermediaryTrader;
+      const matchesEmployees = filters.numberOfEmployees === 'all' ||
+        (businessData?.numberOfEmployee?.id?.toString() === filters.numberOfEmployees);
+
+      const matchesExperience = filters.businessExperience === 'all' ||
+        (businessData?.businessExperience?.id?.toString() === filters.businessExperience);
+
+      const matchesSearch = filters.searchText === '' ||
+        item.name?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
+        item.email?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
+        item.nic?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
+        (businessData?.businessName?.toLowerCase().includes(filters.searchText.toLowerCase()));
+
+      // Date range filter
+      const matchesDateRange = !filters.dateRange ||
+        (new Date(item.createdAt) >= filters.dateRange[0] &&
+          new Date(item.createdAt) <= filters.dateRange[1]);
+
+      return matchesRole && matchesBusinessStatus && matchesProvince &&
+        matchesDistrict && matchesEmployees && matchesExperience &&
+        matchesSearch && matchesDateRange;
     });
-  }, [filters]);
+  }, [allData, filters]);
 
   const stats = useMemo(() => {
     const total = filteredData.length;
-    const entrepreneurs = filteredData.filter(item => item.role === 'entrepreneur').length;
-    const exporters = filteredData.filter(item => item.role === 'exporter').length;
-    const intermediaries = filteredData.filter(item => item.role === 'intermediary').length;
-    const active = filteredData.filter(item => item.status === 'active').length;
+    const entrepreneurs = filteredData.filter(item => item.role?.name === 'Entrepreneur').length;
+    const exporters = filteredData.filter(item => item.role?.name === 'Exporter').length;
+    const traders = filteredData.filter(item => item.role?.name === 'IntermediaryTrader').length;
+    const starting = filteredData.filter(item => item.businessStatus === 'STARTING').length;
+    const existing = filteredData.filter(item => item.businessStatus === 'EXISTING').length;
 
-    return { total, entrepreneurs, exporters, intermediaries, active };
+    return { total, entrepreneurs, exporters, traders, starting, existing };
   }, [filteredData]);
 
   const handleFilterChange = (key, value) => {
@@ -147,110 +180,399 @@ const ReportsPage = () => {
   const resetFilters = () => {
     setFilters({
       role: 'all',
-      businessSize: 'all',
-      spiceType: 'all',
+      businessStatus: 'all',
       province: 'all',
       district: 'all',
-      dsDiv: 'all',
-      gnDivision: 'all',
-      status: 'all',
+      numberOfEmployees: 'all',
+      businessExperience: 'all',
       searchText: '',
       dateRange: null
     });
   };
+  const exportToExcel = (tabData = null, tabName = 'All Data') => {
+    try {
+      // Use tabData if provided, otherwise use filteredData
+      const dataToExport = tabData || filteredData;
 
-  const exportToExcel = () => {
-    message.success('Exporting to Excel...');
+      const exportData = dataToExport.map(item => {
+        const businessData = item.exporter || item.entrepreneur || item.intermediaryTrader;
+        const products = businessData?.businessProducts?.map(bp =>
+          `${bp.product?.name}: ${bp.value || 'No value'}`
+        ).join(', ') || 'N/A';
+
+        return {
+          'Name': `${item.title || ''} ${item.name || ''}`.trim(),
+          'Initials': item.initials || 'N/A',
+          'NIC': item.nic || 'N/A',
+          'Role': item.role?.name || 'N/A',
+          'Business Status': item.businessStatus || 'N/A',
+          'Province': item.province?.name || 'N/A',
+          'District': item.district?.name || 'N/A',
+          'DS Division': item.dsDivision || 'N/A',
+          'GN Division': item.gnDivision || 'N/A',
+          'Contact Number': item.contactNumber || 'N/A',
+          'Email': item.email || 'N/A',
+          'Address': item.address || 'N/A',
+          'Business Name': businessData?.businessName || 'N/A',
+          'Business Reg No': businessData?.businessRegNo || 'N/A',
+          'Business Address': businessData?.businessAddress || 'N/A',
+          'Number of Employees': businessData?.numberOfEmployee?.name || 'N/A',
+          'Business Experience': businessData?.businessExperience?.name || 'N/A',
+          'Business Start Date': businessData?.businessStartDate ?
+            new Date(businessData.businessStartDate).toLocaleDateString() : 'N/A',
+          'Business Description': businessData?.businessDescription || 'N/A',
+          'Products': products,
+          'Registration Date': item.createdAt ?
+            new Date(item.createdAt).toLocaleDateString() : 'N/A'
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+      // Auto-size columns
+      const colWidths = [];
+      const headers = Object.keys(exportData[0] || {});
+      headers.forEach((header, index) => {
+        const maxLength = Math.max(
+          header.length,
+          ...exportData.map(row => String(row[header] || '').length)
+        );
+        colWidths.push({ wch: Math.min(maxLength + 2, 50) });
+      });
+      worksheet['!cols'] = colWidths;
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, tabName);
+
+      const fileName = `${tabName.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+      message.success(`Excel file exported successfully! (${exportData.length} records)`);
+    } catch (error) {
+      message.error('Failed to export Excel file');
+      console.error('Export error:', error);
+    }
   };
 
-  const exportToPDF = () => {
-    message.success('Exporting to PDF...');
+  const exportToPDF = (tabData = null, tabName = 'All Data') => {
+    try {
+      // Use tabData if provided, otherwise use filteredData
+      const dataToExport = tabData || filteredData;
+
+      const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation for better table fit
+
+      // Add title
+      doc.setFontSize(18);
+      doc.text(`Business Reports - ${tabName}`, 20, 20);
+
+      // Add summary stats for the current tab
+      const tabStats = {
+        total: dataToExport.length,
+        entrepreneurs: dataToExport.filter(item => item.role?.name === 'Entrepreneur').length,
+        exporters: dataToExport.filter(item => item.role?.name === 'Exporter').length,
+        traders: dataToExport.filter(item => item.role?.name === 'IntermediaryTrader').length,
+        starting: dataToExport.filter(item => item.businessStatus === 'STARTING').length,
+        existing: dataToExport.filter(item => item.businessStatus === 'EXISTING').length,
+      };
+
+      doc.setFontSize(10);
+      let yPosition = 35;
+      doc.text(`Total Records: ${tabStats.total}`, 20, yPosition);
+      doc.text(`Entrepreneurs: ${tabStats.entrepreneurs}`, 80, yPosition);
+      doc.text(`Exporters: ${tabStats.exporters}`, 140, yPosition);
+      doc.text(`Traders: ${tabStats.traders}`, 190, yPosition);
+
+      yPosition += 8;
+      doc.text(`Starting: ${tabStats.starting}`, 20, yPosition);
+      doc.text(`Existing: ${tabStats.existing}`, 80, yPosition);
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 140, yPosition);
+
+      // Prepare table data with more columns for landscape
+      const tableData = dataToExport.map(item => {
+        const businessData = item.exporter || item.entrepreneur || item.intermediaryTrader;
+        const products = businessData?.businessProducts?.slice(0, 3).map(bp => bp.product?.name).join(', ') || 'N/A';
+
+        return [
+          `${item.title || ''} ${item.name || ''}`.trim(),
+          item.role?.name || 'N/A',
+          item.businessStatus || 'N/A',
+          `${item.district?.name || ''}, ${item.province?.name || ''}`.replace(', ,', '').trim() || 'N/A',
+          businessData?.businessName || 'N/A',
+          businessData?.numberOfEmployee?.name || 'N/A',
+          businessData?.businessExperience?.name || 'N/A',
+          products.length > 50 ? products.substring(0, 47) + '...' : products,
+          item.contactNumber || 'N/A',
+          item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'
+        ];
+      });
+
+      // Add table using autoTable
+      autoTable(doc, {
+        head: [['Name', 'Role', 'Status', 'Location', 'Business', 'Employees', 'Experience', 'Products', 'Contact', 'Date']],
+        body: tableData,
+        startY: yPosition + 15,
+        styles: {
+          fontSize: 7,
+          cellPadding: 2,
+        },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontSize: 8,
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        },
+        margin: { left: 10, right: 10 },
+        columnStyles: {
+          0: { cellWidth: 25 }, // Name
+          1: { cellWidth: 20 }, // Role
+          2: { cellWidth: 18 }, // Status
+          3: { cellWidth: 30 }, // Location
+          4: { cellWidth: 35 }, // Business
+          5: { cellWidth: 20 }, // Employees
+          6: { cellWidth: 20 }, // Experience
+          7: { cellWidth: 40 }, // Products
+          8: { cellWidth: 25 }, // Contact
+          9: { cellWidth: 20 }  // Date
+        },
+        didDrawPage: function (data) {
+          // Add page numbers
+          const pageCount = doc.internal.getNumberOfPages();
+          const pageSize = doc.internal.pageSize;
+          const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+
+          for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.text(`Page ${i} of ${pageCount}`,
+              pageSize.width - 30, pageHeight - 10);
+          }
+        }
+      });
+
+      const fileName = `${tabName.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+
+      message.success(`PDF file exported successfully! (${dataToExport.length} records)`);
+    } catch (error) {
+      message.error('Failed to export PDF file');
+      console.error('Export error:', error);
+    }
+  };
+
+  // Updated export menu with tab-specific options
+  const getExportMenu = (currentTabData, currentTabName) => ({
+    items: [
+      {
+        key: 'excel-current',
+        icon: <FileExcelOutlined />,
+        label: `Export ${currentTabName} to Excel`,
+        onClick: () => exportToExcel(currentTabData, currentTabName),
+      },
+      {
+        key: 'pdf-current',
+        icon: <FilePdfOutlined />,
+        label: `Export ${currentTabName} to PDF`,
+        onClick: () => exportToPDF(currentTabData, currentTabName),
+      },
+      {
+        type: 'divider',
+      },
+      {
+        key: 'excel-all',
+        icon: <FileExcelOutlined />,
+        label: 'Export All Data to Excel',
+        onClick: () => exportToExcel(filteredData, 'All Data'),
+      },
+      {
+        key: 'pdf-all',
+        icon: <FilePdfOutlined />,
+        label: 'Export All Data to PDF',
+        onClick: () => exportToPDF(filteredData, 'All Data'),
+      },
+    ],
+  });
+
+  // Helper function to get current tab data and name
+  const getCurrentTabInfo = () => {
+    switch (activeTab) {
+      case 'entrepreneurs':
+        return {
+          data: getDataByRole('Entrepreneur'),
+          name: 'Entrepreneurs'
+        };
+      case 'exporters':
+        return {
+          data: getDataByRole('Exporter'),
+          name: 'Exporters'
+        };
+      case 'traders':
+        return {
+          data: getDataByRole('IntermediaryTrader'),
+          name: 'Traders'
+        };
+      case 'starting':
+        return {
+          data: getDataByStatus('STARTING'),
+          name: 'Starting Businesses'
+        };
+      case 'existing':
+        return {
+          data: getDataByStatus('EXISTING'),
+          name: 'Existing Businesses'
+        };
+      default:
+        return {
+          data: filteredData,
+          name: 'Overview'
+        };
+    }
   };
 
   const getColumns = (type) => {
     const baseColumns = [
       {
         title: 'Name',
-        dataIndex: 'fullName',
-        key: 'fullName',
-        sorter: (a, b) => a.fullName.localeCompare(b.fullName),
+        dataIndex: 'name',
+        key: 'name',
+        sorter: (a, b) => (a.name || '').localeCompare(b.name || ''),
+        render: (name, record) => (
+          <div>
+            <div className="font-medium">{record.title} {name}</div>
+            <div className="text-sm text-gray-500">{record.initials}</div>
+          </div>
+        ),
+        width: 200,
       },
       {
         title: 'Role',
-        dataIndex: 'role',
+        dataIndex: ['role', 'name'],
         key: 'role',
-        render: (role) => (
-          <Tag color={role === 'entrepreneur' ? 'blue' : role === 'exporter' ? 'green' : 'orange'}>
-            {role.charAt(0).toUpperCase() + role.slice(1)}
-          </Tag>
-        ),
+        render: (role) => {
+          const color = role === 'Entrepreneur' ? 'blue' :
+            role === 'Exporter' ? 'green' : 'orange';
+          return <Tag color={color}>{role}</Tag>;
+        },
+        width: 120,
       },
       {
-        title: 'Business Size',
-        dataIndex: 'businessSize',
-        key: 'businessSize',
-        render: (size) => (
-          <Tag color={size === 'micro' ? 'red' : size === 'small' ? 'orange' : 'green'}>
-            {size.charAt(0).toUpperCase() + size.slice(1)}
+        title: 'Business Status',
+        dataIndex: 'businessStatus',
+        key: 'businessStatus',
+        render: (status) => (
+          <Tag color={status === 'EXISTING' ? 'green' : 'blue'}>
+            {status}
           </Tag>
         ),
+        width: 120,
       },
       {
         title: 'Location',
         key: 'location',
-        render: (_, record) => `${record.district}, ${record.province}`,
+        render: (_, record) => (
+          <div>
+            <div>{record.district?.name}</div>
+            <div className="text-sm text-gray-500">{record.province?.name}</div>
+          </div>
+        ),
+        width: 150,
       },
       {
         title: 'Contact',
-        dataIndex: 'email',
-        key: 'email',
+        key: 'contact',
+        render: (_, record) => (
+          <div>
+            <div className="text-sm">{record.email}</div>
+            <div className="text-sm text-gray-500">{record.contactNumber}</div>
+          </div>
+        ),
+        width: 200,
       },
       {
-        title: 'Status',
-        dataIndex: 'status',
-        key: 'status',
-        render: (status) => (
-          <Tag color={status === 'active' ? 'green' : status === 'pending' ? 'orange' : 'red'}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </Tag>
-        ),
+        title: 'NIC',
+        dataIndex: 'nic',
+        key: 'nic',
+        width: 120,
+      },
+      {
+        title: 'Registration Date',
+        dataIndex: 'createdAt',
+        key: 'createdAt',
+        render: (date) => new Date(date).toLocaleDateString(),
+        sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+        width: 120,
       }
     ];
 
-    if (type === 'entrepreneurs') {
-      return [
-        ...baseColumns,
+    // Add business-specific columns for detailed views
+    if (['entrepreneurs', 'exporters', 'traders', 'starting', 'existing'].includes(type)) {
+      const businessColumns = [
         {
           title: 'Business Name',
-          dataIndex: 'businessName',
           key: 'businessName',
-        }
-      ];
-    } else if (type === 'exporters') {
-      return [
-        ...baseColumns,
+          render: (_, record) => {
+            const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
+            return businessData?.businessName || 'N/A';
+          },
+          width: 150,
+        },
         {
-          title: 'Company Name',
-          dataIndex: 'companyName',
-          key: 'companyName',
-        }
-      ];
-    } else if (type === 'intermediaries') {
-      return [
-        ...baseColumns,
+          title: 'Employees',
+          key: 'employees',
+          render: (_, record) => {
+            const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
+            return businessData?.numberOfEmployee?.name || 'N/A';
+          },
+          width: 120,
+        },
         {
-          title: 'Trading Name',
-          dataIndex: 'tradingName',
-          key: 'tradingName',
+          title: 'Experience',
+          key: 'experience',
+          render: (_, record) => {
+            const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
+            return businessData?.businessExperience?.name || 'N/A';
+          },
+          width: 120,
+        },
+        {
+          title: 'Products',
+          key: 'products',
+          render: (_, record) => {
+            const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
+            const products = businessData?.businessProducts?.slice(0, 2).map(bp => bp.product?.name) || [];
+            const hasMore = businessData?.businessProducts?.length > 2;
+
+            return (
+              <div>
+                {products.map((product, index) => (
+                  <Tag key={index} size="small" className="mb-1">{product}</Tag>
+                ))}
+                {hasMore && (
+                  <Tooltip title={businessData.businessProducts.map(bp => bp.product?.name).join(', ')}>
+                    <Tag size="small">+{businessData.businessProducts.length - 2} more</Tag>
+                  </Tooltip>
+                )}
+              </div>
+            );
+          },
+          width: 150,
         }
       ];
+
+      return [...baseColumns, ...businessColumns];
     }
 
     return baseColumns;
   };
 
   const getDataByRole = (role) => {
-    return filteredData.filter(item => item.role === role);
+    return filteredData.filter(item => item.role?.name === role);
+  };
+
+  const getDataByStatus = (status) => {
+    return filteredData.filter(item => item.businessStatus === status);
   };
 
   const exportMenu = {
@@ -270,45 +592,78 @@ const ReportsPage = () => {
     ],
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading reports...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-500 text-center p-8">
+        <div className="text-lg mb-2">Error loading reports</div>
+        <div>{error}</div>
+        <Button
+          type="primary"
+          onClick={fetchData}
+          className="mt-4"
+          icon={<ReloadOutlined />}
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Business Reports</h1>
+        <p className="text-gray-600 mt-1">Comprehensive overview of registered businesses</p>
+      </div>
+
       {/* Statistics Cards */}
-      <Row gutter={16} className="mb-8">
-        <Col span={6}>
+      <Row gutter={16} className="mb-6">
+        <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Total Registrations"
+              title="Total Users"
               value={stats.total}
               prefix={<UserOutlined />}
+              valueStyle={{ color: '#1890ff' }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
               title="Entrepreneurs"
               value={stats.entrepreneurs}
               prefix={<ShopOutlined />}
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: '#52c41a' }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
               title="Exporters"
               value={stats.exporters}
               prefix={<GlobalOutlined />}
-              valueStyle={{ color: '#52c41a' }}
+              valueStyle={{ color: '#722ed1' }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Active Users"
-              value={stats.active}
-              valueStyle={{ color: '#f5222d' }}
+              title="Traders"
+              value={stats.traders}
+              prefix={<MoneyCollectOutlined />}
+              valueStyle={{ color: '#fa8c16' }}
             />
           </Card>
         </Col>
@@ -325,7 +680,10 @@ const ReportsPage = () => {
             <Button icon={<ReloadOutlined />} onClick={resetFilters}>
               Reset Filters
             </Button>
-            <Dropdown menu={exportMenu} trigger={['click']}>
+            <Dropdown
+              menu={getExportMenu(getCurrentTabInfo().data, getCurrentTabInfo().name)}
+              trigger={['click']}
+            >
               <Button type="primary" icon={<DownloadOutlined />}>
                 Export Data
               </Button>
@@ -333,53 +691,36 @@ const ReportsPage = () => {
           </Space>
         </div>
 
-        <Row gutter={16}>
-          <Col span={4}>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12} md={8} lg={6}>
             <Select
-              placeholder="Role"
+              placeholder="Select Role"
               value={filters.role}
               onChange={(value) => handleFilterChange('role', value)}
               className="w-full"
             >
               <Option value="all">All Roles</Option>
               {filterOptions.roles.map(role => (
-                <Option key={role} value={role}>
-                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                </Option>
+                <Option key={role} value={role}>{role}</Option>
               ))}
             </Select>
           </Col>
-          <Col span={4}>
+          <Col xs={24} sm={12} md={8} lg={6}>
             <Select
-              placeholder="Business Size"
-              value={filters.businessSize}
-              onChange={(value) => handleFilterChange('businessSize', value)}
+              placeholder="Business Status"
+              value={filters.businessStatus}
+              onChange={(value) => handleFilterChange('businessStatus', value)}
               className="w-full"
             >
-              <Option value="all">All Sizes</Option>
-              {filterOptions.businessSizes.map(size => (
-                <Option key={size} value={size}>
-                  {size.charAt(0).toUpperCase() + size.slice(1)}
+              <Option value="all">All Status</Option>
+              {filterOptions.businessStatuses.map(status => (
+                <Option key={status} value={status}>
+                  {status.charAt(0) + status.slice(1).toLowerCase()}
                 </Option>
               ))}
             </Select>
           </Col>
-          <Col span={4}>
-            <Select
-              placeholder="Spice Type"
-              value={filters.spiceType}
-              onChange={(value) => handleFilterChange('spiceType', value)}
-              className="w-full"
-            >
-              <Option value="all">All Spices</Option>
-              {filterOptions.spiceTypes.map(spice => (
-                <Option key={spice} value={spice}>
-                  {spice.charAt(0).toUpperCase() + spice.slice(1)}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col span={4}>
+          <Col xs={24} sm={12} md={8} lg={6}>
             <Select
               placeholder="Province"
               value={filters.province}
@@ -392,7 +733,7 @@ const ReportsPage = () => {
               ))}
             </Select>
           </Col>
-          <Col span={4}>
+          <Col xs={24} sm={12} md={8} lg={6}>
             <Select
               placeholder="District"
               value={filters.district}
@@ -405,12 +746,47 @@ const ReportsPage = () => {
               ))}
             </Select>
           </Col>
-          <Col span={4}>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Select
+              placeholder="Number of Employees"
+              value={filters.numberOfEmployees}
+              onChange={(value) => handleFilterChange('numberOfEmployees', value)}
+              className="w-full"
+            >
+              <Option value="all">All Employee Counts</Option>
+              {numberOfEmployeeOptions?.map(emp => (
+                <Option key={emp.id} value={emp.id.toString()}>{emp.name}</Option>
+              ))}
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Select
+              placeholder="Business Experience"
+              value={filters.businessExperience}
+              onChange={(value) => handleFilterChange('businessExperience', value)}
+              className="w-full"
+            >
+              <Option value="all">All Experience Levels</Option>
+              {experienceOptions?.map(exp => (
+                <Option key={exp.id} value={exp.id.toString()}>{exp.name}</Option>
+              ))}
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
             <Input
-              placeholder="Search..."
+              placeholder="Search by name, email, NIC..."
               prefix={<SearchOutlined />}
               value={filters.searchText}
               onChange={(e) => handleFilterChange('searchText', e.target.value)}
+              allowClear
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <RangePicker
+              placeholder={['Start Date', 'End Date']}
+              value={filters.dateRange}
+              onChange={(dates) => handleFilterChange('dateRange', dates)}
+              className="w-full"
             />
           </Col>
         </Row>
@@ -418,7 +794,7 @@ const ReportsPage = () => {
 
       {/* Tabbed Tables */}
       <Card>
-        <Tabs activeKey={activeTab} onChange={setActiveTab}>
+        <Tabs activeKey={activeTab} onChange={setActiveTab} type="card">
           <TabPane tab={`Overview (${filteredData.length})`} key="overview">
             <Table
               columns={getColumns('overview')}
@@ -430,49 +806,83 @@ const ReportsPage = () => {
                 showQuickJumper: true,
                 showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
               }}
-              scroll={{ x: 800 }}
+              scroll={{ x: 1200 }}
+              size="small"
             />
           </TabPane>
-          
-          <TabPane tab={`Entrepreneurs (${getDataByRole('entrepreneur').length})`} key="entrepreneurs">
+
+          <TabPane tab={`Entrepreneurs (${getDataByRole('Entrepreneur').length})`} key="entrepreneurs">
             <Table
               columns={getColumns('entrepreneurs')}
-              dataSource={getDataByRole('entrepreneur')}
+              dataSource={getDataByRole('Entrepreneur')}
               rowKey="id"
               pagination={{
                 pageSize: 10,
                 showSizeChanger: true,
                 showQuickJumper: true,
               }}
-              scroll={{ x: 800 }}
+              scroll={{ x: 1600 }}
+              size="small"
             />
           </TabPane>
-          
-          <TabPane tab={`Exporters (${getDataByRole('exporter').length})`} key="exporters">
+
+          <TabPane tab={`Exporters (${getDataByRole('Exporter').length})`} key="exporters">
             <Table
               columns={getColumns('exporters')}
-              dataSource={getDataByRole('exporter')}
+              dataSource={getDataByRole('Exporter')}
               rowKey="id"
               pagination={{
                 pageSize: 10,
                 showSizeChanger: true,
                 showQuickJumper: true,
               }}
-              scroll={{ x: 800 }}
+              scroll={{ x: 1600 }}
+              size="small"
             />
           </TabPane>
-          
-          <TabPane tab={`Intermediaries (${getDataByRole('intermediary').length})`} key="intermediaries">
+
+          <TabPane tab={`Traders (${getDataByRole('IntermediaryTrader').length})`} key="traders">
             <Table
-              columns={getColumns('intermediaries')}
-              dataSource={getDataByRole('intermediary')}
+              columns={getColumns('traders')}
+              dataSource={getDataByRole('IntermediaryTrader')}
               rowKey="id"
               pagination={{
                 pageSize: 10,
                 showSizeChanger: true,
                 showQuickJumper: true,
               }}
-              scroll={{ x: 800 }}
+              scroll={{ x: 1600 }}
+              size="small"
+            />
+          </TabPane>
+
+          <TabPane tab={`Starting (${getDataByStatus('STARTING').length})`} key="starting">
+            <Table
+              columns={getColumns('starting')}
+              dataSource={getDataByStatus('STARTING')}
+              rowKey="id"
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                showQuickJumper: true,
+              }}
+              scroll={{ x: 1600 }}
+              size="small"
+            />
+          </TabPane>
+
+          <TabPane tab={`Existing (${getDataByStatus('EXISTING').length})`} key="existing">
+            <Table
+              columns={getColumns('existing')}
+              dataSource={getDataByStatus('EXISTING')}
+              rowKey="id"
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                showQuickJumper: true,
+              }}
+              scroll={{ x: 1600 }}
+              size="small"
             />
           </TabPane>
         </Tabs>
