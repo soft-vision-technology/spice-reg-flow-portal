@@ -107,7 +107,7 @@ const ExporterPage = () => {
                   <div className="space-y-1">
                     {formData.products.map((product, index) => (
                       <div key={index} className="text-sm">
-                        Product ID: {product.productId}, Value: ${product.value?.toLocaleString()}
+                        Product ID: {product.productId}, Value: Rs.{product.value?.toLocaleString()}
                       </div>
                     ))}
                   </div>

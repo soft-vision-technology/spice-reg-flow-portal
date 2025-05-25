@@ -35,14 +35,12 @@ const authSlice = createSlice({
     },
     setEmail: (state, action) => {
       state.email = action.payload;
-      // Clear error when user starts typing
       if (state.error) {
         state.error = null;
       }
     },
     setPassword: (state, action) => {
       state.password = action.payload;
-      // Clear error when user starts typing
       if (state.error) {
         state.error = null;
       }
@@ -56,13 +54,11 @@ const authSlice = createSlice({
       state.rememberMe = false;
       state.loading = false;
       state.error = null;
-      state.isModalOpen = false; // Added: also close modal when resetting
+      state.isModalOpen = false;
     },
-    // Added: action to clear error manually
     clearError: (state) => {
       state.error = null;
     },
-    // Added: action to logout user
     logout: (state) => {
       state.user = null;
       state.email = '';
@@ -70,6 +66,12 @@ const authSlice = createSlice({
       state.rememberMe = false;
       state.error = null;
       state.isModalOpen = false;
+      state.loading = false;
+      // Clear localStorage is handled in the component
+    },
+    // Add action to restore user from token (for page refresh)
+    restoreUser: (state, action) => {
+      state.user = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -82,12 +84,12 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         state.isModalOpen = false;
-        state.error = null; // Added: clear any previous errors
+        state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.user = null; // Added: clear user on login failure
+        state.user = null;
       });
   }
 });
@@ -100,7 +102,8 @@ export const {
   setRememberMe,
   resetLoginForm,
   clearError,
-  logout
+  logout,
+  restoreUser
 } = authSlice.actions;
 
 export default authSlice.reducer;

@@ -71,7 +71,7 @@ const IntermediaryPage = () => {
 
       <div className="mb-8">{steps[current].content}</div>
 
-      <div className="flex justify-between mt-8">
+      {/* <div className="flex justify-between mt-8">
         {current > 0 && <Button onClick={prev}>Previous</Button>}
         <div className="flex-1"></div>
         {current < steps.length - 1 && (
@@ -84,7 +84,7 @@ const IntermediaryPage = () => {
             Submit
           </Button>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

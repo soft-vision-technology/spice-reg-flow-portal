@@ -3,6 +3,7 @@ import { Layout } from "antd";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { useLocation } from "react-router-dom";
 import SidebarMenu from "./SidebarMenu"
+import LogoutButton from "../auth/LogoutButton";
 
 const { Header, Content, Sider } = Layout;
 
@@ -51,6 +52,9 @@ const MainLayout = ({ children }) => {
             </div>
             <div className="flex-1 px-4">
               <h2 className="text-lg font-semibold text-earth-700">Spice Industry Registration Portal</h2>
+            </div>
+            <div className="px-4">
+              <LogoutButton />
             </div>
           </Header>
         )}

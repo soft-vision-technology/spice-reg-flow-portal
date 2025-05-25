@@ -32,6 +32,7 @@ const { Option } = Select;
 
 const EntrepreneurForm = (props) => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { isExisting } = props;
   const { updateFormData } = useFormContext();
   const [form] = Form.useForm();
@@ -39,7 +40,6 @@ const EntrepreneurForm = (props) => {
     { productId: null, value: null },
   ]);
 
-  const location = useLocation();
 
   const load = async () => {
     await dispatch(fetchCertificateOptions());
@@ -87,6 +87,8 @@ const EntrepreneurForm = (props) => {
     updateFormData({ products: newProducts });
   };
 
+  console.log(location?.state?.result)
+
   // Format form data to match API structure
   const formatFormData = (values) => {
     const formattedData = {
@@ -100,11 +102,11 @@ const EntrepreneurForm = (props) => {
         ? parseInt(values.certifications)
         : null,
       businessExperienceId: values.yearsExporting ? parseInt(values.yearsExporting) : null,
-      userId: location?.state?.result || null,
+      userId: location?.state?.result,
       products: exportProducts
         .filter((product) => product.productId && product.value)
         .map((product) => ({
-          productId: parseInt(product.productId),
+          productId: Number(product.productId),
           value: parseFloat(product.value),
         })),
     };
@@ -269,7 +271,7 @@ const EntrepreneurForm = (props) => {
                           step={0.01}
                           className="w-full"
                           formatter={(value) =>
-                            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                            `Rs. ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                           }
                           parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
                         />
@@ -331,17 +333,6 @@ const EntrepreneurForm = (props) => {
               <Select
                 placeholder="Select years"
                 options={formatSelects(experienceOptions)}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={24}>
-            <Form.Item label="Additional Information" name="additionalInfo">
-              <Input.TextArea
-                rows={4}
-                placeholder="Any additional information about your business..."
               />
             </Form.Item>
           </Col>

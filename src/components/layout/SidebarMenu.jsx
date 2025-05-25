@@ -29,10 +29,6 @@ const SidebarMenu = () => {
       selectedKeys={[location.pathname]}
       className="bg-sidebar border-r-0"
     >
-      <Menu.Item key="/" icon={<HomeFilled />}>
-        <Link to="/">Home</Link>
-      </Menu.Item>
-
       <Menu.Item key="/select" icon={<UserOutlined />}>
         <Link to="/select">Registration</Link>
       </Menu.Item>

@@ -204,18 +204,18 @@ const RoleSelectionCard = ({ onContinue,setRoleId }) => {
      (registrationType === "have-business" && isRoleSelected));
 
   // Add debug display in development environment
-  const DebugInfo = () => {
-    if (process.env.NODE_ENV !== 'development') return null;
+  // const DebugInfo = () => {
+  //   if (process.env.NODE_ENV !== 'development') return null;
     
-    return (
-      <div className="mt-4 p-2 bg-gray-100 rounded text-xs font-mono">
-        <div>Debug Info:</div>
-        <div>Registration Type: {registrationType || 'none'}</div>
-        <div>Role: {role || 'none'}</div>
-        <div>Can Continue: {canContinue.toString()}</div>
-      </div>
-    );
-  };
+  //   return (
+  //     <div className="mt-4 p-2 bg-gray-100 rounded text-xs font-mono">
+  //       <div>Debug Info:</div>
+  //       <div>Registration Type: {registrationType || 'none'}</div>
+  //       <div>Role: {role || 'none'}</div>
+  //       <div>Can Continue: {canContinue.toString()}</div>
+  //     </div>
+  //   );
+  // };
 
   return (
     <Card className="shadow-md rounded-lg border-0 max-w-lg mx-auto">
@@ -331,7 +331,7 @@ const RoleSelectionCard = ({ onContinue,setRoleId }) => {
         )}
 
         {/* Add DebugInfo component before the end of the card */}
-        <DebugInfo />
+        {/* <DebugInfo /> */}
       </div>
     </Card>
   );

@@ -13,6 +13,7 @@ import SelectPage from "./pages/SelectPage";
 import StartingBusinessPage from "./pages/StartingBusinessPage";
 import { TooltipProvider } from "./components/ui/tooltip";
 import ProductPage from "./pages/ProductPage";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -25,13 +26,62 @@ const App = () => (
           <MainLayout>
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/select" element={<SelectPage />} />
-              <Route path="/like-to-start" element={<ExporterPage />} />
-              <Route path="/have-business" element={<ExistingBusinessPage />} />
-              <Route path="/export-form" element={<ExporterPage />} />
-              <Route path="/intermediary-form" element={<IntermediaryPage />} />
-              <Route path="/products" element={<ProductPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
+              <Route 
+                path="/select" 
+                element={
+                  <ProtectedRoute>
+                    <SelectPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/like-to-start" 
+                element={
+                  <ProtectedRoute>
+                    <ExporterPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/have-business" 
+                element={
+                  <ProtectedRoute>
+                    <ExistingBusinessPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/export-form" 
+                element={
+                  <ProtectedRoute>
+                    <ExporterPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/intermediary-form" 
+                element={
+                  <ProtectedRoute>
+                    <IntermediaryPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/products" 
+                element={
+                  <ProtectedRoute>
+                    <ProductPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/reports" 
+                element={
+                  <ProtectedRoute>
+                    <ReportsPage />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </MainLayout>
