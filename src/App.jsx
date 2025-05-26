@@ -10,9 +10,7 @@ import NotFound from "./pages/NotFound";
 import { FormProvider } from "./contexts/FormContext";
 import HomePage from "./pages/HomePage";
 import SelectPage from "./pages/SelectPage";
-import StartingBusinessPage from "./pages/StartingBusinessPage";
 import { TooltipProvider } from "./components/ui/tooltip";
-import ProductPage from "./pages/ProductPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -63,14 +61,6 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <IntermediaryPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/products" 
-                element={
-                  <ProtectedRoute>
-                    <ProductPage />
                   </ProtectedRoute>
                 } 
               />

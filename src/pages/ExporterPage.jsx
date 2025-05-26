@@ -10,7 +10,6 @@ const { Step } = Steps;
 const ExporterPage = () => {
   const navigate = useNavigate();
   const { registrationType, role, formData } = useFormContext();
-  console.log(registrationType);
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -169,14 +168,10 @@ const ExporterPage = () => {
         products: formData.products || [],
         startDate: formData.startDate || null
       };
-      
-      console.log("Submitting data:", submissionData);
-      
-      // TODO: Replace with actual API call
-      // const response = await submitExporterRegistration(submissionData);
+            
       const response = await axiosInstance.post("/api/exporter/", submissionData);
-      console.log("API response:", response);
       message.success("Exporter registration submitted successfully!");
+
       navigate("/reports");
     } catch (error) {
       console.error("Submission error:", error);

@@ -39,7 +39,7 @@ const BasicInfoForm = () => {
             >
               <Select placeholder="Select title">
                 <Option value="mr">Mr.</Option>
-                <Option value="miss">Miss</Option>
+                <Option value="miss">Ms.</Option>
                 <Option value="mrs">Mrs.</Option>
               </Select>
             </Form.Item>

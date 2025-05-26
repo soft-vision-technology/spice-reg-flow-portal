@@ -10,7 +10,6 @@ export const fetchExperienceOptions = createAsyncThunk(
         if (response.status !== 200) {
             throw new Error("Failed to fetch experience options.");
         }
-        console.log(response)
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch experience options.");

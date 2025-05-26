@@ -221,52 +221,50 @@ const ExistingBusinessPage = () => {
   };
 
   const handleSubmit = async () => {
-    try {
-      const userId = location?.state?.result || formData.userId;
+  try {
+    const userId = location?.state?.result || formData.userId;
 
-      if (!userId) {
-        message.error(
-          "User ID is missing. Please start the registration process again."
-        );
-        return;
-      }
-
-      const submissionData = {
-        businessName: formData.businessName || null,
-        businessRegNo: formData.businessRegistrationNumber || null,
-        businessAddress: formData.businessAddress || null,
-        numberOfEmployeeId: formData.numberOfEmployees
-          ? parseInt(formData.numberOfEmployees)
-          : null,
-        certificateId: formData.certifications
-          ? parseInt(formData.certifications)
-          : null,
-        businessExperienceId: formData.yearsExporting
-          ? parseInt(formData.yearsExporting)
-          : null,
-        userId: userId,
-        products: (formData.products || [])
-          .filter((product) => product.productId && product.value)
-          .map((product) => ({
-            productId: Number(product.productId),
-            value: parseFloat(product.value),
-          })),
-      };
-
-      console.log("Submitting data:", submissionData);
-
-      const response = await axiosInstance.post(
-        "/api/entrepreneur/",
-        submissionData
+    if (!userId) {
+      message.error(
+        "User ID is missing. Please start the registration process again."
       );
-      console.log("API response:", response);
-      message.success("Business registration submitted successfully!");
-      navigate("/reports");
-    } catch (error) {
-      console.error("Submission error:", error);
-      message.error("Failed to submit registration. Please try again.");
+      return;
     }
-  };
+
+    // Format data according to Entrepreneur Prisma model
+    const submissionData = {
+      businessName: formData.businessName || null,
+      businessRegNo: formData.businessRegistrationNumber || null, // Fixed field name
+      businessAddress: formData.businessAddress || null,
+      numberOfEmployeeId: formData.numberOfEmployees 
+        ? parseInt(formData.numberOfEmployees) 
+        : null,
+      certificateId: formData.certifications 
+        ? parseInt(formData.certifications) 
+        : null,
+      businessExperienceId: formData.yearsExporting 
+        ? parseInt(formData.yearsExporting) 
+        : null,
+      userId: parseInt(userId), // Ensure it's an integer
+      
+      // Products array for BusinessProducts relationship
+      products: (formData.products || [])
+        .filter((product) => product.productId && product.value)
+        .map((product) => ({
+          productId: parseInt(product.productId),
+          value: parseFloat(product.value),
+        })),
+    };
+
+    const response = await axiosInstance.post("/api/entrepreneur/", submissionData);
+    message.success("Entrepreneur registration submitted successfully!");
+    navigate("/reports");
+  } catch (error) {
+    console.error("Submission error:", error);
+    console.error("Error details:", error.response?.data);
+    message.error(`Failed to submit registration: ${error.response?.data?.message || error.message}`);
+  }
+};
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">

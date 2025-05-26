@@ -12,9 +12,7 @@ const SelectPage = () => {
   const dispatch = useDispatch();
   const { registrationType, role, formData } = useFormContext();
   const { loading, error } = useSelector((state) => state.basicInfo);
-const [roleId,setRoleId]=useState(3)
-
-// console.log(roleId)
+  const [roleId, setRoleId] = useState(3);
 
   const handleContinue = async () => {
     // Check if basic info is filled
@@ -61,7 +59,6 @@ const [roleId,setRoleId]=useState(3)
 
       // Dispatch the saveBasicInfo action
       const result = await dispatch(saveBasicInfo(basicInfoData)).unwrap();
-      console.log(result)
 
       // Show success message
       message.success("Basic information saved successfully!");

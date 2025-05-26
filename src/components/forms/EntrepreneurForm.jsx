@@ -52,9 +52,29 @@ const EntrepreneurForm = (props) => {
     load();
   }, [dispatch]);
 
-  const handleChange = (_, allValues) => {
-    updateFormData(allValues);
+  const handleChange = (changedValues, allValues) => {
+  // Format the data according to API requirements
+  const formattedData = {
+    businessName: allValues.businessName || null,
+    businessRegistrationNumber: allValues.businessRegistrationNumber || null, // Keep original form field name
+    businessAddress: allValues.businessAddress || null,
+    numberOfEmployees: allValues.numberOfEmployees || null,
+    certifications: allValues.certifications || null,
+    yearsExporting: allValues.yearsExporting || null,
+    businessExperience: allValues.businessExperience || null,
+    registrationDate: allValues.registrationDate ? dayjs(allValues.registrationDate).toISOString() : null,
+    userId: location?.state?.result ? parseInt(location?.state?.result) : null,
+    products: exportProducts
+      .filter((product) => product.productId && product.value)
+      .map((product) => ({
+        productId: parseInt(product.productId),
+        value: parseFloat(product.value),
+      })),
   };
+
+  updateFormData(formattedData);
+};
+
 
   const experienceOptions = useSelector(selectExperienceOptions) || [];
   const certificateOptions = useSelector(selectCertificateOptions) || [];
@@ -87,47 +107,44 @@ const EntrepreneurForm = (props) => {
     updateFormData({ products: newProducts });
   };
 
-  console.log(location?.state?.result)
-
   // Format form data to match API structure
   const formatFormData = (values) => {
-    const formattedData = {
-      businessName: values.businessName || null,
-      businessRegNo: values.businessRegistrationNumber || null,
-      businessAddress: values.businessAddress || null,
-      numberOfEmployeeId: values.numberOfEmployees
-        ? parseInt(values.numberOfEmployees)
-        : null,
-      certificateId: values.certifications
-        ? parseInt(values.certifications)
-        : null,
-      businessExperienceId: values.yearsExporting ? parseInt(values.yearsExporting) : null,
-      userId: location?.state?.result,
-      products: exportProducts
-        .filter((product) => product.productId && product.value)
-        .map((product) => ({
-          productId: Number(product.productId),
-          value: parseFloat(product.value),
-        })),
-    };
-
-    return formattedData;
+  const formattedData = {
+    businessName: values.businessName || null,
+    businessRegNo: values.businessRegistrationNumber || null, // Map to correct field
+    businessAddress: values.businessAddress || null,
+    numberOfEmployeeId: values.numberOfEmployees
+      ? parseInt(values.numberOfEmployees)
+      : null,
+    certificateId: values.certifications
+      ? parseInt(values.certifications)
+      : null,
+    businessExperienceId: values.yearsExporting 
+      ? parseInt(values.yearsExporting) 
+      : null,
+    userId: location?.state?.result ? parseInt(location?.state?.result) : null,
+    products: exportProducts
+      .filter((product) => product.productId && product.value)
+      .map((product) => ({
+        productId: parseInt(product.productId),
+        value: parseFloat(product.value),
+      })),
   };
+
+  return formattedData;
+};
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       const formattedData = formatFormData(values);
 
-      console.log("Formatted data to send:", formattedData);
-
       const response = await axiosInstance.post(
         "/api/entrepreneur",
         formattedData
       );
-      console.log("Response:", response);
     } catch (error) {
-      console.log("Error:", error);
+      throw new Error("Failed to submit form: " + error.message);
     }
   };
 
@@ -221,7 +238,7 @@ const EntrepreneurForm = (props) => {
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
-              label="Export Spice Products & Values (in USD)"
+              label="Export Spice Products & Values"
               rules={[
                 {
                   validator: () => {
@@ -262,7 +279,7 @@ const EntrepreneurForm = (props) => {
                       </Col>
                       <Col xs={24} sm={8}>
                         <InputNumber
-                          placeholder="Export value (USD)"
+                          placeholder="Enter value"
                           value={product.value}
                           onChange={(value) =>
                             updateExportProduct(index, "value", value)
@@ -270,9 +287,7 @@ const EntrepreneurForm = (props) => {
                           min={0.01}
                           step={0.01}
                           className="w-full"
-                          formatter={(value) =>
-                            `Rs. ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          }
+                          
                           parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
                         />
                       </Col>

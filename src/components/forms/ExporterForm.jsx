@@ -43,7 +43,7 @@ const ExporterForm = ({ isExisting }) => {
   const [exportProducts, setExportProducts] = useState([
     { productId: null, value: null },
   ]);
-console.log(isExisting)
+
   const load = async () => {
     await dispatch(fetchCertificateOptions());
     await dispatch(fetchNumEmployeeOptions());
@@ -85,7 +85,7 @@ console.log(isExisting)
     setExportProducts(newProducts);
     updateFormData({ products: newProducts });
   };
-console.log(location?.state?.result)
+
   const handleChange = (changedValues, allValues) => {
     // Format the data according to API requirements
     const formattedData = {
@@ -236,7 +236,7 @@ console.log(location?.state?.result)
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
-              label="Export Spice Products & Values (in USD)"
+              label="Export Spice Products & Values"
               rules={[
                 {
                   validator: () => {
@@ -277,7 +277,7 @@ console.log(location?.state?.result)
                       </Col>
                       <Col xs={24} sm={8}>
                         <InputNumber
-                          placeholder="Export value (USD)"
+                          placeholder="Enter value"
                           value={product.value}
                           onChange={(value) =>
                             updateExportProduct(index, "value", value)
@@ -285,7 +285,6 @@ console.log(location?.state?.result)
                           min={0.01}
                           step={0.01}
                           className="w-full"
-                          formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                           parser={value => value.replace(/\$\s?|(,*)/g, '')}
                         />
                       </Col>

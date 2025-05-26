@@ -1,4 +1,6 @@
-import {   Form,
+import React, { useEffect, useState } from "react";
+import {
+  Form,
   Input,
   Select,
   InputNumber,
@@ -6,28 +8,31 @@ import {   Form,
   Button,
   Row,
   Col,
-  Radio,
   Card,
-  Space, } from "antd";
-  import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+  Space,
+} from "antd";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useState } from "react";
-import { fetchExperienceOptions, fetchNumEmployeeOptions, fetchProductOptions, selectExperienceOptions, selectNumEmployeeOptions, selectProductOptions } from "../../store/slices/utilsSlice";
+import {
+  fetchExperienceOptions,
+  fetchNumEmployeeOptions,
+  fetchProductOptions,
+  selectExperienceOptions,
+  selectNumEmployeeOptions,
+  selectProductOptions,
+} from "../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
-import axiosInstance from "../../api/axiosInstance";
+import dayjs from "dayjs";
 
-
-const IntermediaryForm = (props) => {
+const IntermediaryForm = ({ isExisting }) => {
   const dispatch = useDispatch();
-  const { isExisting } = props;
-  const { updateFormData } = useFormContext();
+  const location = useLocation();
+  const { updateFormData, formData } = useFormContext();
   const [form] = Form.useForm();
   const [exportProducts, setExportProducts] = useState([
     { productId: null, value: null },
   ]);
-
-  const location = useLocation();
 
   const load = async () => {
     await dispatch(fetchNumEmployeeOptions());
@@ -38,10 +43,6 @@ const IntermediaryForm = (props) => {
   useEffect(() => {
     load();
   }, [dispatch]);
-
-  const handleChange = (_, allValues) => {
-    updateFormData(allValues);
-  };
 
   const experienceOptions = useSelector(selectExperienceOptions) || [];
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
@@ -73,17 +74,23 @@ const IntermediaryForm = (props) => {
     updateFormData({ products: newProducts });
   };
 
-  // Format form data to match API structure
-  const formatFormData = (values) => {
+  const handleChange = (changedValues, allValues) => {
+    // Format the data according to API requirements
     const formattedData = {
-      businessName: values.businessName || null,
-      businessRegNo: values.businessRegistrationNumber || null,
-      businessAddress: values.businessAddress || null,
-      numberOfEmployeeId: values.numberOfEmployees
-        ? parseInt(values.numberOfEmployees)
+      businessName: allValues.businessName || null,
+      businessRegNo: allValues.businessRegistrationNumber || null,
+      businessAddress: allValues.businessAddress || null,
+      numberOfEmployeeId: allValues.numberOfEmployees
+        ? parseInt(allValues.numberOfEmployees)
         : null,
-      businessExperienceId: values.yearsTrading ? parseInt(values.yearsTrading) : null,
-      userId: location?.state?.result || null,
+      businessExperienceId: allValues.yearsTrading
+        ? parseInt(allValues.yearsTrading)
+        : null,
+      registrationDate: allValues.registrationDate
+        ? dayjs(allValues.registrationDate).toISOString()
+        : null,
+      additionalInfo: allValues.additionalInfo || null,
+      userId: location?.state?.result,
       products: exportProducts
         .filter((product) => product.productId && product.value)
         .map((product) => ({
@@ -92,35 +99,21 @@ const IntermediaryForm = (props) => {
         })),
     };
 
-    return formattedData;
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      const formattedData = formatFormData(values);
-
-      console.log("Formatted data to send:", formattedData);
-
-      const response = await axiosInstance.post(
-        "/api/trader/",
-        formattedData
-      );
-      console.log("Response:", response);
-    } catch (error) {
-      console.log("Error:", error);
-    }
+    updateFormData(formattedData);
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h3 className="text-xl font-medium text-earth-700 mb-6">
-        {isExisting
-          ? "Existing Business Information"
-          : "Business Startup Information"}
+        Trading Business Information
       </h3>
 
-      <Form form={form} layout="vertical" onValuesChange={handleChange}>
+      <Form
+        form={form}
+        layout="vertical"
+        onValuesChange={handleChange}
+        initialValues={formData}
+      >
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
@@ -130,7 +123,7 @@ const IntermediaryForm = (props) => {
                 { required: true, message: "Please enter business name" },
               ]}
             >
-              <Input placeholder="Spice Enterprises" />
+              <Input placeholder="Spice Trading Enterprises" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -144,7 +137,7 @@ const IntermediaryForm = (props) => {
                 },
               ]}
             >
-              <Input placeholder="BRN123456" />
+              <Input placeholder="TRD12345" />
             </Form.Item>
           </Col>
         </Row>
@@ -159,15 +152,14 @@ const IntermediaryForm = (props) => {
               ]}
             >
               <Input.TextArea
-                rows={2}
-                placeholder="123 Spice Road, Industrial Zone, Colombo"
+                rows={3}
+                placeholder="123 Trading Street, Commercial Zone, Colombo"
               />
             </Form.Item>
           </Col>
         </Row>
 
-        {!isExisting && (
-          <Row gutter={16}>
+        <Row gutter={16}>
             <Col xs={24} sm={12}>
               <Form.Item
                 label="Registration Date"
@@ -179,30 +171,50 @@ const IntermediaryForm = (props) => {
                   },
                 ]}
               >
-                <DatePicker className="w-full" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Trading Experience"
-                name="yearsTrading"
-                rules={[
-                  { required: true, message: "Please select experience" },
-                ]}
-              >
-                <Select
-                  placeholder="Select experience level"
-                  options={formatSelects(experienceOptions)}
+                <DatePicker
+                  format="YYYY-MM-DD"
+                  style={{ width: "100%" }}
+                  placeholder="Select date"
                 />
               </Form.Item>
             </Col>
-          </Row>
-        )}
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Years in Trading Business"
+              name="yearsTrading"
+              rules={[
+                { required: true, message: "Please select years in trading" },
+              ]}
+            >
+              <Select
+                placeholder="Select years"
+                options={formatSelects(experienceOptions)}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Number of Employees"
+              name="numberOfEmployees"
+              rules={[
+                { required: true, message: "Please select employee count" },
+              ]}
+            >
+              <Select
+                placeholder="Select count"
+                options={formatSelects(numberOfEmployeeOptions)}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
-              label="Export Spice Products & Values (in USD)"
+              label="Trading Spice Products & Values"
               rules={[
                 {
                   validator: () => {
@@ -243,7 +255,7 @@ const IntermediaryForm = (props) => {
                       </Col>
                       <Col xs={24} sm={8}>
                         <InputNumber
-                          placeholder="Export value (USD)"
+                          placeholder="Enter value"
                           value={product.value}
                           onChange={(value) =>
                             updateExportProduct(index, "value", value)
@@ -251,9 +263,6 @@ const IntermediaryForm = (props) => {
                           min={0.01}
                           step={0.01}
                           className="w-full"
-                          formatter={(value) =>
-                            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          }
                           parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
                         />
                       </Col>
@@ -289,38 +298,15 @@ const IntermediaryForm = (props) => {
         </Row>
 
         <Row gutter={16}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label={isExisting ? "Number of Employees" : "Expected Employees"}
-              name="numberOfEmployees"
-              rules={[
-                { required: true, message: "Please select employee count" },
-              ]}
-            >
-              <Select
-                placeholder="Select count"
-                options={formatSelects(numberOfEmployeeOptions)}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
           <Col span={24}>
             <Form.Item label="Additional Information" name="additionalInfo">
               <Input.TextArea
                 rows={4}
-                placeholder="Any additional information about your business..."
+                placeholder="Any additional information about your trading business..."
               />
             </Form.Item>
           </Col>
         </Row>
-
-        
-
-        <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
-          Submit
-        </Button>
       </Form>
     </div>
   );

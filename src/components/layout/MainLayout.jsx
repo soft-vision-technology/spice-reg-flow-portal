@@ -4,6 +4,8 @@ import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { useLocation } from "react-router-dom";
 import SidebarMenu from "./SidebarMenu"
 import LogoutButton from "../auth/LogoutButton";
+import logoFull from "../../assets/logoFull.png";
+import logoIcon from "../../assets/logoIcon.png";
 
 const { Header, Content, Sider } = Layout;
 
@@ -35,9 +37,13 @@ const MainLayout = ({ children }) => {
           }}
         >
           <div className="p-4 h-16 flex items-center justify-center flex-shrink-0">
-            <h1 className={`text-spice-500 font-bold ${collapsed ? 'text-xl' : 'text-2xl'}`}>
-              {collapsed ? 'SC' : 'SpiceConnect'}
-            </h1>
+            <img
+                src={collapsed ? logoIcon : logoFull}
+                alt="SpiceConnect Logo"
+                className={`transition-all duration-300 ${
+                  collapsed ? 'w-12 h-10' : 'w-32 h-12'
+                }`}
+              />
           </div>
           <div className="flex-1 overflow-y-auto">
             <SidebarMenu />
@@ -51,7 +57,7 @@ const MainLayout = ({ children }) => {
               {collapsed ? <MenuUnfoldOutlined className="text-xl" /> : <MenuFoldOutlined className="text-xl" />}
             </div>
             <div className="flex-1 px-4">
-              <h2 className="text-lg font-semibold text-earth-700">Spice Industry Registration Portal</h2>
+              <h2 className="text-lg font-semibold text-earth-700">Registration Portal</h2>
             </div>
             <div className="px-4">
               <LogoutButton />
