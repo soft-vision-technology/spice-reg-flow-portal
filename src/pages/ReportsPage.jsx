@@ -14,7 +14,7 @@ import {
   DatePicker,
   Dropdown,
   message,
-  Tooltip
+  Tooltip,
 } from "antd";
 import {
   DownloadOutlined,
@@ -26,7 +26,7 @@ import {
   FilePdfOutlined,
   SearchOutlined,
   ReloadOutlined,
-  MoneyCollectOutlined
+  MoneyCollectOutlined,
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -35,17 +35,17 @@ import {
   fetchExistingTraders,
   fetchStartingEntrepreneurs,
   fetchStartingExporters,
-  fetchStartingTraders
+  fetchStartingTraders,
 } from "../store/slices/reportSlice";
 import {
   fetchNumEmployeeOptions,
   fetchExperienceOptions,
   selectNumEmployeeOptions,
-  selectExperienceOptions
+  selectExperienceOptions,
 } from "../store/slices/utilsSlice";
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -54,8 +54,8 @@ const { RangePicker } = DatePicker;
 const ReportsPage = () => {
   const dispatch = useDispatch();
 
-  const loading = useSelector(state => state.report.loading);
-  const error = useSelector(state => state.report.error);
+  const loading = useSelector((state) => state.report.loading);
+  const error = useSelector((state) => state.report.error);
 
   const {
     existingExporters,
@@ -63,24 +63,25 @@ const ReportsPage = () => {
     existingEntrepreneurs,
     startingEntrepreneurs,
     existingTraders,
-    startingTraders
-  } = useSelector(state => state.report);
+    startingTraders,
+  } = useSelector((state) => state.report);
 
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
   const experienceOptions = useSelector(selectExperienceOptions) || [];
 
   const [filters, setFilters] = useState({
-    role: 'all',
-    businessStatus: 'all',
-    province: 'all',
-    district: 'all',
-    numberOfEmployees: 'all',
-    businessExperience: 'all',
-    searchText: '',
-    dateRange: null
+    role: "all",
+    businessStatus: "all",
+    province: "all",
+    district: "all",
+    numberOfEmployees: "all",
+    businessExperience: "all",
+    product: "all", // <-- add this
+    searchText: "",
+    dateRange: null,
   });
 
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
 
   const fetchData = async () => {
     await Promise.all([
@@ -91,7 +92,7 @@ const ReportsPage = () => {
       dispatch(fetchStartingTraders()),
       dispatch(fetchExistingTraders()),
       dispatch(fetchNumEmployeeOptions()),
-      dispatch(fetchExperienceOptions())
+      dispatch(fetchExperienceOptions()),
     ]);
   };
 
@@ -107,123 +108,196 @@ const ReportsPage = () => {
       ...(existingExporters || []),
       ...(startingExporters || []),
       ...(existingTraders || []),
-      ...(startingTraders || [])
+      ...(startingTraders || []),
     ];
     return combinedData;
-  }, [existingEntrepreneurs, startingEntrepreneurs, existingExporters, startingExporters, existingTraders, startingTraders]);
+  }, [
+    existingEntrepreneurs,
+    startingEntrepreneurs,
+    existingExporters,
+    startingExporters,
+    existingTraders,
+    startingTraders,
+  ]);
 
   // Get unique filter options from the data
   const filterOptions = useMemo(() => {
-    const provinces = [...new Set(allData.map(item => item.province?.name).filter(Boolean))];
-    const districts = [...new Set(allData.map(item => item.district?.name).filter(Boolean))];
-    const roles = [...new Set(allData.map(item => item.role?.name).filter(Boolean))];
-    const businessStatuses = [...new Set(allData.map(item => item.businessStatus).filter(Boolean))];
-
+    const provinces = [
+      ...new Set(allData.map((item) => item.province?.name).filter(Boolean)),
+    ];
+    const districts = [
+      ...new Set(allData.map((item) => item.district?.name).filter(Boolean)),
+    ];
+    const roles = [
+      ...new Set(allData.map((item) => item.role?.name).filter(Boolean)),
+    ];
+    const businessStatuses = [
+      ...new Set(allData.map((item) => item.businessStatus).filter(Boolean)),
+    ];
+    const products = [
+      ...new Set(
+        allData
+          .flatMap((item) => {
+            const businessData =
+              item.exporter || item.entrepreneur || item.intermediaryTrader;
+            return (
+              businessData?.businessProducts?.map((bp) => bp.product?.name) ||
+              []
+            );
+          })
+          .filter(Boolean)
+      ),
+    ];
     return {
       provinces,
       districts,
       roles,
-      businessStatuses
+      businessStatuses,
+      products,
     };
   }, [allData]);
 
   const filteredData = useMemo(() => {
-    return allData.filter(item => {
-      const matchesRole = filters.role === 'all' || item.role?.name === filters.role;
-      const matchesBusinessStatus = filters.businessStatus === 'all' || item.businessStatus === filters.businessStatus;
-      const matchesProvince = filters.province === 'all' || item.province?.name === filters.province;
-      const matchesDistrict = filters.district === 'all' || item.district?.name === filters.district;
+    return allData.filter((item) => {
+      const matchesRole =
+        filters.role === "all" || item.role?.name === filters.role;
+      const matchesBusinessStatus =
+        filters.businessStatus === "all" ||
+        item.businessStatus === filters.businessStatus;
+      const matchesProvince =
+        filters.province === "all" || item.province?.name === filters.province;
+      const matchesDistrict =
+        filters.district === "all" || item.district?.name === filters.district;
 
-      // Check business-specific filters
-      const businessData = item.exporter || item.entrepreneur || item.intermediaryTrader;
-      const matchesEmployees = filters.numberOfEmployees === 'all' ||
-        (businessData?.numberOfEmployee?.id?.toString() === filters.numberOfEmployees);
+      // Business-specific filters
+      const businessData =
+        item.exporter || item.entrepreneur || item.intermediaryTrader;
+      const matchesEmployees =
+        filters.numberOfEmployees === "all" ||
+        (businessData?.numberOfEmployee?.id?.toString() ===
+          filters.numberOfEmployees);
 
-      const matchesExperience = filters.businessExperience === 'all' ||
-        (businessData?.businessExperience?.id?.toString() === filters.businessExperience);
+      const matchesExperience =
+        filters.businessExperience === "all" ||
+        (businessData?.businessExperience?.id?.toString() ===
+          filters.businessExperience);
 
-      const matchesSearch = filters.searchText === '' ||
+      // Product filter
+      const matchesProduct =
+        filters.product === "all" ||
+        (businessData?.businessProducts?.some(
+          (bp) => bp.product?.name === filters.product
+        ));
+
+      const matchesSearch =
+        filters.searchText === "" ||
         item.name?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
         item.email?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
         item.nic?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
-        (businessData?.businessName?.toLowerCase().includes(filters.searchText.toLowerCase()));
+        (businessData?.businessName
+          ?.toLowerCase()
+          .includes(filters.searchText.toLowerCase()));
 
       // Date range filter
-      const matchesDateRange = !filters.dateRange ||
+      const matchesDateRange =
+        !filters.dateRange ||
         (new Date(item.createdAt) >= filters.dateRange[0] &&
           new Date(item.createdAt) <= filters.dateRange[1]);
 
-      return matchesRole && matchesBusinessStatus && matchesProvince &&
-        matchesDistrict && matchesEmployees && matchesExperience &&
-        matchesSearch && matchesDateRange;
+      return (
+        matchesRole &&
+        matchesBusinessStatus &&
+        matchesProvince &&
+        matchesDistrict &&
+        matchesEmployees &&
+        matchesExperience &&
+        matchesProduct &&
+        matchesSearch &&
+        matchesDateRange
+      );
     });
   }, [allData, filters]);
 
   const stats = useMemo(() => {
     const total = filteredData.length;
-    const entrepreneurs = filteredData.filter(item => item.role?.name === 'Entrepreneur').length;
-    const exporters = filteredData.filter(item => item.role?.name === 'Exporter').length;
-    const traders = filteredData.filter(item => item.role?.name === 'IntermediaryTrader').length;
-    const starting = filteredData.filter(item => item.businessStatus === 'STARTING').length;
-    const existing = filteredData.filter(item => item.businessStatus === 'EXISTING').length;
+    const entrepreneurs = filteredData.filter(
+      (item) => item.role?.name === "Entrepreneur"
+    ).length;
+    const exporters = filteredData.filter(
+      (item) => item.role?.name === "Exporter"
+    ).length;
+    const traders = filteredData.filter(
+      (item) => item.role?.name === "IntermediaryTrader"
+    ).length;
+    const starting = filteredData.filter(
+      (item) => item.businessStatus === "STARTING"
+    ).length;
+    const existing = filteredData.filter(
+      (item) => item.businessStatus === "EXISTING"
+    ).length;
 
     return { total, entrepreneurs, exporters, traders, starting, existing };
   }, [filteredData]);
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [key]: value
+      [key]: value,
     }));
   };
 
   const resetFilters = () => {
     setFilters({
-      role: 'all',
-      businessStatus: 'all',
-      province: 'all',
-      district: 'all',
-      numberOfEmployees: 'all',
-      businessExperience: 'all',
-      searchText: '',
-      dateRange: null
+      role: "all",
+      businessStatus: "all",
+      province: "all",
+      district: "all",
+      numberOfEmployees: "all",
+      businessExperience: "all",
+      searchText: "",
+      dateRange: null,
     });
   };
-  const exportToExcel = (tabData = null, tabName = 'All Data') => {
+  const exportToExcel = (tabData = null, tabName = "All Data") => {
     try {
       // Use tabData if provided, otherwise use filteredData
       const dataToExport = tabData || filteredData;
 
-      const exportData = dataToExport.map(item => {
-        const businessData = item.exporter || item.entrepreneur || item.intermediaryTrader;
-        const products = businessData?.businessProducts?.map(bp =>
-          `${bp.product?.name}: ${bp.value || 'No value'}`
-        ).join(', ') || 'N/A';
+      const exportData = dataToExport.map((item) => {
+        const businessData =
+          item.exporter || item.entrepreneur || item.intermediaryTrader;
+        const products =
+          businessData?.businessProducts
+            ?.map((bp) => `${bp.product?.name}: ${bp.value || "No value"}`)
+            .join(", ") || "N/A";
 
         return {
-          'Name': `${item.title || ''} ${item.name || ''}`.trim(),
-          'Initials': item.initials || 'N/A',
-          'NIC': item.nic || 'N/A',
-          'Role': item.role?.name || 'N/A',
-          'Business Status': item.businessStatus || 'N/A',
-          'Province': item.province?.name || 'N/A',
-          'District': item.district?.name || 'N/A',
-          'DS Division': item.dsDivision || 'N/A',
-          'GN Division': item.gnDivision || 'N/A',
-          'Contact Number': item.contactNumber || 'N/A',
-          'Email': item.email || 'N/A',
-          'Address': item.address || 'N/A',
-          'Business Name': businessData?.businessName || 'N/A',
-          'Business Reg No': businessData?.businessRegNo || 'N/A',
-          'Business Address': businessData?.businessAddress || 'N/A',
-          'Number of Employees': businessData?.numberOfEmployee?.name || 'N/A',
-          'Business Experience': businessData?.businessExperience?.name || 'N/A',
-          'Business Start Date': businessData?.businessStartDate ?
-            new Date(businessData.businessStartDate).toLocaleDateString() : 'N/A',
-          'Business Description': businessData?.businessDescription || 'N/A',
-          'Products': products,
-          'Registration Date': item.createdAt ?
-            new Date(item.createdAt).toLocaleDateString() : 'N/A'
+          Name: `${item.title || ""} ${item.name || ""}`.trim(),
+          Initials: item.initials || "N/A",
+          NIC: item.nic || "N/A",
+          Role: item.role?.name || "N/A",
+          "Business Status": item.businessStatus || "N/A",
+          Province: item.province?.name || "N/A",
+          District: item.district?.name || "N/A",
+          "DS Division": item.dsDivision || "N/A",
+          "GN Division": item.gnDivision || "N/A",
+          "Contact Number": item.contactNumber || "N/A",
+          Email: item.email || "N/A",
+          Address: item.address || "N/A",
+          "Business Name": businessData?.businessName || "N/A",
+          "Business Reg No": businessData?.businessRegNo || "N/A",
+          "Business Address": businessData?.businessAddress || "N/A",
+          "Number of Employees": businessData?.numberOfEmployee?.name || "N/A",
+          "Business Experience":
+            businessData?.businessExperience?.name || "N/A",
+          "Business Start Date": businessData?.businessStartDate
+            ? new Date(businessData.businessStartDate).toLocaleDateString()
+            : "N/A",
+          "Business Description": businessData?.businessDescription || "N/A",
+          Products: products,
+          "Registration Date": item.createdAt
+            ? new Date(item.createdAt).toLocaleDateString()
+            : "N/A",
         };
       });
 
@@ -235,31 +309,35 @@ const ReportsPage = () => {
       headers.forEach((header, index) => {
         const maxLength = Math.max(
           header.length,
-          ...exportData.map(row => String(row[header] || '').length)
+          ...exportData.map((row) => String(row[header] || "").length)
         );
         colWidths.push({ wch: Math.min(maxLength + 2, 50) });
       });
-      worksheet['!cols'] = colWidths;
+      worksheet["!cols"] = colWidths;
 
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, tabName);
 
-      const fileName = `${tabName.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      const fileName = `${tabName.toLowerCase().replace(/\s+/g, "_")}_${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`;
       XLSX.writeFile(workbook, fileName);
 
-      message.success(`Excel file exported successfully! (${exportData.length} records)`);
+      message.success(
+        `Excel file exported successfully! (${exportData.length} records)`
+      );
     } catch (error) {
-      message.error('Failed to export Excel file');
-      console.error('Export error:', error);
+      message.error("Failed to export Excel file");
+      console.error("Export error:", error);
     }
   };
 
-  const exportToPDF = (tabData = null, tabName = 'All Data') => {
+  const exportToPDF = (tabData = null, tabName = "All Data") => {
     try {
       // Use tabData if provided, otherwise use filteredData
       const dataToExport = tabData || filteredData;
 
-      const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation for better table fit
+      const doc = new jsPDF("l", "mm", "a4"); // Landscape orientation for better table fit
 
       // Add title
       doc.setFontSize(18);
@@ -268,11 +346,20 @@ const ReportsPage = () => {
       // Add summary stats for the current tab
       const tabStats = {
         total: dataToExport.length,
-        entrepreneurs: dataToExport.filter(item => item.role?.name === 'Entrepreneur').length,
-        exporters: dataToExport.filter(item => item.role?.name === 'Exporter').length,
-        traders: dataToExport.filter(item => item.role?.name === 'IntermediaryTrader').length,
-        starting: dataToExport.filter(item => item.businessStatus === 'STARTING').length,
-        existing: dataToExport.filter(item => item.businessStatus === 'EXISTING').length,
+        entrepreneurs: dataToExport.filter(
+          (item) => item.role?.name === "Entrepreneur"
+        ).length,
+        exporters: dataToExport.filter((item) => item.role?.name === "Exporter")
+          .length,
+        traders: dataToExport.filter(
+          (item) => item.role?.name === "IntermediaryTrader"
+        ).length,
+        starting: dataToExport.filter(
+          (item) => item.businessStatus === "STARTING"
+        ).length,
+        existing: dataToExport.filter(
+          (item) => item.businessStatus === "EXISTING"
+        ).length,
       };
 
       doc.setFontSize(10);
@@ -288,27 +375,49 @@ const ReportsPage = () => {
       doc.text(`Generated: ${new Date().toLocaleDateString()}`, 140, yPosition);
 
       // Prepare table data with more columns for landscape
-      const tableData = dataToExport.map(item => {
-        const businessData = item.exporter || item.entrepreneur || item.intermediaryTrader;
-        const products = businessData?.businessProducts?.slice(0, 3).map(bp => bp.product?.name).join(', ') || 'N/A';
+      const tableData = dataToExport.map((item) => {
+        const businessData =
+          item.exporter || item.entrepreneur || item.intermediaryTrader;
+        const products =
+          businessData?.businessProducts
+            ?.slice(0, 3)
+            .map((bp) => bp.product?.name)
+            .join(", ") || "N/A";
 
         return [
-          `${item.title || ''} ${item.name || ''}`.trim(),
-          item.role?.name || 'N/A',
-          item.businessStatus || 'N/A',
-          `${item.district?.name || ''}, ${item.province?.name || ''}`.replace(', ,', '').trim() || 'N/A',
-          businessData?.businessName || 'N/A',
-          businessData?.numberOfEmployee?.name || 'N/A',
-          businessData?.businessExperience?.name || 'N/A',
-          products.length > 50 ? products.substring(0, 47) + '...' : products,
-          item.contactNumber || 'N/A',
-          item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'
+          `${item.title || ""} ${item.name || ""}`.trim(),
+          item.role?.name || "N/A",
+          item.businessStatus || "N/A",
+          `${item.district?.name || ""}, ${item.province?.name || ""}`
+            .replace(", ,", "")
+            .trim() || "N/A",
+          businessData?.businessName || "N/A",
+          businessData?.numberOfEmployee?.name || "N/A",
+          businessData?.businessExperience?.name || "N/A",
+          products.length > 50 ? products.substring(0, 47) + "..." : products,
+          item.contactNumber || "N/A",
+          item.createdAt
+            ? new Date(item.createdAt).toLocaleDateString()
+            : "N/A",
         ];
       });
 
       // Add table using autoTable
       autoTable(doc, {
-        head: [['Name', 'Role', 'Status', 'Location', 'Business', 'Employees', 'Experience', 'Products', 'Contact', 'Date']],
+        head: [
+          [
+            "Name",
+            "Role",
+            "Status",
+            "Location",
+            "Business",
+            "Employees",
+            "Experience",
+            "Products",
+            "Contact",
+            "Date",
+          ],
+        ],
         body: tableData,
         startY: yPosition + 15,
         styles: {
@@ -319,10 +428,10 @@ const ReportsPage = () => {
           fillColor: [41, 128, 185],
           textColor: 255,
           fontSize: 8,
-          fontStyle: 'bold'
+          fontStyle: "bold",
         },
         alternateRowStyles: {
-          fillColor: [245, 245, 245]
+          fillColor: [245, 245, 245],
         },
         margin: { left: 10, right: 10 },
         columnStyles: {
@@ -335,30 +444,39 @@ const ReportsPage = () => {
           6: { cellWidth: 20 }, // Experience
           7: { cellWidth: 40 }, // Products
           8: { cellWidth: 25 }, // Contact
-          9: { cellWidth: 20 }  // Date
+          9: { cellWidth: 20 }, // Date
         },
         didDrawPage: function (data) {
           // Add page numbers
           const pageCount = doc.internal.getNumberOfPages();
           const pageSize = doc.internal.pageSize;
-          const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+          const pageHeight = pageSize.height
+            ? pageSize.height
+            : pageSize.getHeight();
 
           for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(8);
-            doc.text(`Page ${i} of ${pageCount}`,
-              pageSize.width - 30, pageHeight - 10);
+            doc.text(
+              `Page ${i} of ${pageCount}`,
+              pageSize.width - 30,
+              pageHeight - 10
+            );
           }
-        }
+        },
       });
 
-      const fileName = `${tabName.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `${tabName.toLowerCase().replace(/\s+/g, "_")}_${
+        new Date().toISOString().split("T")[0]
+      }.pdf`;
       doc.save(fileName);
 
-      message.success(`PDF file exported successfully! (${dataToExport.length} records)`);
+      message.success(
+        `PDF file exported successfully! (${dataToExport.length} records)`
+      );
     } catch (error) {
-      message.error('Failed to export PDF file');
-      console.error('Export error:', error);
+      message.error("Failed to export PDF file");
+      console.error("Export error:", error);
     }
   };
 
@@ -366,31 +484,31 @@ const ReportsPage = () => {
   const getExportMenu = (currentTabData, currentTabName) => ({
     items: [
       {
-        key: 'excel-current',
+        key: "excel-current",
         icon: <FileExcelOutlined />,
         label: `Export ${currentTabName} to Excel`,
         onClick: () => exportToExcel(currentTabData, currentTabName),
       },
       {
-        key: 'pdf-current',
+        key: "pdf-current",
         icon: <FilePdfOutlined />,
         label: `Export ${currentTabName} to PDF`,
         onClick: () => exportToPDF(currentTabData, currentTabName),
       },
       {
-        type: 'divider',
+        type: "divider",
       },
       {
-        key: 'excel-all',
+        key: "excel-all",
         icon: <FileExcelOutlined />,
-        label: 'Export All Data to Excel',
-        onClick: () => exportToExcel(filteredData, 'All Data'),
+        label: "Export All Data to Excel",
+        onClick: () => exportToExcel(filteredData, "All Data"),
       },
       {
-        key: 'pdf-all',
+        key: "pdf-all",
         icon: <FilePdfOutlined />,
-        label: 'Export All Data to PDF',
-        onClick: () => exportToPDF(filteredData, 'All Data'),
+        label: "Export All Data to PDF",
+        onClick: () => exportToPDF(filteredData, "All Data"),
       },
     ],
   });
@@ -398,35 +516,35 @@ const ReportsPage = () => {
   // Helper function to get current tab data and name
   const getCurrentTabInfo = () => {
     switch (activeTab) {
-      case 'entrepreneurs':
+      case "entrepreneurs":
         return {
-          data: getDataByRole('Entrepreneur'),
-          name: 'Entrepreneurs'
+          data: getDataByRole("Entrepreneur"),
+          name: "Entrepreneurs",
         };
-      case 'exporters':
+      case "exporters":
         return {
-          data: getDataByRole('Exporter'),
-          name: 'Exporters'
+          data: getDataByRole("Exporter"),
+          name: "Exporters",
         };
-      case 'traders':
+      case "traders":
         return {
-          data: getDataByRole('IntermediaryTrader'),
-          name: 'Traders'
+          data: getDataByRole("IntermediaryTrader"),
+          name: "Traders",
         };
-      case 'starting':
+      case "starting":
         return {
-          data: getDataByStatus('STARTING'),
-          name: 'Starting Businesses'
+          data: getDataByStatus("STARTING"),
+          name: "Starting Businesses",
         };
-      case 'existing':
+      case "existing":
         return {
-          data: getDataByStatus('EXISTING'),
-          name: 'Existing Businesses'
+          data: getDataByStatus("EXISTING"),
+          name: "Existing Businesses",
         };
       default:
         return {
           data: filteredData,
-          name: 'Overview'
+          name: "Overview",
         };
     }
   };
@@ -434,43 +552,47 @@ const ReportsPage = () => {
   const getColumns = (type) => {
     const baseColumns = [
       {
-        title: 'Name',
-        dataIndex: 'name',
-        key: 'name',
-        sorter: (a, b) => (a.name || '').localeCompare(b.name || ''),
+        title: "Name",
+        dataIndex: "name",
+        key: "name",
+        sorter: (a, b) => (a.name || "").localeCompare(b.name || ""),
         render: (name, record) => (
           <div>
-            <div className="font-medium">{record.title} {name}</div>
+            <div className="font-medium">
+              {record.title} {name}
+            </div>
             <div className="text-sm text-gray-500">{record.initials}</div>
           </div>
         ),
         width: 200,
       },
       {
-        title: 'Role',
-        dataIndex: ['role', 'name'],
-        key: 'role',
+        title: "Role",
+        dataIndex: ["role", "name"],
+        key: "role",
         render: (role) => {
-          const color = role === 'Entrepreneur' ? 'blue' :
-            role === 'Exporter' ? 'green' : 'orange';
+          const color =
+            role === "Entrepreneur"
+              ? "blue"
+              : role === "Exporter"
+              ? "green"
+              : "orange";
           return <Tag color={color}>{role}</Tag>;
         },
         width: 120,
       },
       {
-        title: 'Business Status',
-        dataIndex: 'businessStatus',
-        key: 'businessStatus',
+        title: "Business Status",
+        dataIndex: "businessStatus",
+        key: "businessStatus",
         render: (status) => (
-          <Tag color={status === 'EXISTING' ? 'green' : 'blue'}>
-            {status}
-          </Tag>
+          <Tag color={status === "EXISTING" ? "green" : "blue"}>{status}</Tag>
         ),
         width: 120,
       },
       {
-        title: 'Location',
-        key: 'location',
+        title: "Location",
+        key: "location",
         render: (_, record) => (
           <div>
             <div>{record.district?.name}</div>
@@ -480,8 +602,8 @@ const ReportsPage = () => {
         width: 150,
       },
       {
-        title: 'Contact',
-        key: 'contact',
+        title: "Contact",
+        key: "contact",
         render: (_, record) => (
           <div>
             <div className="text-sm">{record.email}</div>
@@ -491,74 +613,105 @@ const ReportsPage = () => {
         width: 200,
       },
       {
-        title: 'NIC',
-        dataIndex: 'nic',
-        key: 'nic',
+        title: "NIC",
+        dataIndex: "nic",
+        key: "nic",
         width: 120,
       },
       {
-        title: 'Registration Date',
-        dataIndex: 'createdAt',
-        key: 'createdAt',
+        title: "Registration Date",
+        dataIndex: "createdAt",
+        key: "createdAt",
         render: (date) => new Date(date).toLocaleDateString(),
         sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
         width: 120,
-      }
+      },
     ];
 
     // Add business-specific columns for detailed views
-    if (['entrepreneurs', 'exporters', 'traders', 'starting', 'existing'].includes(type)) {
+    if (
+      [
+        "entrepreneurs",
+        "exporters",
+        "traders",
+        "starting",
+        "existing",
+      ].includes(type)
+    ) {
       const businessColumns = [
         {
-          title: 'Business Name',
-          key: 'businessName',
+          title: "Business Name",
+          key: "businessName",
           render: (_, record) => {
-            const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
-            return businessData?.businessName || 'N/A';
+            const businessData =
+              record.exporter ||
+              record.entrepreneur ||
+              record.intermediaryTrader;
+            return businessData?.businessName || "N/A";
           },
           width: 150,
         },
         {
-          title: 'Employees',
-          key: 'employees',
+          title: "Employees",
+          key: "employees",
           render: (_, record) => {
-            const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
-            return businessData?.numberOfEmployee?.name || 'N/A';
+            const businessData =
+              record.exporter ||
+              record.entrepreneur ||
+              record.intermediaryTrader;
+            return businessData?.numberOfEmployee?.name || "N/A";
           },
           width: 120,
         },
         {
-          title: 'Experience',
-          key: 'experience',
+          title: "Experience",
+          key: "experience",
           render: (_, record) => {
-            const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
-            return businessData?.businessExperience?.name || 'N/A';
+            const businessData =
+              record.exporter ||
+              record.entrepreneur ||
+              record.intermediaryTrader;
+            return businessData?.businessExperience?.name || "N/A";
           },
           width: 120,
         },
         {
-          title: 'Products',
-          key: 'products',
+          title: "Products",
+          key: "products",
           render: (_, record) => {
-            const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
-            const products = businessData?.businessProducts?.slice(0, 2).map(bp => bp.product?.name) || [];
+            const businessData =
+              record.exporter ||
+              record.entrepreneur ||
+              record.intermediaryTrader;
+            const products =
+              businessData?.businessProducts
+                ?.slice(0, 2)
+                .map((bp) => bp.product?.name) || [];
             const hasMore = businessData?.businessProducts?.length > 2;
 
             return (
               <div>
                 {products.map((product, index) => (
-                  <Tag key={index} size="small" className="mb-1">{product}</Tag>
+                  <Tag key={index} size="small" className="mb-1">
+                    {product}
+                  </Tag>
                 ))}
                 {hasMore && (
-                  <Tooltip title={businessData.businessProducts.map(bp => bp.product?.name).join(', ')}>
-                    <Tag size="small">+{businessData.businessProducts.length - 2} more</Tag>
+                  <Tooltip
+                    title={businessData.businessProducts
+                      .map((bp) => bp.product?.name)
+                      .join(", ")}
+                  >
+                    <Tag size="small">
+                      +{businessData.businessProducts.length - 2} more
+                    </Tag>
                   </Tooltip>
                 )}
               </div>
             );
           },
           width: 150,
-        }
+        },
       ];
 
       return [...baseColumns, ...businessColumns];
@@ -568,25 +721,25 @@ const ReportsPage = () => {
   };
 
   const getDataByRole = (role) => {
-    return filteredData.filter(item => item.role?.name === role);
+    return filteredData.filter((item) => item.role?.name === role);
   };
 
   const getDataByStatus = (status) => {
-    return filteredData.filter(item => item.businessStatus === status);
+    return filteredData.filter((item) => item.businessStatus === status);
   };
 
   const exportMenu = {
     items: [
       {
-        key: 'excel',
+        key: "excel",
         icon: <FileExcelOutlined />,
-        label: 'Export to Excel',
+        label: "Export to Excel",
         onClick: exportToExcel,
       },
       {
-        key: 'pdf',
+        key: "pdf",
         icon: <FilePdfOutlined />,
-        label: 'Export to PDF',
+        label: "Export to PDF",
         onClick: exportToPDF,
       },
     ],
@@ -622,7 +775,9 @@ const ReportsPage = () => {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Business Reports</h1>
-        <p className="text-gray-600 mt-1">Comprehensive overview of registered businesses</p>
+        <p className="text-gray-600 mt-1">
+          Comprehensive overview of registered businesses
+        </p>
       </div>
 
       {/* Statistics Cards */}
@@ -633,7 +788,7 @@ const ReportsPage = () => {
               title="Total Users"
               value={stats.total}
               prefix={<UserOutlined />}
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: "#1890ff" }}
             />
           </Card>
         </Col>
@@ -643,7 +798,7 @@ const ReportsPage = () => {
               title="Entrepreneurs"
               value={stats.entrepreneurs}
               prefix={<ShopOutlined />}
-              valueStyle={{ color: '#52c41a' }}
+              valueStyle={{ color: "#52c41a" }}
             />
           </Card>
         </Col>
@@ -653,7 +808,7 @@ const ReportsPage = () => {
               title="Exporters"
               value={stats.exporters}
               prefix={<GlobalOutlined />}
-              valueStyle={{ color: '#722ed1' }}
+              valueStyle={{ color: "#722ed1" }}
             />
           </Card>
         </Col>
@@ -663,7 +818,7 @@ const ReportsPage = () => {
               title="Traders"
               value={stats.traders}
               prefix={<MoneyCollectOutlined />}
-              valueStyle={{ color: '#fa8c16' }}
+              valueStyle={{ color: "#fa8c16" }}
             />
           </Card>
         </Col>
@@ -681,8 +836,11 @@ const ReportsPage = () => {
               Reset Filters
             </Button>
             <Dropdown
-              menu={getExportMenu(getCurrentTabInfo().data, getCurrentTabInfo().name)}
-              trigger={['click']}
+              menu={getExportMenu(
+                getCurrentTabInfo().data,
+                getCurrentTabInfo().name
+              )}
+              trigger={["click"]}
             >
               <Button type="primary" icon={<DownloadOutlined />}>
                 Export Data
@@ -694,14 +852,32 @@ const ReportsPage = () => {
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Select
+              placeholder="Product"
+              value={filters.product}
+              onChange={(value) => handleFilterChange("product", value)}
+              className="w-full"
+              allowClear
+            >
+              <Option value="all">All Products</Option>
+              {filterOptions.products.map((product) => (
+                <Option key={product} value={product}>
+                  {product}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Select
               placeholder="Select Role"
               value={filters.role}
-              onChange={(value) => handleFilterChange('role', value)}
+              onChange={(value) => handleFilterChange("role", value)}
               className="w-full"
             >
               <Option value="all">All Roles</Option>
-              {filterOptions.roles.map(role => (
-                <Option key={role} value={role}>{role}</Option>
+              {filterOptions.roles.map((role) => (
+                <Option key={role} value={role}>
+                  {role}
+                </Option>
               ))}
             </Select>
           </Col>
@@ -709,11 +885,11 @@ const ReportsPage = () => {
             <Select
               placeholder="Business Status"
               value={filters.businessStatus}
-              onChange={(value) => handleFilterChange('businessStatus', value)}
+              onChange={(value) => handleFilterChange("businessStatus", value)}
               className="w-full"
             >
               <Option value="all">All Status</Option>
-              {filterOptions.businessStatuses.map(status => (
+              {filterOptions.businessStatuses.map((status) => (
                 <Option key={status} value={status}>
                   {status.charAt(0) + status.slice(1).toLowerCase()}
                 </Option>
@@ -724,12 +900,14 @@ const ReportsPage = () => {
             <Select
               placeholder="Province"
               value={filters.province}
-              onChange={(value) => handleFilterChange('province', value)}
+              onChange={(value) => handleFilterChange("province", value)}
               className="w-full"
             >
               <Option value="all">All Provinces</Option>
-              {filterOptions.provinces.map(province => (
-                <Option key={province} value={province}>{province}</Option>
+              {filterOptions.provinces.map((province) => (
+                <Option key={province} value={province}>
+                  {province}
+                </Option>
               ))}
             </Select>
           </Col>
@@ -737,12 +915,14 @@ const ReportsPage = () => {
             <Select
               placeholder="District"
               value={filters.district}
-              onChange={(value) => handleFilterChange('district', value)}
+              onChange={(value) => handleFilterChange("district", value)}
               className="w-full"
             >
               <Option value="all">All Districts</Option>
-              {filterOptions.districts.map(district => (
-                <Option key={district} value={district}>{district}</Option>
+              {filterOptions.districts.map((district) => (
+                <Option key={district} value={district}>
+                  {district}
+                </Option>
               ))}
             </Select>
           </Col>
@@ -750,12 +930,16 @@ const ReportsPage = () => {
             <Select
               placeholder="Number of Employees"
               value={filters.numberOfEmployees}
-              onChange={(value) => handleFilterChange('numberOfEmployees', value)}
+              onChange={(value) =>
+                handleFilterChange("numberOfEmployees", value)
+              }
               className="w-full"
             >
               <Option value="all">All Employee Counts</Option>
-              {numberOfEmployeeOptions?.map(emp => (
-                <Option key={emp.id} value={emp.id.toString()}>{emp.name}</Option>
+              {numberOfEmployeeOptions?.map((emp) => (
+                <Option key={emp.id} value={emp.id.toString()}>
+                  {emp.name}
+                </Option>
               ))}
             </Select>
           </Col>
@@ -763,12 +947,16 @@ const ReportsPage = () => {
             <Select
               placeholder="Business Experience"
               value={filters.businessExperience}
-              onChange={(value) => handleFilterChange('businessExperience', value)}
+              onChange={(value) =>
+                handleFilterChange("businessExperience", value)
+              }
               className="w-full"
             >
               <Option value="all">All Experience Levels</Option>
-              {experienceOptions?.map(exp => (
-                <Option key={exp.id} value={exp.id.toString()}>{exp.name}</Option>
+              {experienceOptions?.map((exp) => (
+                <Option key={exp.id} value={exp.id.toString()}>
+                  {exp.name}
+                </Option>
               ))}
             </Select>
           </Col>
@@ -777,15 +965,15 @@ const ReportsPage = () => {
               placeholder="Search by name, email, NIC..."
               prefix={<SearchOutlined />}
               value={filters.searchText}
-              onChange={(e) => handleFilterChange('searchText', e.target.value)}
+              onChange={(e) => handleFilterChange("searchText", e.target.value)}
               allowClear
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
             <RangePicker
-              placeholder={['Start Date', 'End Date']}
+              placeholder={["Start Date", "End Date"]}
               value={filters.dateRange}
-              onChange={(dates) => handleFilterChange('dateRange', dates)}
+              onChange={(dates) => handleFilterChange("dateRange", dates)}
               className="w-full"
             />
           </Col>
@@ -797,24 +985,28 @@ const ReportsPage = () => {
         <Tabs activeKey={activeTab} onChange={setActiveTab} type="card">
           <TabPane tab={`Overview (${filteredData.length})`} key="overview">
             <Table
-              columns={getColumns('overview')}
+              columns={getColumns("overview")}
               dataSource={filteredData}
               rowKey="id"
               pagination={{
                 pageSize: 10,
                 showSizeChanger: true,
                 showQuickJumper: true,
-                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+                showTotal: (total, range) =>
+                  `${range[0]}-${range[1]} of ${total} items`,
               }}
               scroll={{ x: 1200 }}
               size="small"
             />
           </TabPane>
 
-          <TabPane tab={`Entrepreneurs (${getDataByRole('Entrepreneur').length})`} key="entrepreneurs">
+          <TabPane
+            tab={`Entrepreneurs (${getDataByRole("Entrepreneur").length})`}
+            key="entrepreneurs"
+          >
             <Table
-              columns={getColumns('entrepreneurs')}
-              dataSource={getDataByRole('Entrepreneur')}
+              columns={getColumns("entrepreneurs")}
+              dataSource={getDataByRole("Entrepreneur")}
               rowKey="id"
               pagination={{
                 pageSize: 10,
@@ -826,10 +1018,13 @@ const ReportsPage = () => {
             />
           </TabPane>
 
-          <TabPane tab={`Exporters (${getDataByRole('Exporter').length})`} key="exporters">
+          <TabPane
+            tab={`Exporters (${getDataByRole("Exporter").length})`}
+            key="exporters"
+          >
             <Table
-              columns={getColumns('exporters')}
-              dataSource={getDataByRole('Exporter')}
+              columns={getColumns("exporters")}
+              dataSource={getDataByRole("Exporter")}
               rowKey="id"
               pagination={{
                 pageSize: 10,
@@ -841,10 +1036,13 @@ const ReportsPage = () => {
             />
           </TabPane>
 
-          <TabPane tab={`Traders (${getDataByRole('IntermediaryTrader').length})`} key="traders">
+          <TabPane
+            tab={`Traders (${getDataByRole("IntermediaryTrader").length})`}
+            key="traders"
+          >
             <Table
-              columns={getColumns('traders')}
-              dataSource={getDataByRole('IntermediaryTrader')}
+              columns={getColumns("traders")}
+              dataSource={getDataByRole("IntermediaryTrader")}
               rowKey="id"
               pagination={{
                 pageSize: 10,
@@ -856,10 +1054,13 @@ const ReportsPage = () => {
             />
           </TabPane>
 
-          <TabPane tab={`Starting (${getDataByStatus('STARTING').length})`} key="starting">
+          <TabPane
+            tab={`Starting (${getDataByStatus("STARTING").length})`}
+            key="starting"
+          >
             <Table
-              columns={getColumns('starting')}
-              dataSource={getDataByStatus('STARTING')}
+              columns={getColumns("starting")}
+              dataSource={getDataByStatus("STARTING")}
               rowKey="id"
               pagination={{
                 pageSize: 10,
@@ -871,10 +1072,13 @@ const ReportsPage = () => {
             />
           </TabPane>
 
-          <TabPane tab={`Existing (${getDataByStatus('EXISTING').length})`} key="existing">
+          <TabPane
+            tab={`Existing (${getDataByStatus("EXISTING").length})`}
+            key="existing"
+          >
             <Table
-              columns={getColumns('existing')}
-              dataSource={getDataByStatus('EXISTING')}
+              columns={getColumns("existing")}
+              dataSource={getDataByStatus("EXISTING")}
               rowKey="id"
               pagination={{
                 pageSize: 10,
