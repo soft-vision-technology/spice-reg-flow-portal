@@ -12,6 +12,7 @@ import HomePage from "./pages/HomePage";
 import SelectPage from "./pages/SelectPage";
 import { TooltipProvider } from "./components/ui/tooltip";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import UserManagement from "./pages/UserManagement";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <ReportsPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/members" 
+                element={
+                  <ProtectedRoute>
+                    <UserManagement />
                   </ProtectedRoute>
                 } 
               />

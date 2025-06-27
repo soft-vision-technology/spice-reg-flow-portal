@@ -1,6 +1,9 @@
 import React from "react";
 import { Typography, Card, Row, Col } from "antd";
 import LoginModal from "../components/layout/LoginModal";
+import img_1 from "../../src/assets/adult-nature-coffee-harvesting.jpg"
+import img_2 from "../../src/assets/spices-near-pan.jpg"
+import img_3 from "../../src/assets/openair-market-with-traders-selling-spices-herbs-aromatic-colorful.jpg";
 
 const { Title, Paragraph } = Typography;
 
@@ -28,7 +31,7 @@ const HomePage = () => {
                 cover={
                   <div className="h-40 bg-gradient-to-br from-spice-400 to-spice-600 rounded-t-xl flex items-center justify-center">
                     <img loading="lazy"
-                      src="/src/assets/adult-nature-coffee-harvesting.jpg"
+                      src={img_1}
                       alt="Spice exports illustration"
                       className="w-full h-40 object-cover rounded-t-xl"
                     />
@@ -51,7 +54,7 @@ const HomePage = () => {
                 cover={
                   <div className="h-40 bg-gradient-to-br from-earth-400 to-earth-600 rounded-t-xl relative">
                     <img loading="lazy"
-                      src="/src/assets/spices-near-pan.jpg"
+                      src={img_2}
                       alt="Spice exports illustration"
                       className="w-full h-40 object-cover rounded-t-xl"
                     />
@@ -75,7 +78,7 @@ const HomePage = () => {
                 cover={
                   <div className="h-40 bg-gradient-to-br from-leaf-400 to-leaf-600 rounded-t-xl flex items-center justify-center">
                     <img loading="lazy"
-                      src="/src/assets/openair-market-with-traders-selling-spices-herbs-aromatic-colorful.jpg"
+                      src={img_3}
                       alt="Spice exports illustration"
                       className="w-full h-40 object-cover rounded-t-xl"
                     />
