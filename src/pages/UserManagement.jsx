@@ -257,7 +257,7 @@ const UserManagement = () => {
           <div className="flex items-center justify-between">
             <div>
               <Title level={2} className="text-gray-900 mb-2">
-                User Management
+                Manage Registered Individuals
               </Title>
               <p className="text-gray-600">
                 Manage user accounts for the Spice Registration System

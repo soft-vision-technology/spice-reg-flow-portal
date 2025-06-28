@@ -14,6 +14,9 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import UserManagement from "./pages/UserManagement";
 import EditPage from "./pages/EditPage";
+import Mainpage from "./pages/Mainpage";
+import NotificationsPage from "./pages/NotificationsPage";
+import RegisterUser from "./AdminPages/RegisterUser";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +90,30 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <EditPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/home"
+                element={
+                  <ProtectedRoute>
+                    <Mainpage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <NotificationsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/create"
+                element={
+                  <ProtectedRoute>
+                    <RegisterUser />
                   </ProtectedRoute>
                 }
               />

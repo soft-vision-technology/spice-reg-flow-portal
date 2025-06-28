@@ -4,6 +4,7 @@ import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { useLocation } from "react-router-dom";
 import SidebarMenu from "./SidebarMenu"
 import LogoutButton from "../auth/LogoutButton";
+import NotificationSection from "../custom/NotificationSection";
 import logoFull from "../../assets/logoFull.png";
 import logoIcon from "../../assets/logoIcon.png";
 
@@ -59,12 +60,15 @@ const MainLayout = ({ children }) => {
             <div className="flex-1 px-4">
               <h2 className="text-lg font-semibold text-earth-700">Registration Portal</h2>
             </div>
-            <div className="px-4">
-              <LogoutButton />
+            <div className="flex items-center gap-2 z-100">
+              <NotificationSection />
+              <div className="px-4">
+                <LogoutButton />
+              </div>
             </div>
           </Header>
         )}
-        <Content className={`flex-1 overflow-y-auto ${isHomePage ? "" : "p-6"}`}>
+        <Content className={"flex-1 overflow-y-auto"}>
           <div>{children}</div>
         </Content>
       </Layout>

@@ -38,9 +38,9 @@ const BasicInfoForm = () => {
               rules={[{ required: true, message: "Please select your title" }]}
             >
               <Select placeholder="Select title">
-                <Option value="mr">Mr.</Option>
-                <Option value="miss">Ms.</Option>
-                <Option value="mrs">Mrs.</Option>
+                <Option value="Mr.">Mr.</Option>
+                <Option value="Ms.">Ms.</Option>
+                <Option value="Mrs.">Mrs.</Option>
               </Select>
             </Form.Item>
           </Col>
