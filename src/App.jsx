@@ -13,6 +13,7 @@ import SelectPage from "./pages/SelectPage";
 import { TooltipProvider } from "./components/ui/tooltip";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import UserManagement from "./pages/UserManagement";
+import EditPage from "./pages/EditPage";
 
 const queryClient = new QueryClient();
 
@@ -25,61 +26,69 @@ const App = () => (
           <MainLayout>
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route 
-                path="/select" 
+              <Route
+                path="/select"
                 element={
                   <ProtectedRoute>
                     <SelectPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/like-to-start" 
+              <Route
+                path="/like-to-start"
                 element={
                   <ProtectedRoute>
                     <ExporterPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/have-business" 
+              <Route
+                path="/have-business"
                 element={
                   <ProtectedRoute>
                     <ExistingBusinessPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/export-form" 
+              <Route
+                path="/export-form"
                 element={
                   <ProtectedRoute>
                     <ExporterPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/intermediary-form" 
+              <Route
+                path="/intermediary-form"
                 element={
                   <ProtectedRoute>
                     <IntermediaryPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/reports" 
+              <Route
+                path="/reports"
                 element={
                   <ProtectedRoute>
                     <ReportsPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/members" 
+              <Route
+                path="/members"
                 element={
                   <ProtectedRoute>
                     <UserManagement />
                   </ProtectedRoute>
-                } 
+                }
+              />
+              <Route
+                path="/user-management-edit"
+                element={
+                  <ProtectedRoute>
+                    <EditPage />
+                  </ProtectedRoute>
+                }
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
