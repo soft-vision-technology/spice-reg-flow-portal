@@ -63,12 +63,12 @@ export const demoData = [
 ];
 
 export const sectorData = [
-  { sector: "Agriculture", value: 122 },
-  { sector: "Textile", value: 71 },
-  { sector: "IT & BPO", value: 56 },
-  { sector: "Food & Bev", value: 83 },
-  { sector: "Logistics", value: 40 },
-  { sector: "Tourism", value: 46 },
+  { sector: "Chill", value: 122 },
+  { sector: "Black Pepper", value: 71 },
+  { sector: "Cumin", value: 56 },
+  { sector: "Coriander", value: 83 },
+  { sector: "Pandan Leaves", value: 40 },
+  { sector: "Cardamom", value: 46 },
 ];
 
 export const approvalData = [

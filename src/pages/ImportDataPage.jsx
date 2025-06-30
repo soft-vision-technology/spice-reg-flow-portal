@@ -36,7 +36,7 @@ const ImportDataPage = () => {
   const [fileName, setFileName] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [pasteData, setPasteData] = useState("");
-  const [activeTab, setActiveTab] = useState("upload");
+  const [activeTab, setActiveTab] = useState("paste");
 
   const handleBack = () => {
     navigate("/select");
@@ -154,7 +154,7 @@ const ImportDataPage = () => {
       });
 
       processTableData(normalizedData, "Pasted Data", "paste");
-      setActiveTab("upload"); // Switch to upload tab to show the processed data
+      setActiveTab("paste"); // Switch to upload tab to show the processed data
     } catch (error) {
       console.error("Error processing pasted data:", error);
       message.error("Failed to process the pasted data. Please check the format.");
@@ -303,35 +303,6 @@ const ImportDataPage = () => {
           onChange={setActiveTab}
           items={[
             {
-              key: 'upload',
-              label: 'Upload File',
-              children: (
-                <div>
-                  <Title level={4} className="mb-4">
-                    Upload Excel File
-                  </Title>
-                  <Dragger
-                    name="file"
-                    multiple={false}
-                    accept=".xlsx,.xls,.csv"
-                    beforeUpload={handleFileUpload}
-                    showUploadList={false}
-                    className="mb-4"
-                  >
-                    <p className="ant-upload-drag-icon">
-                      <InboxOutlined />
-                    </p>
-                    <p className="ant-upload-text">
-                      Click or drag Excel file to this area to upload
-                    </p>
-                    <p className="ant-upload-hint">
-                      Support for .xlsx, .xls, and .csv files. Only single file upload is supported.
-                    </p>
-                  </Dragger>
-                </div>
-              ),
-            },
-            {
               key: 'paste',
               label: 'Copy & Paste',
               children: (
@@ -379,6 +350,35 @@ const ImportDataPage = () => {
                       </Button>
                     </div>
                   </div>
+                </div>
+              ),
+            },
+            {
+              key: 'upload',
+              label: 'Upload File',
+              children: (
+                <div>
+                  <Title level={4} className="mb-4">
+                    Upload Excel File
+                  </Title>
+                  <Dragger
+                    name="file"
+                    multiple={false}
+                    accept=".xlsx,.xls,.csv"
+                    beforeUpload={handleFileUpload}
+                    showUploadList={false}
+                    className="mb-4"
+                  >
+                    <p className="ant-upload-drag-icon">
+                      <InboxOutlined />
+                    </p>
+                    <p className="ant-upload-text">
+                      Click or drag Excel file to this area to upload
+                    </p>
+                    <p className="ant-upload-hint">
+                      Support for .xlsx, .xls, and .csv files. Only single file upload is supported.
+                    </p>
+                  </Dragger>
                 </div>
               ),
             },

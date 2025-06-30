@@ -32,26 +32,10 @@ const mockUsers = [
   {
     id: 1,
     name: "John Doe",
-    email: "john.doe@example.com",
+    email: "admin@gmail.com",
     role: 1,
     status: "active",
-    createdAt: "2024-01-15",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    role: 2,
-    status: "active",
-    createdAt: "2024-01-20",
-  },
-  {
-    id: 3,
-    name: "Mike Johnson",
-    email: "mike.johnson@example.com",
-    role: 2,
-    status: "inactive",
-    createdAt: "2024-01-25",
+    createdAt: "2025-01-15",
   },
 ];
 
@@ -91,7 +75,7 @@ const UserManagement = ({ onUserCreated }) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      status: user.status,
+      // status: user.status,
     });
     setEditModalVisible(true);
   };
@@ -500,7 +484,7 @@ const RegisterUser = ({ onUserCreated }) => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12}>
+          {/* <Col xs={24} sm={12}>
             <Form.Item
               label="Status"
               name="status"
@@ -513,7 +497,7 @@ const RegisterUser = ({ onUserCreated }) => {
                 <Option value="pending">Pending</Option>
               </Select>
             </Form.Item>
-          </Col>
+          </Col> */}
         </Row>
 
         <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">

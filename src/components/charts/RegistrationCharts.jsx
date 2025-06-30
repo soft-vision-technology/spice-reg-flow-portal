@@ -4,10 +4,10 @@ import {
   GeographicDistributionChart,
   DemographicsStackedBar,
   SectorWiseBar,
-  ApprovalStatusDonut,
-  RegistrationTimeBoxPlot,
-  DocumentComplianceGrid,
-  RegistrationFunnel,
+  // ApprovalStatusDonut,
+  // RegistrationTimeBoxPlot,
+  // DocumentComplianceGrid,
+  // RegistrationFunnel,
 } from "./index";
 
 export const RegistrationDashboard = (props) => {
@@ -17,10 +17,10 @@ export const RegistrationDashboard = (props) => {
     geo = [],
     demographics = [],
     sectors = [],
-    approval = [],
-    regTime = [],
-    docs = [],
-    funnel = [],
+    // approval = [],
+    // regTime = [],
+    // docs = [],
+    // funnel = [],
   } = props;
 
   return (
@@ -60,7 +60,7 @@ export const RegistrationDashboard = (props) => {
         <SectorWiseBar data={sectors} />
       </div>
 
-      <div className="bg-white rounded-2xl shadow p-4 dark:bg-slate-800">
+      {/* <div className="bg-white rounded-2xl shadow p-4 dark:bg-slate-800">
         <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
           Approval Status
         </h3>
@@ -86,7 +86,7 @@ export const RegistrationDashboard = (props) => {
           Registration Funnel
         </h3>
         <RegistrationFunnel data={funnel} />
-      </div>
+      </div> */}
     </div>
   );
 };
