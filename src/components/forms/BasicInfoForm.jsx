@@ -49,7 +49,7 @@ const BasicInfoForm = () => {
               label="Initials"
               name="initials"
               rules={[
-                { required: true, message: "Please enter your initials" },
+                { required: false, message: "Please enter your initials" },
               ]}
             >
               <Input placeholder="T. N." />
@@ -134,7 +134,7 @@ const BasicInfoForm = () => {
               label="Province"
               name="province"
               rules={[
-                { required: true, message: "Please select your province" },
+                { required: false, message: "Please select your province" },
               ]}
             >
               <Select
@@ -156,7 +156,7 @@ const BasicInfoForm = () => {
               label="District"
               name="district"
               rules={[
-                { required: true, message: "Please select your district" },
+                { required: false, message: "Please select your district" },
               ]}
             >
               <Select
@@ -179,7 +179,7 @@ const BasicInfoForm = () => {
               label="DS Division" 
               name="dsDivision"
               rules={[
-                { required: true, message: "Please enter your DS Division" },
+                { required: false, message: "Please enter your DS Division" },
               ]}
             >
               <Input placeholder="Gampaha" />
@@ -190,7 +190,7 @@ const BasicInfoForm = () => {
               label="GN Division" 
               name="gnDivision"
               rules={[
-                { required: true, message: "Please enter your GN Division" },
+                { required: false, message: "Please enter your GN Division" },
               ]}
             >
               <Input placeholder="Ethgala" />

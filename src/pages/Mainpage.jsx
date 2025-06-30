@@ -77,11 +77,8 @@ const Mainpage = () => {
       </div>
 
       {/* Dashboard Section */}
-      <div className="py-16 px-6 bg-gray-50">
+      <div className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <Title level={2} className="text-center !text-[#E67324] !mb-12">
-            Registration Analytics Dashboard
-          </Title>
           <RegistrationDashboard
             overview={overviewData}
             timeSeries={timeSeriesData}

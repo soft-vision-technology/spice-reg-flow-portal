@@ -75,12 +75,12 @@ export const districts = [
   },
   {
     id: 8,
-    name: "Hambantota",
+    name: "Matara",
     province_id: 3,
   },
   {
     id: 9,
-    name: "Matara",
+    name: "Hambantota",
     province_id: 3,
   },
   {
@@ -100,17 +100,17 @@ export const districts = [
   },
   {
     id: 13,
-    name: "Mullaitivu",
-    province_id: 4,
-  },
-  {
-    id: 14,
     name: "Vavuniya",
     province_id: 4,
   },
   {
+    id: 14,
+    name: "Mullaitivu",
+    province_id: 4,
+  },
+  {
     id: 15,
-    name: "Ampara",
+    name: "Trincomalee",
     province_id: 5,
   },
   {
@@ -120,7 +120,7 @@ export const districts = [
   },
   {
     id: 17,
-    name: "Trincomalee",
+    name: "Ampara",
     province_id: 5,
   },
   {
@@ -155,12 +155,12 @@ export const districts = [
   },
   {
     id: 24,
-    name: "Kegalle",
+    name: "Ratnapura",
     provinceId: 9,
   },
   {
     id: 25,
-    name: "Ratnapura",
+    name: "Kegalle",
     province_id: 9,
   },
 ];

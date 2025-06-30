@@ -17,6 +17,7 @@ import EditPage from "./pages/EditPage";
 import Mainpage from "./pages/Mainpage";
 import NotificationsPage from "./pages/NotificationsPage";
 import RegisterUser from "./AdminPages/RegisterUser";
+import ImportDataPage from "./pages/ImportDataPage";
 
 const queryClient = new QueryClient();
 
@@ -114,6 +115,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <RegisterUser />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/import-data"
+                element={
+                  <ProtectedRoute>
+                    <ImportDataPage />
                   </ProtectedRoute>
                 }
               />

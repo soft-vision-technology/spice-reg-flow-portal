@@ -14,7 +14,8 @@ import {
   Avatar,
   Typography,
   Row,
-  Col
+  Col,
+  Tabs
 } from "antd";
 import { 
   EditOutlined, 
@@ -22,11 +23,13 @@ import {
   UserOutlined, 
   ExclamationCircleOutlined,
   CheckCircleOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  EyeOutlined
 } from "@ant-design/icons";
 
 const { Title } = Typography;
 const { Option } = Select;
+const { TabPane } = Tabs;
 
 const UserManagement = () => {
   const [users, setUsers] = useState([
@@ -34,48 +37,93 @@ const UserManagement = () => {
       id: 1,
       name: "John Smith",
       email: "john.smith@spiceregistry.gov",
-      role: "Administrator",
+      role: "Entrepreneur",
       status: "Active",
       department: "Quality Control",
       lastLogin: "2025-06-26",
-      registrationDate: "2024-01-15"
+      registrationDate: "2024-01-15",
+      businessName: "Spice World Enterprises",
+      businessType: "Manufacturing",
+      location: "Colombo"
     },
     {
       id: 2,
       name: "Sarah Johnson",
       email: "sarah.johnson@spiceregistry.gov",
-      role: "Inspector",
+      role: "Exporter",
       status: "Active",
       department: "Field Operations",
       lastLogin: "2025-06-25",
-      registrationDate: "2024-03-22"
+      registrationDate: "2024-03-22",
+      businessName: "Global Spice Exports",
+      businessType: "Export",
+      location: "Galle"
     },
     {
       id: 3,
       name: "Michael Chen",
       email: "michael.chen@spiceregistry.gov",
-      role: "Analyst",
+      role: "IntermediaryTrader",
       status: "Inactive",
       department: "Data Analysis",
       lastLogin: "2025-06-20",
-      registrationDate: "2024-02-10"
+      registrationDate: "2024-02-10",
+      businessName: "Trading Hub Lanka",
+      businessType: "Trading",
+      location: "Kandy"
     },
     {
       id: 4,
       name: "Emma Davis",
       email: "emma.davis@spiceregistry.gov",
-      role: "Supervisor",
+      role: "Entrepreneur",
       status: "Active",
       department: "Compliance",
       lastLogin: "2025-06-27",
-      registrationDate: "2023-11-05"
+      registrationDate: "2023-11-05",
+      businessName: "Ceylon Spice Co.",
+      businessType: "Processing",
+      location: "Matara"
+    },
+    {
+      id: 5,
+      name: "David Wilson",
+      email: "david.wilson@spiceregistry.gov",
+      role: "Exporter",
+      status: "Active",
+      department: "Export Division",
+      lastLogin: "2025-06-28",
+      registrationDate: "2024-05-12",
+      businessName: "Premium Spice Exports",
+      businessType: "Export",
+      location: "Colombo"
+    },
+    {
+      id: 6,
+      name: "Lisa Anderson",
+      email: "lisa.anderson@spiceregistry.gov",
+      role: "IntermediaryTrader",
+      status: "Active",
+      department: "Trading Operations",
+      lastLogin: "2025-06-29",
+      registrationDate: "2024-04-18",
+      businessName: "Spice Connect",
+      businessType: "Intermediary",
+      location: "Negombo"
     }
   ]);
 
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [viewModalVisible, setViewModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [pendingActions, setPendingActions] = useState(new Set());
+  const [activeTab, setActiveTab] = useState("entrepreneurs");
   const [form] = Form.useForm();
+
+  const handleView = (user) => {
+    setSelectedUser(user);
+    setViewModalVisible(true);
+  };
 
   const handleEdit = (user) => {
     setSelectedUser(user);
@@ -154,98 +202,120 @@ const UserManagement = () => {
 
   const getRoleColor = (role) => {
     switch (role) {
-      case 'Administrator': return 'purple';
-      case 'Supervisor': return 'blue';
-      case 'Inspector': return 'green';
-      case 'Analyst': return 'orange';
+      case 'Entrepreneur': return 'purple';
+      case 'Exporter': return 'blue';
+      case 'IntermediaryTrader': return 'green';
       default: return 'default';
     }
   };
 
-  const columns = [
-    {
-      title: 'User',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text, record) => (
-        <div className="flex items-center space-x-3">
-          <Avatar 
-            size={40} 
-            icon={<UserOutlined />} 
-            style={{ backgroundColor: '#e67324' }}
-          />
-          <div>
-            <div className="font-medium text-gray-900">{text}</div>
-            <div className="text-sm text-gray-500">{record.email}</div>
+  const getDataByRole = (role) => {
+    return users.filter(user => user.role === role);
+  };
+
+  const getColumns = (tabType) => {
+    const baseColumns = [
+      {
+        title: 'User',
+        dataIndex: 'name',
+        key: 'name',
+        render: (text, record) => (
+          <div className="flex items-center space-x-3">
+            <Avatar 
+              size={40} 
+              icon={<UserOutlined />} 
+              style={{ backgroundColor: '#e67324' }}
+            />
+            <div>
+              <div className="font-medium text-gray-900">{text}</div>
+              <div className="text-sm text-gray-500">{record.email}</div>
+            </div>
           </div>
-        </div>
-      ),
-    },
-    {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role) => (
-        <Tag color={getRoleColor(role)} className="font-medium">
-          {role}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Department',
-      dataIndex: 'department',
-      key: 'department',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Tag color={getStatusColor(status)}>
-          {status}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Last Login',
-      dataIndex: 'lastLogin',
-      key: 'lastLogin',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space size="middle">
-          <Button
-            type="primary"
-            icon={<EditOutlined />}
-            size="small"
-            style={{ backgroundColor: '#e67324', borderColor: '#e67324' }}
-            onClick={() => handleEdit(record)}
-          >
-            Edit
-          </Button>
-          <Popconfirm
-            title="Delete User"
-            description="Are you sure you want to delete this user? This action requires approval."
-            icon={<ExclamationCircleOutlined style={{ color: 'red' }} />}
-            onConfirm={() => handleDelete(record)}
-            okText="Yes, Delete"
-            cancelText="Cancel"
-            okButtonProps={{ danger: true }}
-          >
+        ),
+      },
+      {
+        title: 'Business Name',
+        dataIndex: 'businessName',
+        key: 'businessName',
+      },
+      {
+        title: 'Business Type',
+        dataIndex: 'businessType',
+        key: 'businessType',
+      },
+      {
+        title: 'Location',
+        dataIndex: 'location',
+        key: 'location',
+      },
+      {
+        title: 'Status',
+        dataIndex: 'status',
+        key: 'status',
+        render: (status) => (
+          <Tag color={getStatusColor(status)}>
+            {status}
+          </Tag>
+        ),
+      },
+      {
+        title: 'Registration Date',
+        dataIndex: 'registrationDate',
+        key: 'registrationDate',
+      },
+      {
+        title: 'Last Login',
+        dataIndex: 'lastLogin',
+        key: 'lastLogin',
+      },
+      {
+        title: 'Actions',
+        key: 'actions',
+        fixed: 'right',
+        width: 200,
+        render: (_, record) => (
+          <Space size="small">
             <Button
-              danger
-              icon={<DeleteOutlined />}
+              type="default"
+              icon={<EyeOutlined />}
               size="small"
+              onClick={() => handleView(record)}
             >
-              Delete
+              View
             </Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              size="small"
+              style={{ backgroundColor: '#e67324', borderColor: '#e67324' }}
+              onClick={() => handleEdit(record)}
+            >
+              Edit
+            </Button>
+            <Popconfirm
+              title="Delete User"
+              description="Are you sure you want to delete this user? This action requires approval."
+              icon={<ExclamationCircleOutlined style={{ color: 'red' }} />}
+              onConfirm={() => handleDelete(record)}
+              okText="Yes, Delete"
+              cancelText="Cancel"
+              okButtonProps={{ danger: true }}
+            >
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+              >
+                Delete
+              </Button>
+            </Popconfirm>
+          </Space>
+        ),
+      },
+    ];
+
+    return baseColumns;
+  };
 
   const pendingActionsCount = pendingActions.size;
 
@@ -282,24 +352,26 @@ const UserManagement = () => {
         {/* <Row gutter={[16, 16]} className="mb-6">
           <Col xs={24} sm={12} lg={6}>
             <Card className="text-center">
-              <div className="text-2xl font-bold text-gray-900">{users.length}</div>
-              <div className="text-gray-500">Total Users</div>
+              <div className="text-2xl font-bold text-purple-600">
+                {getDataByRole("Entrepreneur").length}
+              </div>
+              <div className="text-gray-500">Entrepreneurs</div>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {getDataByRole("Exporter").length}
+              </div>
+              <div className="text-gray-500">Exporters</div>
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <Card className="text-center">
               <div className="text-2xl font-bold text-green-600">
-                {users.filter(u => u.status === 'Active').length}
+                {getDataByRole("IntermediaryTrader").length}
               </div>
-              <div className="text-gray-500">Active Users</div>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="text-2xl font-bold text-red-600">
-                {users.filter(u => u.status === 'Inactive').length}
-              </div>
-              <div className="text-gray-500">Inactive Users</div>
+              <div className="text-gray-500">Traders</div>
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
@@ -312,22 +384,188 @@ const UserManagement = () => {
           </Col>
         </Row> */}
 
-        {/* Users Table */}
+        {/* Tabbed Tables */}
         <Card className="shadow-sm">
-          <Table
-            columns={columns}
-            dataSource={users}
-            rowKey="id"
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) =>
-                `${range[0]}-${range[1]} of ${total} users`,
-            }}
-            className="w-full"
-          />
+          <Tabs activeKey={activeTab} onChange={setActiveTab} type="card">
+            <TabPane
+              tab={
+                <span>
+                  <Tag color="purple" className="mr-1">
+                    {getDataByRole("Entrepreneur").length}
+                  </Tag>
+                  Entrepreneurs
+                </span>
+              }
+              key="entrepreneurs"
+            >
+              <Table
+                columns={getColumns("entrepreneurs")}
+                dataSource={getDataByRole("Entrepreneur")}
+                rowKey="id"
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: true,
+                  showQuickJumper: true,
+                  showTotal: (total, range) =>
+                    `${range[0]}-${range[1]} of ${total} entrepreneurs`,
+                }}
+                scroll={{ x: 1600 }}
+                size="small"
+              />
+            </TabPane>
+            <TabPane
+              tab={
+                <span>
+                  <Tag color="blue" className="mr-1">
+                    {getDataByRole("Exporter").length}
+                  </Tag>
+                  Exporters
+                </span>
+              }
+              key="exporters"
+            >
+              <Table
+                columns={getColumns("exporters")}
+                dataSource={getDataByRole("Exporter")}
+                rowKey="id"
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: true,
+                  showQuickJumper: true,
+                  showTotal: (total, range) =>
+                    `${range[0]}-${range[1]} of ${total} exporters`,
+                }}
+                scroll={{ x: 1600 }}
+                size="small"
+              />
+            </TabPane>
+            <TabPane
+              tab={
+                <span>
+                  <Tag color="green" className="mr-1">
+                    {getDataByRole("IntermediaryTrader").length}
+                  </Tag>
+                  Traders
+                </span>
+              }
+              key="traders"
+            >
+              <Table
+                columns={getColumns("traders")}
+                dataSource={getDataByRole("IntermediaryTrader")}
+                rowKey="id"
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: true,
+                  showQuickJumper: true,
+                  showTotal: (total, range) =>
+                    `${range[0]}-${range[1]} of ${total} traders`,
+                }}
+                scroll={{ x: 1600 }}
+                size="small"
+              />
+            </TabPane>
+          </Tabs>
         </Card>
+
+        {/* View User Modal */}
+        <Modal
+          title="User Details"
+          open={viewModalVisible}
+          onCancel={() => {
+            setViewModalVisible(false);
+            setSelectedUser(null);
+          }}
+          footer={[
+            <Button key="close" onClick={() => setViewModalVisible(false)}>
+              Close
+            </Button>
+          ]}
+          width={600}
+        >
+          {selectedUser && (
+            <div className="space-y-4">
+              <Row gutter={16}>
+                <Col span={12}>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Full Name</label>
+                    <div className="text-gray-900">{selectedUser.name}</div>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <div className="text-gray-900">{selectedUser.email}</div>
+                  </div>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Role</label>
+                    <div>
+                      <Tag color={getRoleColor(selectedUser.role)} className="mt-1">
+                        {selectedUser.role}
+                      </Tag>
+                    </div>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Status</label>
+                    <div>
+                      <Tag color={getStatusColor(selectedUser.status)} className="mt-1">
+                        {selectedUser.status}
+                      </Tag>
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Business Name</label>
+                    <div className="text-gray-900">{selectedUser.businessName}</div>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Business Type</label>
+                    <div className="text-gray-900">{selectedUser.businessType}</div>
+                  </div>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Location</label>
+                    <div className="text-gray-900">{selectedUser.location}</div>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Department</label>
+                    <div className="text-gray-900">{selectedUser.department}</div>
+                  </div>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Registration Date</label>
+                    <div className="text-gray-900">{selectedUser.registrationDate}</div>
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Last Login</label>
+                    <div className="text-gray-900">{selectedUser.lastLogin}</div>
+                  </div>
+                </Col>
+              </Row>
+            </div>
+          )}
+        </Modal>
 
         {/* Edit User Modal */}
         <Modal
@@ -391,10 +629,9 @@ const UserManagement = () => {
                   rules={[{ required: true, message: 'Please select role' }]}
                 >
                   <Select placeholder="Select role">
-                    <Option value="Administrator">Administrator</Option>
-                    <Option value="Supervisor">Supervisor</Option>
-                    <Option value="Inspector">Inspector</Option>
-                    <Option value="Analyst">Analyst</Option>
+                    <Option value="Entrepreneur">Entrepreneur</Option>
+                    <Option value="Exporter">Exporter</Option>
+                    <Option value="IntermediaryTrader">Intermediary Trader</Option>
                   </Select>
                 </Form.Item>
               </Col>
@@ -409,17 +646,51 @@ const UserManagement = () => {
               </Col>
             </Row>
 
-            <Form.Item
-              label="Status"
-              name="status"
-              rules={[{ required: true, message: 'Please select status' }]}
-            >
-              <Select placeholder="Select status">
-                <Option value="Active">Active</Option>
-                <Option value="Inactive">Inactive</Option>
-                <Option value="Suspended">Suspended</Option>
-              </Select>
-            </Form.Item>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="Business Name"
+                  name="businessName"
+                  rules={[{ required: true, message: 'Please enter business name' }]}
+                >
+                  <Input placeholder="Enter business name" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Business Type"
+                  name="businessType"
+                  rules={[{ required: true, message: 'Please enter business type' }]}
+                >
+                  <Input placeholder="Enter business type" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="Location"
+                  name="location"
+                  rules={[{ required: true, message: 'Please enter location' }]}
+                >
+                  <Input placeholder="Enter location" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Status"
+                  name="status"
+                  rules={[{ required: true, message: 'Please select status' }]}
+                >
+                  <Select placeholder="Select status">
+                    <Option value="Active">Active</Option>
+                    <Option value="Inactive">Inactive</Option>
+                    <Option value="Suspended">Suspended</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form>
         </Modal>
       </div>

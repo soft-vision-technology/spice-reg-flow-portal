@@ -76,7 +76,7 @@ const ReportsPage = () => {
     district: "all",
     numberOfEmployees: "all",
     businessExperience: "all",
-    product: "all", // <-- add this
+    product: "all",
     searchText: "",
     dateRange: null,
   });

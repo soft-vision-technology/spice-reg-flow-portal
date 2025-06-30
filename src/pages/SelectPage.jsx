@@ -6,6 +6,7 @@ import BasicInfoForm from "../components/forms/BasicInfoForm";
 import RoleSelectionCard from "../components/forms/RoleSelectionCard";
 import { useFormContext } from "../contexts/FormContext";
 import { saveBasicInfo } from "../store/slices/basicInfoSlice";
+import { ImportOutlined } from "@ant-design/icons";
 
 const SelectPage = () => {
   const navigate = useNavigate();
@@ -13,6 +14,10 @@ const SelectPage = () => {
   const { registrationType, role, formData } = useFormContext();
   const { loading, error } = useSelector((state) => state.basicInfo);
   const [roleId, setRoleId] = useState(3);
+  
+  const handleImportData = () => {
+    navigate("/import-data");
+  };
 
   const handleContinue = async () => {
     // Check if basic info is filled
@@ -106,6 +111,17 @@ const SelectPage = () => {
           preferences
         </p>
       </div>
+      <div className="flex justify-center mb-6">
+          <Button
+            type="default"
+            size="large"
+            icon={<ImportOutlined />}
+            onClick={handleImportData}
+            className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-600 px-8 py-2 h-10"
+          >
+            Import Data from Excel
+          </Button>
+        </div>
 
       <Row gutter={32} className="mb-8">
         {/* Left Side - Registration Type & Role Selection */}

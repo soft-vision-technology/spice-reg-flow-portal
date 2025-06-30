@@ -187,10 +187,10 @@ const ExistingBusinessPage = () => {
         message.warning("Please enter business registration number");
         return;
       }
-      if (!formData.businessAddress) {
-        message.warning("Please enter business address");
-        return;
-      }
+      // if (!formData.businessAddress) {
+      //   message.warning("Please enter business address");
+      //   return;
+      // }
       if (!formData.numberOfEmployees) {
         message.warning("Please select number of employees");
         return;
