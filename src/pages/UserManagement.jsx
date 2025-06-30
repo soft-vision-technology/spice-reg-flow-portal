@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Table, 
   Button, 
@@ -28,93 +28,20 @@ import {
   PrinterOutlined
 } from "@ant-design/icons";
 import CertificatePrintDrawer from "../components/custom/CertificatePrintDrawer";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchExistingEntrepreneurs,
+  fetchExistingExporters,
+  fetchExistingTraders,
+  // deleteUser as deleteUserApi,
+  // updateUser as updateUserApi,
+} from "../store/slices/reportSlice";
 
 const { Title } = Typography;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
 const UserManagement = () => {
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "John Smith",
-      email: "john.smith@spiceregistry.gov",
-      role: "Entrepreneur",
-      status: "Active",
-      department: "Quality Control",
-      lastLogin: "2025-06-26",
-      registrationDate: "2024-01-15",
-      businessName: "Spice World Enterprises",
-      businessType: "Manufacturing",
-      location: "Colombo"
-    },
-    {
-      id: 2,
-      name: "Sarah Johnson",
-      email: "sarah.johnson@spiceregistry.gov",
-      role: "Exporter",
-      status: "Active",
-      department: "Field Operations",
-      lastLogin: "2025-06-25",
-      registrationDate: "2024-03-22",
-      businessName: "Global Spice Exports",
-      businessType: "Export",
-      location: "Galle"
-    },
-    {
-      id: 3,
-      name: "Michael Chen",
-      email: "michael.chen@spiceregistry.gov",
-      role: "IntermediaryTrader",
-      status: "Inactive",
-      department: "Data Analysis",
-      lastLogin: "2025-06-20",
-      registrationDate: "2024-02-10",
-      businessName: "Trading Hub Lanka",
-      businessType: "Trading",
-      location: "Kandy"
-    },
-    {
-      id: 4,
-      name: "Emma Davis",
-      email: "emma.davis@spiceregistry.gov",
-      role: "Entrepreneur",
-      status: "Active",
-      department: "Compliance",
-      lastLogin: "2025-06-27",
-      registrationDate: "2023-11-05",
-      businessName: "Ceylon Spice Co.",
-      businessType: "Processing",
-      location: "Matara"
-    },
-    {
-      id: 5,
-      name: "David Wilson",
-      email: "david.wilson@spiceregistry.gov",
-      role: "Exporter",
-      status: "Active",
-      department: "Export Division",
-      lastLogin: "2025-06-28",
-      registrationDate: "2024-05-12",
-      businessName: "Premium Spice Exports",
-      businessType: "Export",
-      location: "Colombo"
-    },
-    {
-      id: 6,
-      name: "Lisa Anderson",
-      email: "lisa.anderson@spiceregistry.gov",
-      role: "IntermediaryTrader",
-      status: "Active",
-      department: "Trading Operations",
-      lastLogin: "2025-06-29",
-      registrationDate: "2024-04-18",
-      businessName: "Spice Connect",
-      businessType: "Intermediary",
-      location: "Negombo"
-    }
-  ]);
-
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [viewModalVisible, setViewModalVisible] = useState(false);
   const [certificateDrawerVisible, setCertificateDrawerVisible] = useState(false);
@@ -123,76 +50,128 @@ const UserManagement = () => {
   const [activeTab, setActiveTab] = useState("entrepreneurs");
   const [form] = Form.useForm();
 
+  // Redux integration for real data
+  const dispatch = useDispatch();
+  const { existingEntrepreneurs, existingExporters, existingTraders, loading } = useSelector(
+    (state) => state.report
+  );
+
+  // Fetch users on mount
+  useEffect(() => {
+    dispatch(fetchExistingEntrepreneurs());
+    dispatch(fetchExistingExporters());
+    dispatch(fetchExistingTraders());
+  }, [dispatch]);
+
+  // Combine all users for statistics and certificate drawer
+  const allUsers = [
+    ...(existingEntrepreneurs || []),
+    ...(existingExporters || []),
+    ...(existingTraders || []),
+  ];
+
+  // Helper to get users by role
+  const getDataByRole = (role) => {
+    switch (role) {
+      case "Entrepreneur":
+        return existingEntrepreneurs || [];
+      case "Exporter":
+        return existingExporters || [];
+      case "IntermediaryTrader":
+        return existingTraders || [];
+      default:
+        return [];
+    }
+  };
+
+  // --- Edit, View, Delete handlers using API ---
   const handleView = (user) => {
     setSelectedUser(user);
     setViewModalVisible(true);
   };
 
   const handleEdit = (user) => {
+    // Flatten nested business fields for editing
+    const business =
+      user.entrepreneur ||
+      user.exporter ||
+      user.intermediaryTrader ||
+      {};
+    form.setFieldsValue({
+      ...user,
+      businessName: business.businessName || "",
+      businessType: business.businessType || "",
+      location:
+        typeof user.location === "object"
+          ? user.location?.name
+          : user.district?.name
+          ? user.district?.name
+          : user.location || "",
+    });
     setSelectedUser(user);
-    form.setFieldsValue(user);
     setEditModalVisible(true);
   };
 
-  const handleEditSubmit = () => {
-    form.validateFields().then(values => {
-      const actionId = `edit-${selectedUser.id}-${Date.now()}`;
-      setPendingActions(prev => new Set([...prev, actionId]));
-      
-      message.info({
-        content: 'Edit request submitted for approval',
-        icon: <ClockCircleOutlined style={{ color: '#e67324' }} />
-      });
+  // const handleEditSubmit = () => {
+  //   form.validateFields().then(async (values) => {
+  //     const actionId = `edit-${selectedUser.id}-${Date.now()}`;
+  //     setPendingActions((prev) => new Set([...prev, actionId]));
 
-      // Simulate approval process
-      setTimeout(() => {
-        setUsers(prevUsers => 
-          prevUsers.map(user => 
-            user.id === selectedUser.id ? { ...user, ...values } : user
-          )
-        );
-        setPendingActions(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(actionId);
-          return newSet;
-        });
-        
-        message.success({
-          content: 'User information updated successfully',
-          icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />
-        });
-      }, 3000);
+  //     message.info({
+  //       content: "Edit request submitted for approval",
+  //       icon: <ClockCircleOutlined style={{ color: "#e67324" }} />,
+  //     });
 
-      setEditModalVisible(false);
-      setSelectedUser(null);
-      form.resetFields();
-    });
-  };
+  //     // Simulate approval process, then call API
+  //     setTimeout(async () => {
+  //       try {
+  //         await dispatch(updateUserApi({ id: selectedUser.id, ...values }));
+  //         message.success({
+  //           content: "User information updated successfully",
+  //           icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
+  //         });
+  //       } catch (e) {
+  //         message.error("Failed to update user");
+  //       }
+  //       setPendingActions((prev) => {
+  //         const newSet = new Set(prev);
+  //         newSet.delete(actionId);
+  //         return newSet;
+  //       });
+  //     }, 3000);
 
-  const handleDelete = (user) => {
-    const actionId = `delete-${user.id}-${Date.now()}`;
-    setPendingActions(prev => new Set([...prev, actionId]));
-    
-    message.info({
-      content: 'Delete request submitted for approval',
-      icon: <ClockCircleOutlined style={{ color: '#e67324' }} />
-    });
+  //     setEditModalVisible(false);
+  //     setSelectedUser(null);
+  //     form.resetFields();
+  //   });
+  // };
 
-    // Simulate approval process
-    setTimeout(() => {
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== user.id));
-      setPendingActions(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(actionId);
-        return newSet;
-      });
-      
-      message.success({
-        content: 'User deleted successfully',
-        icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />
-      });
-    }, 3000);
-  };
+  // const handleDelete = (user) => {
+  //   const actionId = `delete-${user.id}-${Date.now()}`;
+  //   setPendingActions((prev) => new Set([...prev, actionId]));
+
+  //   message.info({
+  //     content: "Delete request submitted for approval",
+  //     icon: <ClockCircleOutlined style={{ color: "#e67324" }} />,
+  //   });
+
+  //   setTimeout(async () => {
+  //     try {
+  //       await dispatch(deleteUserApi(user.id));
+  //       message.success({
+  //         content: "User deleted successfully",
+  //         icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
+  //       });
+  //     } catch (e) {
+  //       message.error("Failed to delete user");
+  //     }
+  //     setPendingActions((prev) => {
+  //       const newSet = new Set(prev);
+  //       newSet.delete(actionId);
+  //       return newSet;
+  //     });
+  //   }, 3000);
+  // };
 
   const handleCertificatePrintSubmit = (printData) => {
     const actionId = `certificate-print-${Date.now()}`;
@@ -226,113 +205,126 @@ const UserManagement = () => {
     }
   };
 
-  const getDataByRole = (role) => {
-    return users.filter(user => user.role === role);
-  };
-
-  const getColumns = (tabType) => {
-    const baseColumns = [
-      {
-        title: 'User',
-        dataIndex: 'name',
-        key: 'name',
-        render: (text, record) => (
-          <div className="flex items-center space-x-3">
-            <Avatar 
-              size={40} 
-              icon={<UserOutlined />} 
-              style={{ backgroundColor: '#e67324' }}
-            />
-            <div>
-              <div className="font-medium text-gray-900">{text}</div>
-              <div className="text-sm text-gray-500">{record.email}</div>
-            </div>
+  // --- Columns for each tab (adapted from ReportsPage) ---
+  const getColumns = (role) => [
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      render: (text, record) => (
+        <div className="flex items-center space-x-3">
+          <Avatar size={40} icon={<UserOutlined />} style={{ backgroundColor: "#e67324" }} />
+          <div>
+            <div className="font-medium text-gray-900">{record.title ? `${record.title} ${text}` : text}</div>
+            <div className="text-sm text-gray-500">{record.email}</div>
           </div>
-        ),
+        </div>
+      ),
+      width: 200,
+    },
+    {
+      title: "Business Name",
+      dataIndex: ["entrepreneur", "exporter", "intermediaryTrader"],
+      key: "businessName",
+      render: (_, record) => {
+        const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
+        return businessData?.businessName || "N/A";
       },
-      {
-        title: 'Business Name',
-        dataIndex: 'businessName',
-        key: 'businessName',
+      width: 150,
+    },
+    {
+      title: "Business Type",
+      dataIndex: "businessType",
+      key: "businessType",
+      render: (_, record) => {
+        const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
+        return businessData?.businessType || "N/A";
       },
-      {
-        title: 'Business Type',
-        dataIndex: 'businessType',
-        key: 'businessType',
-      },
-      {
-        title: 'Location',
-        dataIndex: 'location',
-        key: 'location',
-      },
-      {
-        title: 'Status',
-        dataIndex: 'status',
-        key: 'status',
-        render: (status) => (
+      width: 120,
+    },
+    {
+      title: "Location",
+      key: "location",
+      render: (_, record) => (
+        <div>
+          <div>{record.district?.name || record.location}</div>
+          <div className="text-sm text-gray-500">{record.province?.name}</div>
+        </div>
+      ),
+      width: 150,
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (_, record) => {
+        const status = record.status || record.businessStatus;
+        return (
           <Tag color={getStatusColor(status)}>
             {status}
           </Tag>
-        ),
+        );
       },
-      {
-        title: 'Registration Date',
-        dataIndex: 'registrationDate',
-        key: 'registrationDate',
-      },
-      {
-        title: 'Last Login',
-        dataIndex: 'lastLogin',
-        key: 'lastLogin',
-      },
-      {
-        title: 'Actions',
-        key: 'actions',
-        fixed: 'right',
-        width: 200,
-        render: (_, record) => (
-          <Space size="small">
-            <Button
-              type="default"
-              icon={<EyeOutlined />}
-              size="small"
-              onClick={() => handleView(record)}
-            >
-              View
+      width: 120,
+    },
+    {
+      title: "Registration Date",
+      dataIndex: "createdAt",
+      key: "registrationDate",
+      render: (date, record) =>
+        date
+          ? new Date(date).toLocaleDateString()
+          : record.registrationDate || "N/A",
+      width: 120,
+    },
+    {
+      title: "Last Login",
+      dataIndex: "lastLogin",
+      key: "lastLogin",
+      render: (date) => date || "N/A",
+      width: 120,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      fixed: "right",
+      width: 200,
+      render: (_, record) => (
+        <Space size="small">
+          <Button
+            type="default"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => handleView(record)}
+          >
+            View
+          </Button>
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            size="small"
+            style={{ backgroundColor: "#e67324", borderColor: "#e67324" }}
+            onClick={() => handleEdit(record)}
+          >
+            Edit
+          </Button>
+          <Popconfirm
+            title="Delete User"
+            description="Are you sure you want to delete this user? This action requires approval."
+            icon={<ExclamationCircleOutlined style={{ color: "red" }} />}
+            onConfirm={() => handleDelete(record)}
+            okText="Yes, Delete"
+            cancelText="Cancel"
+            okButtonProps={{ danger: true }}
+          >
+            <Button danger icon={<DeleteOutlined />} size="small">
+              Delete
             </Button>
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              size="small"
-              style={{ backgroundColor: '#e67324', borderColor: '#e67324' }}
-              onClick={() => handleEdit(record)}
-            >
-              Edit
-            </Button>
-            <Popconfirm
-              title="Delete User"
-              description="Are you sure you want to delete this user? This action requires approval."
-              icon={<ExclamationCircleOutlined style={{ color: 'red' }} />}
-              onConfirm={() => handleDelete(record)}
-              okText="Yes, Delete"
-              cancelText="Cancel"
-              okButtonProps={{ danger: true }}
-            >
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                size="small"
-              >
-                Delete
-              </Button>
-            </Popconfirm>
-          </Space>
-        ),
-      },
-    ];
-
-    return baseColumns;
-  };
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
 
   const pendingActionsCount = pendingActions.size;
 
@@ -428,9 +420,10 @@ const UserManagement = () => {
               key="entrepreneurs"
             >
               <Table
-                columns={getColumns("entrepreneurs")}
+                columns={getColumns("Entrepreneur")}
                 dataSource={getDataByRole("Entrepreneur")}
                 rowKey="id"
+                loading={loading}
                 pagination={{
                   pageSize: 10,
                   showSizeChanger: true,
@@ -454,9 +447,10 @@ const UserManagement = () => {
               key="exporters"
             >
               <Table
-                columns={getColumns("exporters")}
+                columns={getColumns("Exporter")}
                 dataSource={getDataByRole("Exporter")}
                 rowKey="id"
+                loading={loading}
                 pagination={{
                   pageSize: 10,
                   showSizeChanger: true,
@@ -480,9 +474,10 @@ const UserManagement = () => {
               key="traders"
             >
               <Table
-                columns={getColumns("traders")}
+                columns={getColumns("IntermediaryTrader")}
                 dataSource={getDataByRole("IntermediaryTrader")}
                 rowKey="id"
+                loading={loading}
                 pagination={{
                   pageSize: 10,
                   showSizeChanger: true,
@@ -501,7 +496,7 @@ const UserManagement = () => {
         <CertificatePrintDrawer
           visible={certificateDrawerVisible}
           onClose={() => setCertificateDrawerVisible(false)}
-          users={users}
+          users={allUsers}
           onSubmitForApproval={handleCertificatePrintSubmit}
         />
 
@@ -562,13 +557,25 @@ const UserManagement = () => {
                 <Col span={12}>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Business Name</label>
-                    <div className="text-gray-900">{selectedUser.businessName}</div>
+                    <div className="text-gray-900">
+                      {selectedUser.businessName ||
+                        selectedUser.entrepreneur?.businessName ||
+                        selectedUser.exporter?.businessName ||
+                        selectedUser.intermediaryTrader?.businessName ||
+                        "N/A"}
+                    </div>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Business Type</label>
-                    <div className="text-gray-900">{selectedUser.businessType}</div>
+                    <div className="text-gray-900">
+                      {selectedUser.businessType ||
+                        selectedUser.entrepreneur?.businessType ||
+                        selectedUser.exporter?.businessType ||
+                        selectedUser.intermediaryTrader?.businessType ||
+                        "N/A"}
+                    </div>
                   </div>
                 </Col>
               </Row>
@@ -576,13 +583,19 @@ const UserManagement = () => {
                 <Col span={12}>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Location</label>
-                    <div className="text-gray-900">{selectedUser.location}</div>
+                    <div className="text-gray-900">
+                      {selectedUser.location?.name ||
+                        selectedUser.district?.name ||
+                        (typeof selectedUser.location === "string"
+                          ? selectedUser.location
+                          : "N/A")}
+                    </div>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Department</label>
-                    <div className="text-gray-900">{selectedUser.department}</div>
+                    <div className="text-gray-900">{selectedUser.department || "N/A"}</div>
                   </div>
                 </Col>
               </Row>
@@ -590,13 +603,18 @@ const UserManagement = () => {
                 <Col span={12}>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Registration Date</label>
-                    <div className="text-gray-900">{selectedUser.registrationDate}</div>
+                    <div className="text-gray-900">
+                      {selectedUser.registrationDate ||
+                        (selectedUser.createdAt
+                          ? new Date(selectedUser.createdAt).toLocaleDateString()
+                          : "N/A")}
+                    </div>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Last Login</label>
-                    <div className="text-gray-900">{selectedUser.lastLogin}</div>
+                    <div className="text-gray-900">{selectedUser.lastLogin || "N/A"}</div>
                   </div>
                 </Col>
               </Row>
@@ -608,7 +626,7 @@ const UserManagement = () => {
         <Modal
           title="Edit User Information"
           open={editModalVisible}
-          onOk={handleEditSubmit}
+          // onOk={handleEditSubmit}
           onCancel={() => {
             setEditModalVisible(false);
             setSelectedUser(null);

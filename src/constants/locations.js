@@ -156,7 +156,7 @@ export const districts = [
   {
     id: 24,
     name: "Ratnapura",
-    provinceId: 9,
+    province_id: 9,
   },
   {
     id: 25,

@@ -151,6 +151,8 @@ const BasicInfoForm = () => {
             </Form.Item>
           </Col>
 
+          
+
           <Col xs={24} sm={12}>
             <Form.Item
               label="District"
@@ -172,7 +174,7 @@ const BasicInfoForm = () => {
             </Form.Item>
           </Col>
         </Row>
-        
+                
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item 
