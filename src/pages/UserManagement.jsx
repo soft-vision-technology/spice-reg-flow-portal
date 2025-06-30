@@ -24,8 +24,10 @@ import {
   ExclamationCircleOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
-  EyeOutlined
+  EyeOutlined,
+  PrinterOutlined
 } from "@ant-design/icons";
+import CertificatePrintDrawer from "../components/custom/CertificatePrintDrawer";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -115,6 +117,7 @@ const UserManagement = () => {
 
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [certificateDrawerVisible, setCertificateDrawerVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [pendingActions, setPendingActions] = useState(new Set());
   const [activeTab, setActiveTab] = useState("entrepreneurs");
@@ -187,6 +190,20 @@ const UserManagement = () => {
       message.success({
         content: 'User deleted successfully',
         icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />
+      });
+    }, 3000);
+  };
+
+  const handleCertificatePrintSubmit = (printData) => {
+    const actionId = `certificate-print-${Date.now()}`;
+    setPendingActions(prev => new Set([...prev, actionId]));
+
+    // Simulate approval process for certificate printing
+    setTimeout(() => {
+      setPendingActions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(actionId);
+        return newSet;
       });
     }, 3000);
   };
@@ -334,22 +351,34 @@ const UserManagement = () => {
               </p>
             </div>
             
-            {/* Pending Actions Indicator */}
-            {pendingActionsCount > 0 && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2">
-                  <ClockCircleOutlined style={{ color: '#e67324' }} />
-                  <span className="text-orange-800 font-medium">
-                    {pendingActionsCount} action{pendingActionsCount !== 1 ? 's' : ''} pending approval
-                  </span>
+            <div className="flex items-center space-x-4">
+              {/* Print Certificates Button */}
+              <Button
+                type="primary"
+                icon={<PrinterOutlined />}
+                onClick={() => setCertificateDrawerVisible(true)}
+                style={{ backgroundColor: '#e67324', borderColor: '#e67324' }}
+              >
+                Print Certificates
+              </Button>
+
+              {/* Pending Actions Indicator */}
+              {pendingActionsCount > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2">
+                    <ClockCircleOutlined style={{ color: '#e67324' }} />
+                    <span className="text-orange-800 font-medium">
+                      {pendingActionsCount} action{pendingActionsCount !== 1 ? 's' : ''} pending approval
+                    </span>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
         {/* Statistics Cards */}
-        {/* <Row gutter={[16, 16]} className="mb-6">
+        <Row gutter={[16, 16]} className="mb-6">
           <Col xs={24} sm={12} lg={6}>
             <Card className="text-center">
               <div className="text-2xl font-bold text-purple-600">
@@ -382,7 +411,7 @@ const UserManagement = () => {
               <div className="text-gray-500">Pending Actions</div>
             </Card>
           </Col>
-        </Row> */}
+        </Row>
 
         {/* Tabbed Tables */}
         <Card className="shadow-sm">
@@ -467,6 +496,14 @@ const UserManagement = () => {
             </TabPane>
           </Tabs>
         </Card>
+
+        {/* Certificate Print Drawer */}
+        <CertificatePrintDrawer
+          visible={certificateDrawerVisible}
+          onClose={() => setCertificateDrawerVisible(false)}
+          users={users}
+          onSubmitForApproval={handleCertificatePrintSubmit}
+        />
 
         {/* View User Modal */}
         <Modal

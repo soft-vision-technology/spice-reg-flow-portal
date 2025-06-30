@@ -135,6 +135,8 @@ const ImportDataPage = () => {
         }
       });
 
+      console.log(jsonData)
+
       if (jsonData.length === 0) {
         message.error("No valid data found in the pasted content.");
         setLoading(false);

@@ -25,8 +25,8 @@ const SidebarMenu = () => {
       selectedKeys={[location.pathname]}
       className="bg-sidebar border-r-0"
     >
-      <Menu.Item key="/home" icon={<HomeOutlined />}>
-        <Link to="/home">Dashboard</Link>
+      <Menu.Item key="/dashboard" icon={<HomeOutlined />}>
+        <Link to="/dashboard">Dashboard</Link>
       </Menu.Item>
 
       <Menu.Item key="/select" icon={<FormOutlined />}>

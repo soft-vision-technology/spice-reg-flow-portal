@@ -94,7 +94,7 @@ const LoginModal = () => {
         dispatch(hideModal());
         
         // Use replace instead of navigate to prevent back navigation
-        navigate('/home', { replace: true });
+        navigate('/dashboard', { replace: true });
         
         message.success(`Welcome to Spice Industry Data System!`);
       } catch (err) {
