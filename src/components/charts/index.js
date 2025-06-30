@@ -1,0 +1,9 @@
+export { default as RegistrationOverviewDonut } from "./RegistrationOverviewDonut";
+export { default as RegistrationsOverTimeArea } from "./RegistrationsOverTimeArea";
+export { default as GeographicDistributionChart } from "./GeographicDistributionChart";
+export { default as DemographicsStackedBar } from "./DemographicsStackedBar";
+export { default as SectorWiseBar } from "./SectorWiseBar";
+export { default as ApprovalStatusDonut } from "./ApprovalStatusDonut";
+export { default as RegistrationTimeBoxPlot } from "./RegistrationTimeBoxPlot";
+export { default as DocumentComplianceGrid } from "./DocumentComplianceGrid";
+export { default as RegistrationFunnel } from "./RegistrationFunnel";

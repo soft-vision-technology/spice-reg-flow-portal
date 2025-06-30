@@ -30,6 +30,14 @@ const App = () => (
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route
+                path="/home"
+                element={
+                  <ProtectedRoute>
+                    <Mainpage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/select"
                 element={
                   <ProtectedRoute>
@@ -90,14 +98,6 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <EditPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/home"
-                element={
-                  <ProtectedRoute>
-                    <Mainpage />
                   </ProtectedRoute>
                 }
               />
