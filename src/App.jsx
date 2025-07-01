@@ -114,7 +114,7 @@ const App = () => (
               <Route
                 path="/create"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRole={1}>
                     <RegisterUser />
                   </ProtectedRoute>
                 }
@@ -130,7 +130,7 @@ const App = () => (
               <Route
                 path="/settings"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRole={1}>
                     <SettingsPage />
                   </ProtectedRoute>
                 }

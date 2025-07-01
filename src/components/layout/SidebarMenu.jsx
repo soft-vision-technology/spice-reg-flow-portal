@@ -10,13 +10,20 @@ import {
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useFormContext } from "../../contexts/FormContext";
+import { selectAuthUser } from "../../store/slices/authSlice";
+import { useSelector } from "react-redux";
+
+
 
 const SidebarMenu = () => {
+  const user = useSelector(selectAuthUser);
   const location = useLocation();
   const { role, status } = useFormContext();
 
   const hasSelectedRole = role !== "";
   const hasSelectedStatus = status !== "";
+
+  const isAdmin = user?.userRole === 1;
 
   return (
     <Menu
@@ -45,15 +52,18 @@ const SidebarMenu = () => {
         </Link>
       </Menu.Item>
 
-      <Menu.Item key="/create" icon={<UserAddOutlined />}>
-        <Link to="/create">Register System User</Link>
-      </Menu.Item>
+      {isAdmin && (
+        <Menu.Item key="/create" icon={<UserAddOutlined />}>
+          <Link to="/create">Register System User</Link>
+        </Menu.Item>
+      )}
 
       <Menu.Item key="/notifications" icon={<NotificationOutlined />}>
         <Link to="/notifications">
           Notifications
         </Link>
       </Menu.Item>
+      {isAdmin && (
       <Menu.Item
         key="/settings"
         icon={<SettingOutlined />}
@@ -65,6 +75,7 @@ const SidebarMenu = () => {
       >
         <Link to="/settings">Settings</Link>
       </Menu.Item>
+      )}
     </Menu>
   );
 };

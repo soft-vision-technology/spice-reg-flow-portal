@@ -11,6 +11,7 @@ export const loginUser = createAsyncThunk(
         password,
       });
       localStorage.setItem("token", response.data?.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Login failed");
@@ -404,3 +405,21 @@ export const {
 } = authSlice.actions;
 
 export default authSlice.reducer;
+
+// Selector to get user from Redux state or localStorage
+export const selectAuthUser = (state) => {
+  // Try Redux state first
+  if (state.auth && state.auth.user) {
+    return state.auth.user;
+  }
+  // Fallback to localStorage if Redux state is empty (e.g. after refresh)
+  const userStr = localStorage.getItem("user");
+  if (userStr) {
+    try {
+      return JSON.parse(userStr);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
