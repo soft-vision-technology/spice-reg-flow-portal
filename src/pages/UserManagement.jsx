@@ -1,31 +1,31 @@
 import { useState, useEffect } from "react";
-import { 
-  Table, 
-  Button, 
-  Card, 
-  Tag, 
-  Space, 
-  Modal, 
-  Form, 
-  Input, 
-  Select, 
-  message, 
+import {
+  Table,
+  Button,
+  Card,
+  Tag,
+  Space,
+  Modal,
+  Form,
+  Input,
+  Select,
+  message,
   Popconfirm,
   Avatar,
   Typography,
   Row,
   Col,
-  Tabs
+  Tabs,
 } from "antd";
-import { 
-  EditOutlined, 
-  DeleteOutlined, 
-  UserOutlined, 
+import {
+  EditOutlined,
+  DeleteOutlined,
+  UserOutlined,
   ExclamationCircleOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   EyeOutlined,
-  PrinterOutlined
+  PrinterOutlined,
 } from "@ant-design/icons";
 import CertificatePrintDrawer from "../components/custom/CertificatePrintDrawer";
 import { useDispatch, useSelector } from "react-redux";
@@ -44,7 +44,8 @@ const { TabPane } = Tabs;
 const UserManagement = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [viewModalVisible, setViewModalVisible] = useState(false);
-  const [certificateDrawerVisible, setCertificateDrawerVisible] = useState(false);
+  const [certificateDrawerVisible, setCertificateDrawerVisible] =
+    useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [pendingActions, setPendingActions] = useState(new Set());
   const [activeTab, setActiveTab] = useState("entrepreneurs");
@@ -52,9 +53,8 @@ const UserManagement = () => {
 
   // Redux integration for real data
   const dispatch = useDispatch();
-  const { existingEntrepreneurs, existingExporters, existingTraders, loading } = useSelector(
-    (state) => state.report
-  );
+  const { existingEntrepreneurs, existingExporters, existingTraders, loading } =
+    useSelector((state) => state.report);
 
   // Fetch users on mount
   useEffect(() => {
@@ -93,10 +93,7 @@ const UserManagement = () => {
   const handleEdit = (user) => {
     // Flatten nested business fields for editing
     const business =
-      user.entrepreneur ||
-      user.exporter ||
-      user.intermediaryTrader ||
-      {};
+      user.entrepreneur || user.exporter || user.intermediaryTrader || {};
     form.setFieldsValue({
       ...user,
       businessName: business.businessName || "",
@@ -112,74 +109,74 @@ const UserManagement = () => {
     setEditModalVisible(true);
   };
 
-  // const handleEditSubmit = () => {
-  //   form.validateFields().then(async (values) => {
-  //     const actionId = `edit-${selectedUser.id}-${Date.now()}`;
-  //     setPendingActions((prev) => new Set([...prev, actionId]));
+  const handleEditSubmit = () => {
+    form.validateFields().then(async (values) => {
+      const actionId = `edit-${selectedUser.id}-${Date.now()}`;
+      setPendingActions((prev) => new Set([...prev, actionId]));
 
-  //     message.info({
-  //       content: "Edit request submitted for approval",
-  //       icon: <ClockCircleOutlined style={{ color: "#e67324" }} />,
-  //     });
+      message.info({
+        content: "Edit request submitted for approval",
+        icon: <ClockCircleOutlined style={{ color: "#e67324" }} />,
+      });
 
-  //     // Simulate approval process, then call API
-  //     setTimeout(async () => {
-  //       try {
-  //         await dispatch(updateUserApi({ id: selectedUser.id, ...values }));
-  //         message.success({
-  //           content: "User information updated successfully",
-  //           icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
-  //         });
-  //       } catch (e) {
-  //         message.error("Failed to update user");
-  //       }
-  //       setPendingActions((prev) => {
-  //         const newSet = new Set(prev);
-  //         newSet.delete(actionId);
-  //         return newSet;
-  //       });
-  //     }, 3000);
+      // Simulate approval process, then call API
+      setTimeout(async () => {
+        try {
+          await dispatch(updateUserApi({ id: selectedUser.id, ...values }));
+          message.success({
+            content: "User information updated successfully",
+            icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
+          });
+        } catch (e) {
+          message.error("Failed to update user");
+        }
+        setPendingActions((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(actionId);
+          return newSet;
+        });
+      }, 3000);
 
-  //     setEditModalVisible(false);
-  //     setSelectedUser(null);
-  //     form.resetFields();
-  //   });
-  // };
+      setEditModalVisible(false);
+      setSelectedUser(null);
+      form.resetFields();
+    });
+  };
 
-  // const handleDelete = (user) => {
-  //   const actionId = `delete-${user.id}-${Date.now()}`;
-  //   setPendingActions((prev) => new Set([...prev, actionId]));
+  const handleDelete = (user) => {
+    const actionId = `delete-${user.id}-${Date.now()}`;
+    setPendingActions((prev) => new Set([...prev, actionId]));
 
-  //   message.info({
-  //     content: "Delete request submitted for approval",
-  //     icon: <ClockCircleOutlined style={{ color: "#e67324" }} />,
-  //   });
+    message.info({
+      content: "Delete request submitted for approval",
+      icon: <ClockCircleOutlined style={{ color: "#e67324" }} />,
+    });
 
-  //   setTimeout(async () => {
-  //     try {
-  //       await dispatch(deleteUserApi(user.id));
-  //       message.success({
-  //         content: "User deleted successfully",
-  //         icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
-  //       });
-  //     } catch (e) {
-  //       message.error("Failed to delete user");
-  //     }
-  //     setPendingActions((prev) => {
-  //       const newSet = new Set(prev);
-  //       newSet.delete(actionId);
-  //       return newSet;
-  //     });
-  //   }, 3000);
-  // };
+    setTimeout(async () => {
+      try {
+        await dispatch(deleteUserApi(user.id));
+        message.success({
+          content: "User deleted successfully",
+          icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
+        });
+      } catch (e) {
+        message.error("Failed to delete user");
+      }
+      setPendingActions((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(actionId);
+        return newSet;
+      });
+    }, 3000);
+  };
 
   const handleCertificatePrintSubmit = (printData) => {
     const actionId = `certificate-print-${Date.now()}`;
-    setPendingActions(prev => new Set([...prev, actionId]));
+    setPendingActions((prev) => new Set([...prev, actionId]));
 
     // Simulate approval process for certificate printing
     setTimeout(() => {
-      setPendingActions(prev => {
+      setPendingActions((prev) => {
         const newSet = new Set(prev);
         newSet.delete(actionId);
         return newSet;
@@ -189,19 +186,27 @@ const UserManagement = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active': return 'green';
-      case 'Inactive': return 'red';
-      case 'Suspended': return 'orange';
-      default: return 'default';
+      case "Active":
+        return "green";
+      case "Inactive":
+        return "red";
+      case "Suspended":
+        return "orange";
+      default:
+        return "default";
     }
   };
 
   const getRoleColor = (role) => {
     switch (role) {
-      case 'Entrepreneur': return 'purple';
-      case 'Exporter': return 'blue';
-      case 'IntermediaryTrader': return 'green';
-      default: return 'default';
+      case "Entrepreneur":
+        return "purple";
+      case "Exporter":
+        return "blue";
+      case "IntermediaryTrader":
+        return "green";
+      default:
+        return "default";
     }
   };
 
@@ -213,9 +218,15 @@ const UserManagement = () => {
       key: "name",
       render: (text, record) => (
         <div className="flex items-center space-x-3">
-          <Avatar size={40} icon={<UserOutlined />} style={{ backgroundColor: "#e67324" }} />
+          <Avatar
+            size={40}
+            icon={<UserOutlined />}
+            style={{ backgroundColor: "#e67324" }}
+          />
           <div>
-            <div className="font-medium text-gray-900">{record.title ? `${record.title} ${text}` : text}</div>
+            <div className="font-medium text-gray-900">
+              {record.title ? `${record.title} ${text}` : text}
+            </div>
             <div className="text-sm text-gray-500">{record.email}</div>
           </div>
         </div>
@@ -223,23 +234,27 @@ const UserManagement = () => {
       width: 200,
     },
     {
-      title: "Business Name",
-      dataIndex: ["entrepreneur", "exporter", "intermediaryTrader"],
-      key: "businessName",
-      render: (_, record) => {
-        const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
-        return businessData?.businessName || "N/A";
+      title: "Role",
+      dataIndex: ["role", "name"],
+      key: "role",
+      render: (role) => {
+        const color =
+          role === "Entrepreneur"
+            ? "blue"
+            : role === "Exporter"
+            ? "green"
+            : "orange";
+        return <Tag color={color}>{role}</Tag>;
       },
-      width: 150,
+      width: 120,
     },
     {
-      title: "Business Type",
-      dataIndex: "businessType",
-      key: "businessType",
-      render: (_, record) => {
-        const businessData = record.exporter || record.entrepreneur || record.intermediaryTrader;
-        return businessData?.businessType || "N/A";
-      },
+      title: "Business Status",
+      dataIndex: "businessStatus",
+      key: "businessStatus",
+      render: (status) => (
+        <Tag color={status === "EXISTING" ? "green" : "blue"}>{status}</Tag>
+      ),
       width: 120,
     },
     {
@@ -254,16 +269,34 @@ const UserManagement = () => {
       width: 150,
     },
     {
+      title: "Contact",
+      key: "contact",
+      render: (_, record) => (
+        <div>
+          <div className="text-sm">{record.email}</div>
+          <div className="text-sm text-gray-500">{record.contactNumber}</div>
+        </div>
+      ),
+      width: 200,
+    },
+    {
+      title: "Business Name",
+      dataIndex: ["entrepreneur", "exporter", "intermediaryTrader"],
+      key: "businessName",
+      render: (_, record) => {
+        const businessData =
+          record.exporter || record.entrepreneur || record.intermediaryTrader;
+        return businessData?.businessName || "N/A";
+      },
+      width: 150,
+    },
+    {
       title: "Status",
       dataIndex: "status",
       key: "status",
       render: (_, record) => {
         const status = record.status || record.businessStatus;
-        return (
-          <Tag color={getStatusColor(status)}>
-            {status}
-          </Tag>
-        );
+        return <Tag color={getStatusColor(status)}>{status}</Tag>;
       },
       width: 120,
     },
@@ -342,14 +375,14 @@ const UserManagement = () => {
                 Manage user accounts for the Spice Registration System
               </p>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               {/* Print Certificates Button */}
               <Button
                 type="primary"
                 icon={<PrinterOutlined />}
                 onClick={() => setCertificateDrawerVisible(true)}
-                style={{ backgroundColor: '#e67324', borderColor: '#e67324' }}
+                style={{ backgroundColor: "#e67324", borderColor: "#e67324" }}
               >
                 Print Certificates
               </Button>
@@ -358,9 +391,10 @@ const UserManagement = () => {
               {pendingActionsCount > 0 && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <div className="flex items-center space-x-2">
-                    <ClockCircleOutlined style={{ color: '#e67324' }} />
+                    <ClockCircleOutlined style={{ color: "#e67324" }} />
                     <span className="text-orange-800 font-medium">
-                      {pendingActionsCount} action{pendingActionsCount !== 1 ? 's' : ''} pending approval
+                      {pendingActionsCount} action
+                      {pendingActionsCount !== 1 ? "s" : ""} pending approval
                     </span>
                   </div>
                 </div>
@@ -397,7 +431,7 @@ const UserManagement = () => {
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <Card className="text-center">
-              <div className="text-2xl font-bold" style={{ color: '#e67324' }}>
+              <div className="text-2xl font-bold" style={{ color: "#e67324" }}>
                 {pendingActionsCount}
               </div>
               <div className="text-gray-500">Pending Actions</div>
@@ -511,7 +545,7 @@ const UserManagement = () => {
           footer={[
             <Button key="close" onClick={() => setViewModalVisible(false)}>
               Close
-            </Button>
+            </Button>,
           ]}
           width={600}
         >
@@ -520,13 +554,17 @@ const UserManagement = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Full Name</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Full Name
+                    </label>
                     <div className="text-gray-900">{selectedUser.name}</div>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Email
+                    </label>
                     <div className="text-gray-900">{selectedUser.email}</div>
                   </div>
                 </Col>
@@ -534,9 +572,14 @@ const UserManagement = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Role</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Role
+                    </label>
                     <div>
-                      <Tag color={getRoleColor(selectedUser.role)} className="mt-1">
+                      <Tag
+                        color={getRoleColor(selectedUser.role)}
+                        className="mt-1"
+                      >
                         {selectedUser.role}
                       </Tag>
                     </div>
@@ -544,9 +587,14 @@ const UserManagement = () => {
                 </Col>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Status</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Status
+                    </label>
                     <div>
-                      <Tag color={getStatusColor(selectedUser.status)} className="mt-1">
+                      <Tag
+                        color={getStatusColor(selectedUser.status)}
+                        className="mt-1"
+                      >
                         {selectedUser.status}
                       </Tag>
                     </div>
@@ -556,7 +604,9 @@ const UserManagement = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Business Name</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Business Name
+                    </label>
                     <div className="text-gray-900">
                       {selectedUser.businessName ||
                         selectedUser.entrepreneur?.businessName ||
@@ -568,7 +618,9 @@ const UserManagement = () => {
                 </Col>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Business Type</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Business Type
+                    </label>
                     <div className="text-gray-900">
                       {selectedUser.businessType ||
                         selectedUser.entrepreneur?.businessType ||
@@ -582,7 +634,9 @@ const UserManagement = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Location</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Location
+                    </label>
                     <div className="text-gray-900">
                       {selectedUser.location?.name ||
                         selectedUser.district?.name ||
@@ -594,27 +648,39 @@ const UserManagement = () => {
                 </Col>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Department</label>
-                    <div className="text-gray-900">{selectedUser.department || "N/A"}</div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Department
+                    </label>
+                    <div className="text-gray-900">
+                      {selectedUser.department || "N/A"}
+                    </div>
                   </div>
                 </Col>
               </Row>
               <Row gutter={16}>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Registration Date</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Registration Date
+                    </label>
                     <div className="text-gray-900">
                       {selectedUser.registrationDate ||
                         (selectedUser.createdAt
-                          ? new Date(selectedUser.createdAt).toLocaleDateString()
+                          ? new Date(
+                              selectedUser.createdAt
+                            ).toLocaleDateString()
                           : "N/A")}
                     </div>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Last Login</label>
-                    <div className="text-gray-900">{selectedUser.lastLogin || "N/A"}</div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Last Login
+                    </label>
+                    <div className="text-gray-900">
+                      {selectedUser.lastLogin || "N/A"}
+                    </div>
                   </div>
                 </Col>
               </Row>
@@ -634,7 +700,7 @@ const UserManagement = () => {
           }}
           okText="Submit for Approval"
           okButtonProps={{
-            style: { backgroundColor: '#e67324', borderColor: '#e67324' }
+            style: { backgroundColor: "#e67324", borderColor: "#e67324" },
           }}
           width={600}
         >
@@ -647,17 +713,15 @@ const UserManagement = () => {
             </div>
           </div>
 
-          <Form
-            form={form}
-            layout="vertical"
-            className="space-y-4"
-          >
+          <Form form={form} layout="vertical" className="space-y-4">
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
                   label="Full Name"
                   name="name"
-                  rules={[{ required: true, message: 'Please enter full name' }]}
+                  rules={[
+                    { required: true, message: "Please enter full name" },
+                  ]}
                 >
                   <Input placeholder="Enter full name" />
                 </Form.Item>
@@ -667,8 +731,8 @@ const UserManagement = () => {
                   label="Email Address"
                   name="email"
                   rules={[
-                    { required: true, message: 'Please enter email address' },
-                    { type: 'email', message: 'Please enter valid email' }
+                    { required: true, message: "Please enter email address" },
+                    { type: "email", message: "Please enter valid email" },
                   ]}
                 >
                   <Input placeholder="Enter email address" />
@@ -681,12 +745,14 @@ const UserManagement = () => {
                 <Form.Item
                   label="Role"
                   name="role"
-                  rules={[{ required: true, message: 'Please select role' }]}
+                  rules={[{ required: true, message: "Please select role" }]}
                 >
                   <Select placeholder="Select role">
                     <Option value="Entrepreneur">Entrepreneur</Option>
                     <Option value="Exporter">Exporter</Option>
-                    <Option value="IntermediaryTrader">Intermediary Trader</Option>
+                    <Option value="IntermediaryTrader">
+                      Intermediary Trader
+                    </Option>
                   </Select>
                 </Form.Item>
               </Col>
@@ -694,7 +760,9 @@ const UserManagement = () => {
                 <Form.Item
                   label="Department"
                   name="department"
-                  rules={[{ required: true, message: 'Please enter department' }]}
+                  rules={[
+                    { required: true, message: "Please enter department" },
+                  ]}
                 >
                   <Input placeholder="Enter department" />
                 </Form.Item>
@@ -706,7 +774,9 @@ const UserManagement = () => {
                 <Form.Item
                   label="Business Name"
                   name="businessName"
-                  rules={[{ required: true, message: 'Please enter business name' }]}
+                  rules={[
+                    { required: true, message: "Please enter business name" },
+                  ]}
                 >
                   <Input placeholder="Enter business name" />
                 </Form.Item>
@@ -715,7 +785,9 @@ const UserManagement = () => {
                 <Form.Item
                   label="Business Type"
                   name="businessType"
-                  rules={[{ required: true, message: 'Please enter business type' }]}
+                  rules={[
+                    { required: true, message: "Please enter business type" },
+                  ]}
                 >
                   <Input placeholder="Enter business type" />
                 </Form.Item>
@@ -727,7 +799,7 @@ const UserManagement = () => {
                 <Form.Item
                   label="Location"
                   name="location"
-                  rules={[{ required: true, message: 'Please enter location' }]}
+                  rules={[{ required: true, message: "Please enter location" }]}
                 >
                   <Input placeholder="Enter location" />
                 </Form.Item>
@@ -736,7 +808,7 @@ const UserManagement = () => {
                 <Form.Item
                   label="Status"
                   name="status"
-                  rules={[{ required: true, message: 'Please select status' }]}
+                  rules={[{ required: true, message: "Please select status" }]}
                 >
                   <Select placeholder="Select status">
                     <Option value="Active">Active</Option>

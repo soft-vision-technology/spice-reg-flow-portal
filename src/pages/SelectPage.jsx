@@ -62,6 +62,8 @@ const SelectPage = () => {
         roleId: roleId,
       };
 
+      console.log(basicInfoData);
+
       // Dispatch the saveBasicInfo action
       const result = await dispatch(saveBasicInfo(basicInfoData)).unwrap();
 
