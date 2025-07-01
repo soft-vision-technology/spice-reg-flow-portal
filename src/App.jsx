@@ -18,6 +18,7 @@ import Mainpage from "./pages/Mainpage";
 import NotificationsPage from "./pages/NotificationsPage";
 import RegisterUser from "./AdminPages/RegisterUser";
 import ImportDataPage from "./pages/ImportDataPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -123,6 +124,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <ImportDataPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <SettingsPage />
                   </ProtectedRoute>
                 }
               />

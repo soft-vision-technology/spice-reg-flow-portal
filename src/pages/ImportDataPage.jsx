@@ -12,6 +12,7 @@ import {
   Divider,
   Input,
   Tabs,
+  Tooltip,
 } from "antd";
 import {
   InboxOutlined,
@@ -20,6 +21,7 @@ import {
   UploadOutlined,
   CopyOutlined,
   ClearOutlined,
+  QuestionCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
@@ -37,6 +39,11 @@ const ImportDataPage = () => {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [pasteData, setPasteData] = useState("");
   const [activeTab, setActiveTab] = useState("paste");
+  const [expanded, setExpanded] = useState(false);
+  const [editData, setEditData] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+
+  console.log("Check", excelData, columns);
 
   const handleBack = () => {
     navigate("/select");
@@ -65,7 +72,9 @@ const ImportDataPage = () => {
         processTableData(jsonData, file.name, "file");
       } catch (error) {
         console.error("Error reading Excel file:", error);
-        message.error("Failed to read the Excel file. Please ensure it's a valid Excel file.");
+        message.error(
+          "Failed to read the Excel file. Please ensure it's a valid Excel file."
+        );
       } finally {
         setLoading(false);
       }
@@ -81,8 +90,8 @@ const ImportDataPage = () => {
     const dataRows = jsonData.slice(1);
 
     // Filter out completely empty rows
-    const filteredDataRows = dataRows.filter(row => 
-      row.some(cell => cell !== undefined && cell !== null && cell !== "")
+    const filteredDataRows = dataRows.filter((row) =>
+      row.some((cell) => cell !== undefined && cell !== null && cell !== "")
     );
 
     // Create columns for table
@@ -107,9 +116,11 @@ const ImportDataPage = () => {
     setExcelData(tableData);
     setFileName(sourceName);
     setUploadSuccess(true);
-    
+
     const sourceText = sourceType === "file" ? "file" : "pasted data";
-    message.success(`Successfully loaded ${filteredDataRows.length} records from ${sourceText}`);
+    message.success(
+      `Successfully loaded ${filteredDataRows.length} records from ${sourceText}`
+    );
   };
 
   const handlePasteData = () => {
@@ -121,21 +132,21 @@ const ImportDataPage = () => {
     setLoading(true);
     try {
       // Split by lines and then by tabs (Excel copy uses tab-separated values)
-      const lines = pasteData.trim().split('\n');
-      const jsonData = lines.map(line => {
+      const lines = pasteData.trim().split("\n");
+      const jsonData = lines.map((line) => {
         // Split by tab first, if no tabs then split by comma, if no commas then split by spaces
-        if (line.includes('\t')) {
-          return line.split('\t');
-        } else if (line.includes(',')) {
+        if (line.includes("\t")) {
+          return line.split("\t");
+        } else if (line.includes(",")) {
           // Handle CSV format - simple split (doesn't handle quoted commas)
-          return line.split(',').map(cell => cell.trim());
+          return line.split(",").map((cell) => cell.trim());
         } else {
           // Fallback to space separation
-          return line.split(/\s+/).filter(cell => cell.length > 0);
+          return line.split(/\s+/).filter((cell) => cell.length > 0);
         }
       });
 
-      console.log(jsonData)
+      console.log(jsonData);
 
       if (jsonData.length === 0) {
         message.error("No valid data found in the pasted content.");
@@ -144,8 +155,8 @@ const ImportDataPage = () => {
       }
 
       // Ensure all rows have the same number of columns as the header row
-      const maxColumns = Math.max(...jsonData.map(row => row.length));
-      const normalizedData = jsonData.map(row => {
+      const maxColumns = Math.max(...jsonData.map((row) => row.length));
+      const normalizedData = jsonData.map((row) => {
         const normalizedRow = [...row];
         while (normalizedRow.length < maxColumns) {
           normalizedRow.push("");
@@ -157,7 +168,9 @@ const ImportDataPage = () => {
       setActiveTab("paste"); // Switch to upload tab to show the processed data
     } catch (error) {
       console.error("Error processing pasted data:", error);
-      message.error("Failed to process the pasted data. Please check the format.");
+      message.error(
+        "Failed to process the pasted data. Please check the format."
+      );
     } finally {
       setLoading(false);
     }
@@ -175,7 +188,9 @@ const ImportDataPage = () => {
       message.success("Data pasted from clipboard successfully!");
     } catch (error) {
       console.error("Failed to read clipboard:", error);
-      message.error("Failed to access clipboard. Please paste manually using Ctrl+V.");
+      message.error(
+        "Failed to access clipboard. Please paste manually using Ctrl+V."
+      );
     }
   };
 
@@ -226,7 +241,9 @@ const ImportDataPage = () => {
 
   const handleBulkValidation = async () => {
     if (excelData.length === 0) {
-      message.warning("No data to validate. Please upload an Excel file first.");
+      message.warning(
+        "No data to validate. Please upload an Excel file first."
+      );
       return;
     }
 
@@ -276,6 +293,73 @@ const ImportDataPage = () => {
     }
   };
 
+  // Helper to handle cell edit
+  const handleCellChange = (rowIdx, colIdx, value) => {
+    setEditData((prev) => {
+      const updated = [...prev];
+      // Preserve the key property
+      updated[rowIdx] = { ...updated[rowIdx], [colIdx]: value, key: prev[rowIdx].key };
+      return updated;
+    });
+  };
+
+  // Start editing
+  const handleExpandEdit = () => {
+  // Deep copy to avoid reference issues
+  setEditData(excelData.map(row => ({ ...row })));
+  setExpanded(true);
+  setIsEditing(true);
+};
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setExpanded(false);
+    setIsEditing(false);
+    setEditData([]);
+  };
+
+  // Save edits
+  const handleOkEdit = () => {
+    setExcelData(editData);
+    setExpanded(false);
+    setIsEditing(false);
+    message.success("Edits saved!");
+  };
+
+  // Editable columns
+  const editableColumns = columns.map((col) => ({
+    ...col,
+    onCell: (record, rowIndex) => ({
+      record,
+      rowIndex,
+      colIndex: col.dataIndex,
+      editing: isEditing,
+      handleCellChange,
+    }),
+  }));
+
+  // Editable cell component
+  const EditableCell = ({
+    record,
+    rowIndex,
+    colIndex,
+    editing,
+    handleCellChange,
+    ...restProps
+  }) => {
+    return editing ? (
+      <td {...restProps}>
+        <Input
+          value={editData[rowIndex][colIndex]}
+          onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+          size="middle"
+        />
+      </td>
+    ) : (
+      <td {...restProps}>{record[colIndex]}</td>
+    );
+  };
+
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
       {/* Header */}
@@ -298,13 +382,13 @@ const ImportDataPage = () => {
 
       {/* Upload and Paste Section */}
       <Card className="mb-6">
-        <Tabs 
-          activeKey={activeTab} 
+        <Tabs
+          activeKey={activeTab}
           onChange={setActiveTab}
           items={[
             {
-              key: 'paste',
-              label: 'Copy & Paste',
+              key: "paste",
+              label: "Copy & Paste",
               children: (
                 <div>
                   <Title level={4} className="mb-4">
@@ -312,7 +396,8 @@ const ImportDataPage = () => {
                   </Title>
                   <div className="mb-4">
                     <Text type="secondary" className="block mb-2">
-                      Copy data from Excel/Google Sheets and paste it here. The first row will be treated as headers.
+                      Copy data from Excel/Google Sheets and paste it here. The
+                      first row will be treated as headers.
                     </Text>
                     <Space className="mb-3">
                       <Button
@@ -354,8 +439,8 @@ const ImportDataPage = () => {
               ),
             },
             {
-              key: 'upload',
-              label: 'Upload File',
+              key: "upload",
+              label: "Upload File",
               children: (
                 <div>
                   <Title level={4} className="mb-4">
@@ -376,7 +461,8 @@ const ImportDataPage = () => {
                       Click or drag Excel file to this area to upload
                     </p>
                     <p className="ant-upload-hint">
-                      Support for .xlsx, .xls, and .csv files. Only single file upload is supported.
+                      Support for .xlsx, .xls, and .csv files. Only single file
+                      upload is supported.
                     </p>
                   </Dragger>
                 </div>
@@ -400,27 +486,83 @@ const ImportDataPage = () => {
       {excelData.length > 0 && (
         <Card className="mb-6">
           <div className="flex justify-between items-center mb-4">
-            <Title level={4}>Data Preview</Title>
+            <div className="flex items-center gap-2">
+              <Title level={4} className="mb-0">
+                Data Preview
+              </Title>
+              <Tooltip title="Expand to view and edit all records. You can manually correct any value before importing.">
+                <QuestionCircleOutlined style={{ color: "#1890ff" }} />
+              </Tooltip>
+            </div>
             <Text type="secondary">
-              Showing {Math.min(excelData.length, 10)} of {excelData.length} records
+              Showing{" "}
+              {expanded ? excelData.length : Math.min(excelData.length, 10)} of{" "}
+              {excelData.length} records
             </Text>
           </div>
 
+          <div className="flex justify-end mb-2">
+            {!expanded && (
+              <Button
+                onClick={handleExpandEdit}
+                type="primary"
+                loading={loading}
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                Edit Columns
+              </Button>
+            )}
+          </div>
+
           <Table
-            columns={columns}
-            dataSource={excelData.slice(0, 10)} // Show only first 10 rows for preview
+            columns={isEditing ? editableColumns : columns}
+            dataSource={
+              expanded
+                ? isEditing
+                  ? editData
+                  : excelData
+                : excelData.slice(0, 10)
+            }
             pagination={false}
-            scroll={{ x: true }}
+            scroll={{ x: true, y: expanded ? 400 : undefined }}
             size="small"
             bordered
+            components={
+              isEditing ? { body: { cell: EditableCell } } : undefined
+            }
           />
 
-          {excelData.length > 10 && (
+          {excelData.length > 10 && !expanded && (
             <div className="mt-3 text-center">
               <Text type="secondary">
                 ... and {excelData.length - 10} more records
               </Text>
             </div>
+          )}
+
+          {expanded && isEditing && (
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                onClick={handleOkEdit}
+                type="primary"
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                OK
+              </Button>
+              <Button onClick={handleCancelEdit} type="default">
+                Cancel
+              </Button>
+            </div>
+          )}
+
+          {expanded && (
+            <Alert
+              className="mt-4"
+              type="info"
+              showIcon
+              message="Edit Mode"
+              description="You can edit any cell in the table. Click OK to save changes or Cancel to discard."
+            />
           )}
         </Card>
       )}
@@ -452,9 +594,9 @@ const ImportDataPage = () => {
               Process & Import Data
             </Button>
           </Space>
-          
+
           <Divider />
-          
+
           <Alert
             message="Processing Information"
             description="The validation will check for required fields, data formats, and duplicates. The import process will save all valid records to the database."

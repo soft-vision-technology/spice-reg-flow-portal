@@ -1,12 +1,12 @@
 import { Menu, Badge } from "antd";
 import {
-  UserOutlined,
   FileDoneOutlined,
   TeamOutlined,
   FormOutlined,
   UserAddOutlined,
   NotificationOutlined,
   HomeOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useFormContext } from "../../contexts/FormContext";
@@ -24,6 +24,7 @@ const SidebarMenu = () => {
       mode="inline"
       selectedKeys={[location.pathname]}
       className="bg-sidebar border-r-0"
+      style={{ height: "100%", display: "flex", flexDirection: "column" }}
     >
       <Menu.Item key="/dashboard" icon={<HomeOutlined />}>
         <Link to="/dashboard">Dashboard</Link>
@@ -52,6 +53,17 @@ const SidebarMenu = () => {
         <Link to="/notifications">
           Notifications
         </Link>
+      </Menu.Item>
+      <Menu.Item
+        key="/settings"
+        icon={<SettingOutlined />}
+        style={{
+          marginBottom: 5,
+          position: "absolute",
+          bottom: 0,
+        }}
+      >
+        <Link to="/settings">Settings</Link>
       </Menu.Item>
     </Menu>
   );

@@ -53,6 +53,18 @@ export const fetchProductOptions = createAsyncThunk(
   }
 );
 
+export const fetchProvince = createAsyncThunk(
+  "utils/fetchProvince", 
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get("/api/province");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch province options.");
+    }
+  }
+);
+
 // Slice
 const utilsSlice = createSlice({
   name: "utils",
@@ -61,6 +73,7 @@ const utilsSlice = createSlice({
     certificateOptions: [],
     numEmployeeOptions: [],
     productOptions: [],
+    provinceOptions: [],
     loading: false,
     error: null,
   },
@@ -70,6 +83,7 @@ const utilsSlice = createSlice({
       state.certificateOptions = [];
       state.numEmployeeOptions = [];
       state.productOptions = [];
+      state.provinceOptions = [];
       state.loading = false;
       state.error = null;
     },
@@ -130,6 +144,19 @@ const utilsSlice = createSlice({
       .addCase(fetchProductOptions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      .addCase(fetchProvince.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProvince.fulfilled, (state, action) => {
+        state.loading = false;
+        state.provinceOptions = action.payload;
+      })
+      .addCase(fetchProvince.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
@@ -141,6 +168,7 @@ export const selectExperienceOptions = (state) => state.utils.experienceOptions;
 export const selectCertificateOptions = (state) => state.utils.certificateOptions;
 export const selectNumEmployeeOptions = (state) => state.utils.numEmployeeOptions;
 export const selectProductOptions = (state) => state.utils.productOptions;
+export const selectProvinceOptions = (state) => state.utils.provinceOptions;
 export const selectUtilsLoading = (state) => state.utils.loading;
 export const selectUtilsError = (state) => state.utils.error;
 

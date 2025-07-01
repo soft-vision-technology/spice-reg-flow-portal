@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, Input, Select, Col, Row } from "antd";
 import { useFormContext } from "../../contexts/FormContext";
-import { provinces, districts } from "../../constants/locations";
+import {  selectProvinceOptions, fetchProvince } from "../../store/slices/utilsSlice";
 import { updateBasicInfo, saveBasicInfo, fetchBasicInfo } from "../../store/slices/basicInfoSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const { Option } = Select;
 
@@ -12,13 +12,24 @@ const BasicInfoForm = () => {
   const { updateFormData } = useFormContext();
   const [selectedProvince, setSelectedProvince] = useState(null);
 
+  useEffect(() => {
+    // Fetch provinces when the component mounts
+    dispatch(fetchProvince());
+  }, [dispatch]);
+  const provinces = useSelector(selectProvinceOptions);
+  console.log(provinces);
+
   const handleProvinceChange = (value) => {
     setSelectedProvince(value);
   };
 
-  const filteredDistricts = districts.filter(
-    (d) => d.province_id === selectedProvince
+  // Find the selected province object
+  const selectedProvinceObj = provinces.find(
+    (province) => province.id === selectedProvince
   );
+
+  // Get districts for the selected province, or empty array if none selected
+  const districts = selectedProvinceObj ? selectedProvinceObj.districts : [];
 
   const handleChange = (_, allValues) => {
     updateFormData(allValues);
@@ -151,8 +162,6 @@ const BasicInfoForm = () => {
             </Form.Item>
           </Col>
 
-          
-
           <Col xs={24} sm={12}>
             <Form.Item
               label="District"
@@ -165,7 +174,7 @@ const BasicInfoForm = () => {
                 placeholder="Select district"
                 disabled={!selectedProvince}
               >
-                {filteredDistricts.map((district) => (
+                {districts.map((district) => (
                   <Option key={district.id} value={district.id}>
                     {district.name}
                   </Option>
