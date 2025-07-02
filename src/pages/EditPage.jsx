@@ -1,112 +1,155 @@
 import { useState, useEffect } from "react";
-import { 
-  Card, 
-  Form, 
-  Input, 
-  Select, 
-  Button, 
-  message, 
+import {
+  Card,
+  Form,
+  Select,
+  Button,
+  message,
   Typography,
   Row,
   Col,
   Avatar,
   Divider,
-  Space
+  Tabs,
 } from "antd";
-import { 
-  UserOutlined, 
+import {
+  UserOutlined,
   ArrowLeftOutlined,
   ExclamationCircleOutlined,
   ClockCircleOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  ArrowRightOutlined,
 } from "@ant-design/icons";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
+import {
+  fetchProvince,
+  selectProvinceOptions,
+} from "../store/slices/utilsSlice";
+import { useDispatch, useSelector } from "react-redux";
+import ExporterForm from "../components/forms/ExporterForm";
+import EntrepreneurForm from "../components/forms/EntrepreneurForm";
+import IntermediaryForm from "../components/forms/IntermediaryForm";
+import BasicInfoEdit from "../components/forms/edit/BasicInfoEdit";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+const { TabPane } = Tabs;
 
-const EditPage = ({ userId, onBack, onUserUpdate }) => {
+const EditPage = ({ userId, onUserUpdate }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState("basic");
+  const [formData, setFormData] = useState({});
+  const [selectedProvince, setSelectedProvince] = useState(null);
+  const location = useLocation();
+  const { id } = useParams();
 
-  // Mock user data - in real app, this would come from an API
-  const mockUsers = [
-    {
-      id: 1,
-      name: "John Smith",
-      email: "john.smith@spiceregistry.gov",
-      role: "Administrator",
-      status: "Active",
-      department: "Quality Control",
-      lastLogin: "2025-06-26",
-      registrationDate: "2024-01-15"
-    },
-    {
-      id: 2,
-      name: "Sarah Johnson",
-      email: "sarah.johnson@spiceregistry.gov",
-      role: "Inspector",
-      status: "Active",
-      department: "Field Operations",
-      lastLogin: "2025-06-25",
-      registrationDate: "2024-03-22"
-    },
-    {
-      id: 3,
-      name: "Michael Chen",
-      email: "michael.chen@spiceregistry.gov",
-      role: "Analyst",
-      status: "Inactive",
-      department: "Data Analysis",
-      lastLogin: "2025-06-20",
-      registrationDate: "2024-02-10"
-    },
-    {
-      id: 4,
-      name: "Emma Davis",
-      email: "emma.davis@spiceregistry.gov",
-      role: "Supervisor",
-      status: "Active",
-      department: "Compliance",
-      lastLogin: "2025-06-27",
-      registrationDate: "2023-11-05"
+  console.log(id);
+  const states = location.state || {};
+  const userRole = states.userRole || "";
+  const usersRoleId = states.usersRoleId || "";
+  const [roleData, setRoleData] = useState()
+
+  console.log(userRole, usersRoleId);
+  
+  const [editRoleData, setEditRoleData] = useState('')
+
+  
+  const getDataReqUrl = `/api/${editRoleData}/${usersRoleId}`;
+  
+  
+  if (userRole == 'exporter') {
+    setEditRoleData('exporter');
+  } else if( userRole == 'entrepreneur') {
+    setEditRoleData('entrepreneur');
+  } else if (userRole == 'intermediarytrader') {
+    setEditRoleData('trader');
+  } else {
+    setEditRoleData('basic');
+  }
+  
+  
+  
+  
+  const fetchRoleData = async (usersRoleId) => {
+    try {
+      const response = await axiosInstance(getDataReqUrl);
+      console.log(response);
+      setRoleData(response.data);
+    } catch (error) {
+      console.log(error);
+      throw new Error("Failed to fetch user data");
     }
-  ];
+  };
+
+
+  const fetchUserData = async (userId) => {
+    try {
+      const response = await axiosInstance(`/api/users/${userId}`);
+      console.log(response);
+      setUser(response.data);
+    } catch (error) {
+      console.log(error);
+      throw new Error("Failed to fetch user data");
+    }
+  };
+
+
+  console.log(roleData)
 
   useEffect(() => {
-    // Simulate fetching user data by ID
-    const foundUser = mockUsers.find(u => u.id === userId);
-    if (foundUser) {
-      setUser(foundUser);
-      form.setFieldsValue(foundUser);
+    if (id) {
+      fetchUserData(id);
+      fetchRoleData(usersRoleId);
     }
-  }, [userId, form]);
+  }, [userId, form,usersRoleId]);
+
+  useEffect(() => {
+    // Fetch provinces when the component mounts
+    dispatch(fetchProvince());
+  }, [dispatch]);
+  const provinces = useSelector(selectProvinceOptions);
+
+  const handleProvinceChange = (value) => {
+    setSelectedProvince(value);
+  };
+
+  const selectedProvinceObj = provinces.find(
+    (province) => province.id === selectedProvince
+  );
+
+  const districts = selectedProvinceObj ? selectedProvinceObj.districts : [];
+
 
   const handleSubmit = () => {
-    form.validateFields().then(values => {
+    form.validateFields().then((values) => {
       setLoading(true);
-      
+
       message.info({
-        content: 'Edit request submitted for approval',
-        icon: <ClockCircleOutlined style={{ color: '#e67324' }} />
+        content: "Edit request submitted for approval",
+        icon: <ClockCircleOutlined style={{ color: "#e67324" }} />,
       });
 
       // Simulate approval process
       setTimeout(() => {
-        const updatedUser = { ...user, ...values };
-        
+        const updatedUser = { ...user, ...formData, ...values };
+
         // Call the callback to update the user in parent component
         if (onUserUpdate) {
           onUserUpdate(updatedUser);
         }
-        
+
         message.success({
-          content: 'User information updated successfully',
-          icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />
+          content: "User information updated successfully",
+          icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
         });
-        
+
         setLoading(false);
-        
+
         // Navigate back after successful update
         setTimeout(() => {
           onBack();
@@ -115,6 +158,35 @@ const EditPage = ({ userId, onBack, onUserUpdate }) => {
     });
   };
 
+  const handleTabChange = (key) => {
+    // Save current form values before switching tabs
+    const currentValues = form.getFieldsValue();
+    setFormData((prev) => ({ ...prev, ...currentValues }));
+    setActiveTab(key);
+  };
+
+  const handleBack = () => {
+    navigate("/user-management")
+  }
+
+  const handleNext = () => {
+    const basicFields = ["name", "email", "role", "department", "status"];
+    form
+      .validateFields(basicFields)
+      .then((values) => {
+        setFormData((prev) => ({ ...prev, ...values }));
+        setActiveTab("business");
+      })
+      .catch((errorInfo) => {
+        message.error("Please fill in all required basic information fields");
+      });
+  };
+
+  // Update form values when switching between tabs
+  useEffect(() => {
+    form.setFieldsValue(formData);
+  }, [activeTab, formData, form]);
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -122,10 +194,14 @@ const EditPage = ({ userId, onBack, onUserUpdate }) => {
           <Card className="text-center p-8">
             <Text>User not found</Text>
             <br />
-            <Button 
-              type="primary" 
-              onClick={onBack}
-              style={{ backgroundColor: '#e67324', borderColor: '#e67324', marginTop: 16 }}
+            <Button
+              type="primary"
+              onClick={handleBack}
+              style={{
+                backgroundColor: "#e67324",
+                borderColor: "#e67324",
+                marginTop: 16,
+              }}
             >
               Back to User Management
             </Button>
@@ -140,20 +216,20 @@ const EditPage = ({ userId, onBack, onUserUpdate }) => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Button 
-            type="text" 
+          <Button
+            type="text"
             icon={<ArrowLeftOutlined />}
-            onClick={onBack}
+            onClick={handleBack}
             className="mb-4 text-gray-600 hover:text-gray-800"
           >
             Back to User Management
           </Button>
-          
+
           <div className="flex items-center space-x-4 mb-4">
-            <Avatar 
-              size={64} 
-              icon={<UserOutlined />} 
-              style={{ backgroundColor: '#e67324' }}
+            <Avatar
+              size={64}
+              icon={<UserOutlined />}
+              style={{ backgroundColor: "#e67324" }}
             />
             <div>
               <Title level={2} className="text-gray-900 mb-1">
@@ -168,57 +244,73 @@ const EditPage = ({ userId, onBack, onUserUpdate }) => {
 
         {/* Current User Info Card */}
         <Card className="mb-6 shadow-sm">
-          <Title level={4} className="mb-4">Current Information</Title>
+          <Title level={4} className="mb-4">
+            Current Information
+          </Title>
           <Row gutter={[24, 16]}>
             <Col xs={24} sm={12} md={8}>
               <div>
-                <Text strong className="text-gray-500">Name:</Text>
+                <Text strong className="text-gray-500">
+                  Name:
+                </Text>
                 <br />
                 <Text className="text-gray-900">{user.name}</Text>
               </div>
             </Col>
             <Col xs={24} sm={12} md={8}>
               <div>
-                <Text strong className="text-gray-500">Email:</Text>
+                <Text strong className="text-gray-500">
+                  NIC:
+                </Text>
+                <br />
+                <Text className="text-gray-900">{user.nic}</Text>
+              </div>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <div>
+                <Text strong className="text-gray-500">
+                  Email:
+                </Text>
                 <br />
                 <Text className="text-gray-900">{user.email}</Text>
               </div>
             </Col>
             <Col xs={24} sm={12} md={8}>
               <div>
-                <Text strong className="text-gray-500">Role:</Text>
+                <Text strong className="text-gray-500">
+                  Contact Number:
+                </Text>
                 <br />
-                <Text className="text-gray-900">{user.role}</Text>
+                <Text className="text-gray-900">{user.contactNumber}</Text>
               </div>
             </Col>
             <Col xs={24} sm={12} md={8}>
               <div>
-                <Text strong className="text-gray-500">Department:</Text>
+                <Text strong className="text-gray-500">
+                  Business Status:
+                </Text>
                 <br />
-                <Text className="text-gray-900">{user.department}</Text>
+                <Text className="text-gray-900">{user.businessStatus}</Text>
               </div>
             </Col>
             <Col xs={24} sm={12} md={8}>
               <div>
-                <Text strong className="text-gray-500">Status:</Text>
+                <Text strong className="text-gray-500">
+                  Business:
+                </Text>
                 <br />
-                <Text className="text-gray-900">{user.status}</Text>
-              </div>
-            </Col>
-            <Col xs={24} sm={12} md={8}>
-              <div>
-                <Text strong className="text-gray-500">Last Login:</Text>
-                <br />
-                <Text className="text-gray-900">{user.lastLogin}</Text>
+                <Text className="text-gray-900">{user.businessName}</Text>
               </div>
             </Col>
           </Row>
         </Card>
 
-        {/* Edit Form */}
+        {/* Edit Form with Tabs */}
         <Card className="shadow-sm">
-          <Title level={4} className="mb-4">Update Information</Title>
-          
+          <Title level={4} className="mb-4">
+            Update Information
+          </Title>
+
           {/* Approval Notice */}
           <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
             <div className="flex items-center space-x-2 text-orange-800">
@@ -229,98 +321,64 @@ const EditPage = ({ userId, onBack, onUserUpdate }) => {
             </div>
           </div>
 
-          <Form
+          <form
             form={form}
             layout="vertical"
-            onFinish={handleSubmit}
+            onSubmit={handleSubmit}
             className="space-y-4"
           >
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  label="Full Name"
-                  name="name"
-                  rules={[
-                    { required: true, message: 'Please enter full name' },
-                    { min: 2, message: 'Name must be at least 2 characters' }
-                  ]}
-                >
-                  <Input 
-                    placeholder="Enter full name" 
-                    size="large"
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  label="Email Address"
-                  name="email"
-                  rules={[
-                    { required: true, message: 'Please enter email address' },
-                    { type: 'email', message: 'Please enter valid email' }
-                  ]}
-                >
-                  <Input 
-                    placeholder="Enter email address" 
-                    size="large"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  label="Role"
-                  name="role"
-                  rules={[{ required: true, message: 'Please select role' }]}
-                >
-                  <Select placeholder="Select role" size="large">
-                    <Option value="Administrator">Administrator</Option>
-                    <Option value="Supervisor">Supervisor</Option>
-                    <Option value="Inspector">Inspector</Option>
-                    <Option value="Analyst">Analyst</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  label="Department"
-                  name="department"
-                  rules={[
-                    { required: true, message: 'Please enter department' },
-                    { min: 2, message: 'Department must be at least 2 characters' }
-                  ]}
-                >
-                  <Input 
-                    placeholder="Enter department" 
-                    size="large"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Form.Item
-              label="Status"
-              name="status"
-              rules={[{ required: true, message: 'Please select status' }]}
+            <Tabs
+              activeKey={activeTab}
+              onChange={handleTabChange}
+              size="large"
+              className="mb-6"
             >
-              <Select placeholder="Select status" size="large">
-                <Option value="Active">Active</Option>
-                <Option value="Inactive">Inactive</Option>
-                <Option value="Suspended">Suspended</Option>
-              </Select>
-            </Form.Item>
+              <TabPane
+                tab={
+                  <span>
+                    <UserOutlined />
+                    Basic Information
+                  </span>
+                }
+                key="basic"
+              >
+              <BasicInfoEdit user={user}/>
+                <div className="flex justify-end mt-6">
+                  <Button
+                    type="primary"
+                    size="large"
+                    onClick={handleNext}
+                    icon={<ArrowRightOutlined />}
+                    style={{
+                      backgroundColor: "#e67324",
+                      borderColor: "#e67324",
+                    }}
+                  >
+                    Next: Business Information
+                  </Button>
+                </div>
+              </TabPane>
+
+              <TabPane
+                tab={
+                  <span>
+                    <UserOutlined />
+                    Business Information
+                  </span>
+                }
+                key="business"
+              >
+                <ExporterForm />
+                <EntrepreneurForm />
+                <IntermediaryForm />
+              </TabPane>
+            </Tabs>
 
             <Divider />
 
             {/* Action Buttons */}
             <div className="flex justify-end space-x-4">
-              <Button 
-                size="large"
-                onClick={onBack}
-                disabled={loading}
-              >
+              <Button size="large" onClick={handleBack} disabled={loading}>
                 Cancel
               </Button>
               <Button
@@ -328,12 +386,12 @@ const EditPage = ({ userId, onBack, onUserUpdate }) => {
                 size="large"
                 loading={loading}
                 htmlType="submit"
-                style={{ backgroundColor: '#e67324', borderColor: '#e67324' }}
+                style={{ backgroundColor: "#e67324", borderColor: "#e67324" }}
               >
-                {loading ? 'Submitting...' : 'Submit for Approval'}
+                {loading ? "Submitting..." : "Submit for Approval"}
               </Button>
             </div>
-          </Form>
+          </form>
         </Card>
       </div>
     </div>

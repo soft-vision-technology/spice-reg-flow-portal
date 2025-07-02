@@ -1,147 +1,56 @@
+import React, { Suspense, useEffect } from "react";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
-import ExistingBusinessPage from "./pages/ExistingBusinessPage";
-import ExporterPage from "./pages/ExporterPage";
-import IntermediaryPage from "./pages/IntermediaryPage";
-import ReportsPage from "./pages/ReportsPage";
-import NotFound from "./pages/NotFound";
 import { FormProvider } from "./contexts/FormContext";
-import HomePage from "./pages/HomePage";
-import SelectPage from "./pages/SelectPage";
 import { TooltipProvider } from "./components/ui/tooltip";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
-import UserManagement from "./pages/UserManagement";
-import EditPage from "./pages/EditPage";
-import Mainpage from "./pages/Mainpage";
-import NotificationsPage from "./pages/NotificationsPage";
-import RegisterUser from "./AdminPages/RegisterUser";
-import ImportDataPage from "./pages/ImportDataPage";
-import SettingsPage from "./pages/SettingsPage";
+import { routes, createRouteElement } from "./constants/routes";
+import socket from "./utils/socket";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+// Loading component for Suspense fallback
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+  </div>
+);
+
+const App = () =>{ 
+  useEffect(() => {
+    socket.on('notification', (data) => {
+      console.log("New notification received:", data);
+      // You can handle the notification here, e.g., update state or show a toast
+    });
+    return () => {
+      socket.off('notification');
+    }
+  }, []);
+  return(
+  
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <FormProvider>
         <Toaster />
         <BrowserRouter>
           <MainLayout>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Mainpage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/select"
-                element={
-                  <ProtectedRoute>
-                    <SelectPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/like-to-start"
-                element={
-                  <ProtectedRoute>
-                    <ExporterPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/have-business"
-                element={
-                  <ProtectedRoute>
-                    <ExistingBusinessPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/export-form"
-                element={
-                  <ProtectedRoute>
-                    <ExporterPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/intermediary-form"
-                element={
-                  <ProtectedRoute>
-                    <IntermediaryPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports"
-                element={
-                  <ProtectedRoute>
-                    <ReportsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/members"
-                element={
-                  <ProtectedRoute>
-                    <UserManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/user-management-edit"
-                element={
-                  <ProtectedRoute>
-                    <EditPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/notifications"
-                element={
-                  <ProtectedRoute>
-                    <NotificationsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/create"
-                element={
-                  <ProtectedRoute requiredRole={1}>
-                    <RegisterUser />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/import-data"
-                element={
-                  <ProtectedRoute>
-                    <ImportDataPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute requiredRole={1}>
-                    <SettingsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
+                {routes.map((route, index) => (
+                  <Route
+                    key={index}
+                    path={route.path}
+                    element={createRouteElement(route)}
+                  />
+                ))}
+              </Routes>
+            </Suspense>
           </MainLayout>
         </BrowserRouter>
       </FormProvider>
     </TooltipProvider>
   </QueryClientProvider>
-);
+)};
 
 export default App;

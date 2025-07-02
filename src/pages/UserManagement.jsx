@@ -33,9 +33,12 @@ import {
   fetchExistingEntrepreneurs,
   fetchExistingExporters,
   fetchExistingTraders,
+  fetchStartingExporters,
   // deleteUser as deleteUserApi,
   // updateUser as updateUserApi,
 } from "../store/slices/reportSlice";
+import EditPage from "./EditPage";
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -50,16 +53,16 @@ const UserManagement = () => {
   const [pendingActions, setPendingActions] = useState(new Set());
   const [activeTab, setActiveTab] = useState("entrepreneurs");
   const [form] = Form.useForm();
-
-  // Redux integration for real data
+  const [editUserId, setEditUserId] = useState(null);
   const dispatch = useDispatch();
-  const { existingEntrepreneurs, existingExporters, existingTraders, loading } =
+  const { existingEntrepreneurs, existingExporters, startingExporters, existingTraders, loading } =
     useSelector((state) => state.report);
 
   // Fetch users on mount
   useEffect(() => {
     dispatch(fetchExistingEntrepreneurs());
     dispatch(fetchExistingExporters());
+    dispatch(fetchStartingExporters()),
     dispatch(fetchExistingTraders());
   }, [dispatch]);
 
@@ -67,6 +70,7 @@ const UserManagement = () => {
   const allUsers = [
     ...(existingEntrepreneurs || []),
     ...(existingExporters || []),
+    ...(startingExporters || []),
     ...(existingTraders || []),
   ];
 
@@ -76,7 +80,7 @@ const UserManagement = () => {
       case "Entrepreneur":
         return existingEntrepreneurs || [];
       case "Exporter":
-        return existingExporters || [];
+     return [...(existingExporters || []), ...(startingExporters || [])];
       case "IntermediaryTrader":
         return existingTraders || [];
       default:
@@ -90,23 +94,24 @@ const UserManagement = () => {
     setViewModalVisible(true);
   };
 
+  const navigate = useNavigate()
+  // Replace handleEdit to open EditPage
   const handleEdit = (user) => {
-    // Flatten nested business fields for editing
-    const business =
-      user.entrepreneur || user.exporter || user.intermediaryTrader || {};
-    form.setFieldsValue({
-      ...user,
-      businessName: business.businessName || "",
-      businessType: business.businessType || "",
-      location:
-        typeof user.location === "object"
-          ? user.location?.name
-          : user.district?.name
-          ? user.district?.name
-          : user.location || "",
-    });
-    setSelectedUser(user);
-    setEditModalVisible(true);
+    const userRole = user?.role.name.toLowerCase();
+    const roleIdOfUser = user?.[userRole]?.id;
+    navigate(`/user-management-edit/${user.id}`, { state: { usersRoleId: roleIdOfUser, userRole : userRole } });
+  };
+
+  const handleEditBack = () => {
+    setEditUserId(null);
+  };  
+
+
+  const handleUserUpdate = (updatedUser) => {
+    // Optionally, refresh users from API or update local state
+    // For now, just close the EditPage
+    setEditUserId(null);
+    // Optionally show a message or refresh user list
   };
 
   const handleEditSubmit = () => {
@@ -688,138 +693,27 @@ const UserManagement = () => {
           )}
         </Modal>
 
-        {/* Edit User Modal */}
-        <Modal
-          title="Edit User Information"
-          open={editModalVisible}
-          // onOk={handleEditSubmit}
-          onCancel={() => {
-            setEditModalVisible(false);
-            setSelectedUser(null);
-            form.resetFields();
-          }}
-          okText="Submit for Approval"
-          okButtonProps={{
-            style: { backgroundColor: "#e67324", borderColor: "#e67324" },
-          }}
-          width={600}
-        >
-          <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-            <div className="flex items-center space-x-2 text-orange-800">
-              <ExclamationCircleOutlined />
-              <span className="text-sm">
-                Changes require administrator approval before taking effect.
-              </span>
-            </div>
+        {/* EditPage overlay */}
+        {editUserId && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              background: "rgba(0,0,0,0.15)",
+              zIndex: 2000,
+              overflow: "auto",
+            }}
+          >
+            <EditPage
+              userId={editUserId}
+              onBack={handleEditBack}
+              onUserUpdate={handleUserUpdate}
+            />
           </div>
-
-          <Form form={form} layout="vertical" className="space-y-4">
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Full Name"
-                  name="name"
-                  rules={[
-                    { required: true, message: "Please enter full name" },
-                  ]}
-                >
-                  <Input placeholder="Enter full name" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Email Address"
-                  name="email"
-                  rules={[
-                    { required: true, message: "Please enter email address" },
-                    { type: "email", message: "Please enter valid email" },
-                  ]}
-                >
-                  <Input placeholder="Enter email address" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Role"
-                  name="role"
-                  rules={[{ required: true, message: "Please select role" }]}
-                >
-                  <Select placeholder="Select role">
-                    <Option value="Entrepreneur">Entrepreneur</Option>
-                    <Option value="Exporter">Exporter</Option>
-                    <Option value="IntermediaryTrader">
-                      Intermediary Trader
-                    </Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Department"
-                  name="department"
-                  rules={[
-                    { required: true, message: "Please enter department" },
-                  ]}
-                >
-                  <Input placeholder="Enter department" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Business Name"
-                  name="businessName"
-                  rules={[
-                    { required: true, message: "Please enter business name" },
-                  ]}
-                >
-                  <Input placeholder="Enter business name" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Business Type"
-                  name="businessType"
-                  rules={[
-                    { required: true, message: "Please enter business type" },
-                  ]}
-                >
-                  <Input placeholder="Enter business type" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Location"
-                  name="location"
-                  rules={[{ required: true, message: "Please enter location" }]}
-                >
-                  <Input placeholder="Enter location" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Status"
-                  name="status"
-                  rules={[{ required: true, message: "Please select status" }]}
-                >
-                  <Select placeholder="Select status">
-                    <Option value="Active">Active</Option>
-                    <Option value="Inactive">Inactive</Option>
-                    <Option value="Suspended">Suspended</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        </Modal>
+        )}
       </div>
     </div>
   );

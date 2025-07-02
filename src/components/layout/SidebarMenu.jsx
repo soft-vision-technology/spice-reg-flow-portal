@@ -20,6 +20,9 @@ const SidebarMenu = () => {
   const location = useLocation();
   const { role, status } = useFormContext();
 
+  // Wait for user to be loaded
+  if (!user) return null; // or a spinner
+
   const hasSelectedRole = role !== "";
   const hasSelectedStatus = status !== "";
 
@@ -41,8 +44,8 @@ const SidebarMenu = () => {
         <Link to="/select">Registration</Link>
       </Menu.Item>
 
-      <Menu.Item key="/members" icon={<TeamOutlined />}>
-        <Link to="/members">Manage Members</Link>
+      <Menu.Item key="/user-management" icon={<TeamOutlined />}>
+        <Link to="/user-management">Manage Members</Link>
       </Menu.Item>
 
       <Menu.Item key="/reports" icon={<FileDoneOutlined />}>

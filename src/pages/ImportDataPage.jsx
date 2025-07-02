@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Button,
   Upload,
@@ -40,8 +40,12 @@ const ImportDataPage = () => {
   const [pasteData, setPasteData] = useState("");
   const [activeTab, setActiveTab] = useState("paste");
   const [expanded, setExpanded] = useState(false);
-  const [editData, setEditData] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Single cell editing state
+  const [editingCell, setEditingCell] = useState(null); // {row: 0, col: 'columnKey'}
+  const [editValue, setEditValue] = useState('');
+  const inputRef = useRef(null);
 
   console.log("Check", excelData, columns);
 
@@ -293,72 +297,96 @@ const ImportDataPage = () => {
     }
   };
 
-  // Helper to handle cell edit
-  const handleCellChange = (rowIdx, colIdx, value) => {
-    setEditData((prev) => {
-      const updated = [...prev];
-      // Preserve the key property
-      updated[rowIdx] = { ...updated[rowIdx], [colIdx]: value, key: prev[rowIdx].key };
-      return updated;
-    });
+  // Single cell editing functions
+  const handleCellClick = (record, column, rowIndex) => {
+    if (!isEditing) return;
+    
+    setEditingCell({ row: rowIndex, col: column.dataIndex });
+    setEditValue(record[column.dataIndex] || '');
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
-  // Start editing
-  const handleExpandEdit = () => {
-  // Deep copy to avoid reference issues
-  setEditData(excelData.map(row => ({ ...row })));
-  setExpanded(true);
-  setIsEditing(true);
-};
+  const handleCellSave = () => {
+    if (editingCell) {
+      const newData = [...excelData];
+      newData[editingCell.row][editingCell.col] = editValue;
+      setExcelData(newData);
+      setEditingCell(null);
+      setEditValue('');
+    }
+  };
 
-  // Cancel editing
+  const handleCellCancel = () => {
+    setEditingCell(null);
+    setEditValue('');
+  };
+
+  // Start editing mode
+  const handleExpandEdit = () => {
+    setExpanded(true);
+    setIsEditing(true);
+  };
+
+  // Cancel editing mode
   const handleCancelEdit = () => {
     setExpanded(false);
     setIsEditing(false);
-    setEditData([]);
+    setEditingCell(null);
+    setEditValue('');
   };
 
-  // Save edits
-  const handleOkEdit = () => {
-    setExcelData(editData);
-    setExpanded(false);
+  // Exit editing mode (keep changes)
+  const handleFinishEdit = () => {
     setIsEditing(false);
-    message.success("Edits saved!");
+    if (editingCell) {
+      handleCellSave();
+    }
+    message.success("Editing completed!");
   };
 
-  // Editable columns
-  const editableColumns = columns.map((col) => ({
+  // Create editable columns
+  const editableColumns = columns.map(col => ({
     ...col,
-    onCell: (record, rowIndex) => ({
-      record,
-      rowIndex,
-      colIndex: col.dataIndex,
-      editing: isEditing,
-      handleCellChange,
-    }),
+    render: (text, record, index) => {
+      const isCurrentCell = editingCell?.row === index && editingCell?.col === col.dataIndex;
+      
+      if (isCurrentCell && isEditing) {
+        return (
+          <Input
+            ref={inputRef}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onPressEnter={handleCellSave}
+            onBlur={handleCellSave}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                handleCellCancel();
+              }
+            }}
+            size="small"
+            style={{ margin: 0 }}
+          />
+        );
+      }
+      
+      return (
+        <div
+          onClick={() => handleCellClick(record, col, index)}
+          style={{ 
+            cursor: isEditing ? 'pointer' : 'default',
+            minHeight: '22px', 
+            padding: '4px 8px',
+            backgroundColor: isEditing ? '#f0f0f0' : 'transparent',
+            borderRadius: '4px',
+            transition: 'background-color 0.2s'
+          }}
+          title={isEditing ? 'Click to edit' : ''}
+        >
+          {text || (isEditing ? 'Click to edit' : '')}
+        </div>
+      );
+    }
   }));
-
-  // Editable cell component
-  const EditableCell = ({
-    record,
-    rowIndex,
-    colIndex,
-    editing,
-    handleCellChange,
-    ...restProps
-  }) => {
-    return editing ? (
-      <td {...restProps}>
-        <Input
-          value={editData[rowIndex][colIndex]}
-          onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-          size="middle"
-        />
-      </td>
-    ) : (
-      <td {...restProps}>{record[colIndex]}</td>
-    );
-  };
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
@@ -490,7 +518,7 @@ const ImportDataPage = () => {
               <Title level={4} className="mb-0">
                 Data Preview
               </Title>
-              <Tooltip title="Expand to view and edit all records. You can manually correct any value before importing.">
+              <Tooltip title="Click 'Edit Data' to enable cell editing. Click on any cell to edit its value.">
                 <QuestionCircleOutlined style={{ color: "#1890ff" }} />
               </Tooltip>
             </div>
@@ -502,34 +530,42 @@ const ImportDataPage = () => {
           </div>
 
           <div className="flex justify-end mb-2">
-            {!expanded && (
+            {!expanded && !isEditing && (
               <Button
                 onClick={handleExpandEdit}
                 type="primary"
                 loading={loading}
                 className="bg-blue-500 hover:bg-blue-600"
               >
-                Edit Columns
+                Edit Data
               </Button>
+            )}
+            {expanded && !isEditing && (
+              <Space>
+                <Button
+                  onClick={handleExpandEdit}
+                  type="primary"
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  Edit Data
+                </Button>
+                <Button 
+                  onClick={() => setExpanded(false)} 
+                  type="default"
+                >
+                  Collapse
+                </Button>
+              </Space>
             )}
           </div>
 
           <Table
-            columns={isEditing ? editableColumns : columns}
-            dataSource={
-              expanded
-                ? isEditing
-                  ? editData
-                  : excelData
-                : excelData.slice(0, 10)
-            }
+            columns={editableColumns}
+            dataSource={expanded ? excelData : excelData.slice(0, 10)}
             pagination={false}
             scroll={{ x: true, y: expanded ? 400 : undefined }}
             size="small"
             bordered
-            components={
-              isEditing ? { body: { cell: EditableCell } } : undefined
-            }
           />
 
           {excelData.length > 10 && !expanded && (
@@ -540,14 +576,14 @@ const ImportDataPage = () => {
             </div>
           )}
 
-          {expanded && isEditing && (
+          {isEditing && (
             <div className="flex justify-end gap-2 mt-4">
               <Button
-                onClick={handleOkEdit}
+                onClick={handleFinishEdit}
                 type="primary"
-                className="bg-blue-500 hover:bg-blue-600"
+                className="bg-green-500 hover:bg-green-600"
               >
-                OK
+                Finish Editing
               </Button>
               <Button onClick={handleCancelEdit} type="default">
                 Cancel
@@ -555,13 +591,13 @@ const ImportDataPage = () => {
             </div>
           )}
 
-          {expanded && (
+          {isEditing && (
             <Alert
               className="mt-4"
               type="info"
               showIcon
-              message="Edit Mode"
-              description="You can edit any cell in the table. Click OK to save changes or Cancel to discard."
+              message="Edit Mode Active"
+              description="Click on any cell to edit its value. Press Enter to save, Escape to cancel. Click 'Finish Editing' when done."
             />
           )}
         </Card>
@@ -580,6 +616,7 @@ const ImportDataPage = () => {
               onClick={handleBulkValidation}
               loading={loading}
               size="large"
+              disabled={isEditing}
             >
               Validate Data
             </Button>
@@ -590,6 +627,7 @@ const ImportDataPage = () => {
               loading={loading}
               size="large"
               className="bg-spice-500 hover:bg-spice-600"
+              disabled={isEditing}
             >
               Process & Import Data
             </Button>

@@ -1,72 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge, Dropdown, Button, Typography, Empty } from "antd";
 import { BellOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+  clearAllNotifications,
+  fetchNotifications,
+} from "../../store/slices/notificationSlice";
 
 const { Text } = Typography;
 
 const NotificationSection = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "New Registration Submitted",
-      message: "A new spice supplier registration has been submitted for review.",
-      time: "2 minutes ago",
-      read: false,
-      type: "info"
-    },
-    {
-      id: 2,
-      title: "Document Verification Required",
-      message: "Please verify the documents for ABC Spices Pvt Ltd.",
-      time: "1 hour ago",
-      read: false,
-      type: "warning"
-    },
-    {
-      id: 3,
-      title: "Registration Approved",
-      message: "XYZ Trading Company registration has been approved successfully.",
-      time: "3 hours ago",
-      read: true,
-      type: "success"
-    },
-    {
-      id: 4,
-      title: "System Maintenance",
-      message: "Scheduled maintenance will occur tonight from 2:00 AM to 4:00 AM.",
-      time: "5 hours ago",
-      read: true,
-      type: "info"
-    }
-  ]);
+  const notifications = useSelector((state) => state.notifications.items);
+
+  useEffect(() => {
+    dispatch(fetchNotifications());
+  }, [dispatch]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const markAsRead = (id) => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === id
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
+  const handleMarkAsRead = (id) => {
+    dispatch(markAsRead(id));
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notification => ({ ...notification, read: true }))
-    );
+  const handleMarkAllAsRead = () => {
+    dispatch(markAllAsRead());
   };
 
-  const deleteNotification = (id) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  const handleDeleteNotification = (id) => {
+    dispatch(deleteNotification(id));
   };
 
-  const clearAllNotifications = () => {
-    setNotifications([]);
+  const handleClearAllNotifications = () => {
+    dispatch(clearAllNotifications());
   };
 
   const getTypeColor = (type) => {
@@ -89,7 +61,7 @@ const NotificationSection = () => {
               <Button
                 type="text"
                 size="small"
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 className="text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 h-auto"
               >
                 Mark all read
@@ -98,7 +70,7 @@ const NotificationSection = () => {
             <Button
               type="text"
               size="small"
-              onClick={clearAllNotifications}
+              onClick={handleClearAllNotifications}
               icon={<DeleteOutlined />}
               className="text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 px-2 py-1 h-auto"
             >
@@ -132,7 +104,7 @@ const NotificationSection = () => {
                 }}
                 onClick={(e) => {
                   if (e.target.closest('.delete-btn')) return;
-                  markAsRead(item.id);
+                  handleMarkAsRead(item.id);
                 }}
               >
                 <Button
@@ -141,7 +113,7 @@ const NotificationSection = () => {
                   icon={<DeleteOutlined />}
                   onClick={(e) => {
                     e.stopPropagation();
-                    deleteNotification(item.id);
+                    handleDeleteNotification(item.id);
                   }}
                   className="delete-btn absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 w-6 h-6 flex items-center justify-center"
                 />
