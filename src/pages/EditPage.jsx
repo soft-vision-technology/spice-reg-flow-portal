@@ -22,15 +22,11 @@ import {
 } from "@ant-design/icons";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
-import {
-  fetchProvince,
-  selectProvinceOptions,
-} from "../store/slices/utilsSlice";
 import { useDispatch, useSelector } from "react-redux";
-import ExporterForm from "../components/forms/ExporterForm";
-import EntrepreneurForm from "../components/forms/EntrepreneurForm";
-import IntermediaryForm from "../components/forms/IntermediaryForm";
 import BasicInfoEdit from "../components/forms/edit/BasicInfoEdit";
+import EntrepreneurFormEdit from "../components/forms/edit/EntrepreneurFormEdit";
+import ExporterFormEdit from "../components/forms/edit/ExporterFormEdit";
+import IntermediaryFormEdit from "../components/forms/edit/IntermediaryFormEdit";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -52,33 +48,27 @@ const EditPage = ({ userId, onUserUpdate }) => {
   const states = location.state || {};
   const userRole = states.userRole || "";
   const usersRoleId = states.usersRoleId || "";
-  const [roleData, setRoleData] = useState()
+  const [roleData, setRoleData] = useState();
+  const [editRoleData, setEditRoleData] = useState("");
 
-  console.log(userRole, usersRoleId);
-  
-  const [editRoleData, setEditRoleData] = useState('')
 
-  
-  const getDataReqUrl = `/api/${editRoleData}/${usersRoleId}`;
-  
-  
-  if (userRole == 'exporter') {
-    setEditRoleData('exporter');
-  } else if( userRole == 'entrepreneur') {
-    setEditRoleData('entrepreneur');
-  } else if (userRole == 'intermediarytrader') {
-    setEditRoleData('trader');
-  } else {
-    setEditRoleData('basic');
-  }
-  
-  
-  
-  
+  useEffect(() => {
+    if (userRole == "exporter") {
+      setEditRoleData("exporter");
+    } else if (userRole == "entrepreneur") {
+      setEditRoleData("entrepreneur");
+    } else if (userRole == "intermediarytrader") {
+      setEditRoleData("trader");
+    } else {
+      setEditRoleData("basic");
+    }
+  }, [userRole]);
+
   const fetchRoleData = async (usersRoleId) => {
+    console.log('res: ',usersRoleId)
     try {
-      const response = await axiosInstance(getDataReqUrl);
-      console.log(response);
+      const apiRole = userRole == "intermediarytrader" ? "trader" : userRole;
+      const response = await axiosInstance(`/api/${apiRole}/${usersRoleId}`);
       setRoleData(response.data);
     } catch (error) {
       console.log(error);
@@ -98,32 +88,14 @@ const EditPage = ({ userId, onUserUpdate }) => {
     }
   };
 
-
-  console.log(roleData)
+  console.log(roleData);
 
   useEffect(() => {
-    if (id) {
+    if (id ) {
       fetchUserData(id);
       fetchRoleData(usersRoleId);
     }
-  }, [userId, form,usersRoleId]);
-
-  useEffect(() => {
-    // Fetch provinces when the component mounts
-    dispatch(fetchProvince());
-  }, [dispatch]);
-  const provinces = useSelector(selectProvinceOptions);
-
-  const handleProvinceChange = (value) => {
-    setSelectedProvince(value);
-  };
-
-  const selectedProvinceObj = provinces.find(
-    (province) => province.id === selectedProvince
-  );
-
-  const districts = selectedProvinceObj ? selectedProvinceObj.districts : [];
-
+  }, [userId, form, usersRoleId]);
 
   const handleSubmit = () => {
     form.validateFields().then((values) => {
@@ -166,8 +138,8 @@ const EditPage = ({ userId, onUserUpdate }) => {
   };
 
   const handleBack = () => {
-    navigate("/user-management")
-  }
+    navigate("/user-management");
+  };
 
   const handleNext = () => {
     const basicFields = ["name", "email", "role", "department", "status"];
@@ -342,7 +314,7 @@ const EditPage = ({ userId, onUserUpdate }) => {
                 }
                 key="basic"
               >
-              <BasicInfoEdit user={user}/>
+                <BasicInfoEdit user={user} />
                 <div className="flex justify-end mt-6">
                   <Button
                     type="primary"
@@ -368,9 +340,15 @@ const EditPage = ({ userId, onUserUpdate }) => {
                 }
                 key="business"
               >
-                <ExporterForm />
-                <EntrepreneurForm />
-                <IntermediaryForm />
+                {editRoleData === "exporter" && (
+                  <ExporterFormEdit roleData={roleData} isExisting={true}/>
+                )}
+                {editRoleData === "entrepreneur" && (
+                  <EntrepreneurFormEdit roleData={roleData} isExisting={true}/>
+                )}
+                {editRoleData === "trader" && (
+                  <IntermediaryFormEdit roleData={roleData} isExisting={true}/>
+                )}
               </TabPane>
             </Tabs>
 

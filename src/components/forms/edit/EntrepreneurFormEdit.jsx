@@ -11,9 +11,10 @@ import {
   Radio,
   Card,
   Space,
+  Checkbox,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useFormContext } from "../../contexts/FormContext";
+import { useFormContext } from "../../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchCertificateOptions,
@@ -24,16 +25,15 @@ import {
   selectCertificateOptions,
   selectNumEmployeeOptions,
   selectProductOptions,
-} from "../../store/slices/utilsSlice";
+} from "../../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
-import axiosInstance from "../../api/axiosInstance";
+import axiosInstance from "../../../api/axiosInstance";
 
 const { Option } = Select;
 
-const EntrepreneurForm = (props) => {
+const EntrepreneurFormEdit = ({ roleData, isExisting }) => {
   const dispatch = useDispatch();
   const location = useLocation();
-  const { isExisting } = props;
   const { updateFormData } = useFormContext();
   const [form] = Form.useForm();
   const [exportProducts, setExportProducts] = useState([
@@ -50,6 +50,44 @@ const EntrepreneurForm = (props) => {
   useEffect(() => {
     load();
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!roleData) return;
+
+    // Set form fields
+    form.setFieldsValue({
+      businessName: roleData.businessName,
+      businessRegistrationNumber: roleData.businessRegNo,
+      businessAddress: roleData.businessAddress,
+      numberOfEmployees:
+        roleData.numberOfEmployee?.id?.toString() ||
+        roleData.numberOfEmployeeId?.toString(),
+      certifications: Array.isArray(roleData.certificate)
+        ? roleData.certificate.map((c) => c.id?.toString())
+        : roleData.certificateId
+        ? [roleData.certificateId.toString()]
+        : [],
+      yearsExporting:
+        roleData.businessExperience?.id?.toString() ||
+        roleData.businessExperienceId?.toString(),
+      registrationDate: roleData.registrationDate
+        ? dayjs(roleData.registrationDate)
+        : undefined,
+      businessExperience:
+        roleData.businessExperience?.id?.toString() ||
+        roleData.businessExperienceId?.toString(),
+    });
+
+    // Set export products
+    if (Array.isArray(roleData.businessProducts)) {
+      setExportProducts(
+        roleData.businessProducts.map((bp) => ({
+          productId: bp.productId?.toString() || bp.product?.id?.toString(),
+          value: bp.value ? parseFloat(bp.value) : null,
+        }))
+      );
+    }
+  }, [roleData, form]);
 
   const handleChange = (changedValues, allValues) => {
     // Format the data according to API requirements
@@ -118,9 +156,9 @@ const EntrepreneurForm = (props) => {
       numberOfEmployeeId: values.numberOfEmployees
         ? parseInt(values.numberOfEmployees)
         : null,
-      certificateId: values.certifications
-        ? parseInt(values.certifications)
-        : null,
+      certificateIds: Array.isArray(values.certifications)
+      ? values.certifications.map((id) => parseInt(id))
+      : [],
       businessExperienceId: values.yearsExporting
         ? parseInt(values.yearsExporting)
         : null,
@@ -382,4 +420,4 @@ const EntrepreneurForm = (props) => {
   );
 };
 
-export default EntrepreneurForm;
+export default EntrepreneurFormEdit;

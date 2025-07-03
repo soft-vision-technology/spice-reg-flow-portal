@@ -34,8 +34,6 @@ import {
   fetchExistingExporters,
   fetchExistingTraders,
   fetchStartingExporters,
-  // deleteUser as deleteUserApi,
-  // updateUser as updateUserApi,
 } from "../store/slices/reportSlice";
 import EditPage from "./EditPage";
 import { useNavigate } from "react-router-dom";
@@ -98,8 +96,10 @@ const UserManagement = () => {
   // Replace handleEdit to open EditPage
   const handleEdit = (user) => {
     const userRole = user?.role.name.toLowerCase();
-    const roleIdOfUser = user?.[userRole]?.id;
-    navigate(`/user-management-edit/${user.id}`, { state: { usersRoleId: roleIdOfUser, userRole : userRole } });
+    const roleIdOfUser = userRole == 'intermediarytrader'?  user.intermediaryTrader?.id : user[userRole]?.id;
+    navigate(`/user-management-edit/${user.id}`, { state: { usersRoleId: roleIdOfUser, userRole:(userRole.toLowerCase())} });
+    console.log('userRole: ',userRole)
+    console.log('userRoleId: ',roleIdOfUser)
   };
 
   const handleEditBack = () => {
@@ -296,16 +296,6 @@ const UserManagement = () => {
       width: 150,
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (_, record) => {
-        const status = record.status || record.businessStatus;
-        return <Tag color={getStatusColor(status)}>{status}</Tag>;
-      },
-      width: 120,
-    },
-    {
       title: "Registration Date",
       dataIndex: "createdAt",
       key: "registrationDate",
@@ -316,10 +306,13 @@ const UserManagement = () => {
       width: 120,
     },
     {
-      title: "Last Login",
-      dataIndex: "lastLogin",
-      key: "lastLogin",
-      render: (date) => date || "N/A",
+      title: "Active Status",
+      dataIndex: "status",
+      key: "status",
+      render: (_, record) => {
+        const status = record.status || "Active"; // Default to Active if not set
+        return <Tag color={getStatusColor(status)}>{status}</Tag>;
+      },
       width: 120,
     },
     {
@@ -675,16 +668,6 @@ const UserManagement = () => {
                               selectedUser.createdAt
                             ).toLocaleDateString()
                           : "N/A")}
-                    </div>
-                  </div>
-                </Col>
-                <Col span={12}>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">
-                      Last Login
-                    </label>
-                    <div className="text-gray-900">
-                      {selectedUser.lastLogin || "N/A"}
                     </div>
                   </div>
                 </Col>

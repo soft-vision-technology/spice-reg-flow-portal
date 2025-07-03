@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -8,40 +8,33 @@ import {
   Button,
   Row,
   Col,
-  Radio,
   Card,
   Space,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useFormContext } from "../../contexts/FormContext";
+import { useFormContext } from "../../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchCertificateOptions,
   fetchExperienceOptions,
   fetchNumEmployeeOptions,
   fetchProductOptions,
   selectExperienceOptions,
-  selectCertificateOptions,
   selectNumEmployeeOptions,
   selectProductOptions,
-} from "../../store/slices/utilsSlice";
+} from "../../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
-import axiosInstance from "../../api/axiosInstance";
+import dayjs from "dayjs";
 
-const { Option } = Select;
-
-const EntrepreneurForm = (props) => {
+const IntermediaryFormEdit = ({ roleData, isExisting }) => {
   const dispatch = useDispatch();
   const location = useLocation();
-  const { isExisting } = props;
-  const { updateFormData } = useFormContext();
+  const { updateFormData, formData } = useFormContext();
   const [form] = Form.useForm();
   const [exportProducts, setExportProducts] = useState([
     { productId: null, value: null },
   ]);
 
   const load = async () => {
-    await dispatch(fetchCertificateOptions());
     await dispatch(fetchNumEmployeeOptions());
     await dispatch(fetchExperienceOptions());
     await dispatch(fetchProductOptions());
@@ -51,35 +44,32 @@ const EntrepreneurForm = (props) => {
     load();
   }, [dispatch]);
 
-  const handleChange = (changedValues, allValues) => {
-    // Format the data according to API requirements
-    const formattedData = {
-      businessName: allValues.businessName || null,
-      businessRegistrationNumber: allValues.businessRegistrationNumber || null, // Keep original form field name
-      businessAddress: allValues.businessAddress || null,
-      numberOfEmployees: allValues.numberOfEmployees || null,
-      certifications: allValues.certifications || null,
-      yearsExporting: allValues.yearsExporting || null,
-      businessExperience: allValues.businessExperience || null,
-      registrationDate: allValues.registrationDate
-        ? dayjs(allValues.registrationDate).toISOString()
-        : null,
-      userId: location?.state?.result
-        ? parseInt(location?.state?.result)
-        : null,
-      products: exportProducts
-        .filter((product) => product.productId && product.value)
-        .map((product) => ({
-          productId: parseInt(product.productId),
-          value: parseFloat(product.value),
-        })),
-    };
+  useEffect(() => {
+  if (!roleData) return;
 
-    updateFormData(formattedData);
-  };
+  // Set form fields
+  form.setFieldsValue({
+    businessName: roleData.businessName,
+    businessRegistrationNumber: roleData.businessRegNo,
+    businessAddress: roleData.businessAddress,
+    numberOfEmployees: roleData.numberOfEmployee?.id?.toString() || roleData.numberOfEmployeeId?.toString(),
+    yearsTrading: roleData.businessExperience?.id?.toString() || roleData.businessExperienceId?.toString(),
+    registrationDate: roleData.businessStartDate ? dayjs(roleData.businessStartDate) : undefined,
+    additionalInfo: roleData.businessDescription || "",
+  });
+
+  // Set export products
+  if (Array.isArray(roleData.businessProducts)) {
+    setExportProducts(
+      roleData.businessProducts.map((bp) => ({
+        productId: bp.productId?.toString() || bp.product?.id?.toString(),
+        value: bp.value ? parseFloat(bp.value) : null,
+      }))
+    );
+  }
+}, [roleData, form]);
 
   const experienceOptions = useSelector(selectExperienceOptions) || [];
-  const certificateOptions = useSelector(selectCertificateOptions) || [];
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
   const productOptions = useSelector(selectProductOptions) || [];
 
@@ -109,24 +99,23 @@ const EntrepreneurForm = (props) => {
     updateFormData({ products: newProducts });
   };
 
-  // Format form data to match API structure
-  const formatFormData = (values) => {
+  const handleChange = (changedValues, allValues) => {
+    // Format the data according to API requirements
     const formattedData = {
-      businessName: values.businessName || null,
-      businessRegNo: values.businessRegistrationNumber || null, // Map to correct field
-      businessAddress: values.businessAddress || null,
-      numberOfEmployeeId: values.numberOfEmployees
-        ? parseInt(values.numberOfEmployees)
+      businessName: allValues.businessName || null,
+      businessRegNo: allValues.businessRegistrationNumber || null,
+      businessAddress: allValues.businessAddress || null,
+      numberOfEmployeeId: allValues.numberOfEmployees
+        ? parseInt(allValues.numberOfEmployees)
         : null,
-      certificateId: values.certifications
-        ? parseInt(values.certifications)
+      businessExperienceId: allValues.yearsTrading
+        ? parseInt(allValues.yearsTrading)
         : null,
-      businessExperienceId: values.yearsExporting
-        ? parseInt(values.yearsExporting)
+      registrationDate: allValues.registrationDate
+        ? dayjs(allValues.registrationDate).toISOString()
         : null,
-      userId: location?.state?.result
-        ? parseInt(location?.state?.result)
-        : null,
+      additionalInfo: allValues.additionalInfo || null,
+      userId: location?.state?.result,
       products: exportProducts
         .filter((product) => product.productId && product.value)
         .map((product) => ({
@@ -135,32 +124,21 @@ const EntrepreneurForm = (props) => {
         })),
     };
 
-    return formattedData;
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      const formattedData = formatFormData(values);
-
-      const response = await axiosInstance.post(
-        "/api/entrepreneur",
-        formattedData
-      );
-    } catch (error) {
-      throw new Error("Failed to submit form: " + error.message);
-    }
+    updateFormData(formattedData);
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h3 className="text-xl font-medium text-earth-700 mb-6">
-        {isExisting
-          ? "Existing Business Information"
-          : "Business Startup Information"}
+        Trading Business Information
       </h3>
 
-      <Form form={form} layout="vertical" onValuesChange={handleChange}>
+      <Form
+        form={form}
+        layout="vertical"
+        onValuesChange={handleChange}
+        initialValues={formData}
+      >
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
@@ -170,7 +148,7 @@ const EntrepreneurForm = (props) => {
                 { required: true, message: "Please enter business name" },
               ]}
             >
-              <Input placeholder="Spice Enterprises" />
+              <Input placeholder="Spice Trading Enterprises" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -184,7 +162,7 @@ const EntrepreneurForm = (props) => {
                 },
               ]}
             >
-              <Input placeholder="BRN123456" />
+              <Input placeholder="TRD12345" />
             </Form.Item>
           </Col>
         </Row>
@@ -199,15 +177,14 @@ const EntrepreneurForm = (props) => {
               ]}
             >
               <Input.TextArea
-                rows={2}
-                placeholder="123 Spice Road, Industrial Zone, Colombo"
+                rows={3}
+                placeholder="123 Trading Street, Commercial Zone, Colombo"
               />
             </Form.Item>
           </Col>
         </Row>
 
-        {!isExisting && (
-          <Row gutter={16}>
+        <Row gutter={16}>
             <Col xs={24} sm={12}>
               <Form.Item
                 label="Registration Date"
@@ -219,30 +196,50 @@ const EntrepreneurForm = (props) => {
                   },
                 ]}
               >
-                <DatePicker className="w-full" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Business Experience"
-                name="businessExperience"
-                rules={[
-                  { required: true, message: "Please select experience" },
-                ]}
-              >
-                <Select
-                  placeholder="Select experience level"
-                  options={formatSelects(experienceOptions)}
+                <DatePicker
+                  format="YYYY-MM-DD"
+                  style={{ width: "100%" }}
+                  placeholder="Select date"
                 />
               </Form.Item>
             </Col>
-          </Row>
-        )}
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Years in Trading Business"
+              name="yearsTrading"
+              rules={[
+                { required: true, message: "Please select years in trading" },
+              ]}
+            >
+              <Select
+                placeholder="Select years"
+                options={formatSelects(experienceOptions)}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Number of Employees"
+              name="numberOfEmployees"
+              rules={[
+                { required: true, message: "Please select employee count" },
+              ]}
+            >
+              <Select
+                placeholder="Select count"
+                options={formatSelects(numberOfEmployeeOptions)}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
-              label="Export Spice Products & Values"
+              label="Trading Spice Products & Values"
               rules={[
                 {
                   validator: () => {
@@ -326,60 +323,18 @@ const EntrepreneurForm = (props) => {
         </Row>
 
         <Row gutter={16}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label={isExisting ? "Number of Employees" : "Expected Employees"}
-              name="numberOfEmployees"
-              rules={[
-                { required: true, message: "Please select employee count" },
-              ]}
-            >
-              <Select
-                placeholder="Select count"
-                options={formatSelects(numberOfEmployeeOptions)}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Years in Export Business"
-              name="yearsExporting"
-              rules={[
-                { required: true, message: "Please enter years in exports" },
-              ]}
-            >
-              <Select
-                placeholder="Select years"
-                options={formatSelects(experienceOptions)}
+          <Col span={24}>
+            <Form.Item label="Additional Information" name="additionalInfo">
+              <Input.TextArea
+                rows={4}
+                placeholder="Any additional information about your trading business..."
               />
             </Form.Item>
           </Col>
         </Row>
-
-        <Row gutter={16}>
-          <Col xs={24}>
-            <Form.Item
-              label="Certifications"
-              name="certifications"
-              rules={[
-                {
-                  required: true,
-                  message: "Please select at least one certification",
-                  type: "array",
-                },
-              ]}
-            >
-              <Checkbox.Group options={formatSelects(certificateOptions)} />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
-          Submit
-        </Button>
       </Form>
     </div>
   );
 };
 
-export default EntrepreneurForm;
+export default IntermediaryFormEdit;

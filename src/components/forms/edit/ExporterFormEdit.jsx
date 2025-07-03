@@ -19,7 +19,7 @@ import {
   PlusOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { useFormContext } from "../../contexts/FormContext";
+import { useFormContext } from "../../../contexts/FormContext";
 import countries from "country-json/src/country-by-name.json";
 import {
   fetchCertificateOptions,
@@ -30,12 +30,12 @@ import {
   selectCertificateOptions,
   selectNumEmployeeOptions,
   selectProductOptions,
-} from "../../store/slices/utilsSlice";
+} from "../../../store/slices/utilsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import { useLocation } from "react-router-dom";
 
-const ExporterForm = ({ isExisting }) => {
+const ExporterFormEdit = ({ roleData, isExisting }) => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { updateFormData, formData } = useFormContext();
@@ -43,6 +43,39 @@ const ExporterForm = ({ isExisting }) => {
   const [exportProducts, setExportProducts] = useState([
     { productId: null, value: null },
   ]);
+
+  useEffect(() => {
+  if (!roleData) return;
+
+  // Set form fields
+  form.setFieldsValue({
+    businessName: roleData.businessName,
+    businessRegNumber: roleData.businessRegNo,
+    productRange: roleData.productRange,
+    numberOfEmployees: roleData.numberOfEmployee?.id?.toString() || roleData.numberOfEmployeeId?.toString(),
+    yearsExporting: roleData.businessExperience?.id?.toString() || roleData.businessExperienceId?.toString(),
+    exportCountries: roleData.exportingCountries || [],
+    exportStartDate: roleData.startDate ? dayjs(roleData.startDate) : undefined,
+    businessDescription: roleData.businessDescription,
+    certifications: Array.isArray(roleData.certificate)
+      ? roleData.certificate.map((c) => c.id?.toString())
+      : roleData.certificateId
+        ? [roleData.certificateId.toString()]
+        : roleData.certificate?.id
+          ? [roleData.certificate.id.toString()]
+          : [],
+  });
+
+  // Set export products
+  if (Array.isArray(roleData.businessProducts)) {
+    setExportProducts(
+      roleData.businessProducts.map((bp) => ({
+        productId: bp.productId?.toString() || bp.product?.id?.toString(),
+        value: bp.value ? parseFloat(bp.value) : null,
+      }))
+    );
+  }
+}, [roleData, form]);
 
   const load = async () => {
     await dispatch(fetchCertificateOptions());
@@ -346,4 +379,4 @@ const ExporterForm = ({ isExisting }) => {
   );
 };
 
-export default ExporterForm;
+export default ExporterFormEdit;

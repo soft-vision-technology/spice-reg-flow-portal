@@ -6,7 +6,7 @@ import MainLayout from "./components/layout/MainLayout";
 import { FormProvider } from "./contexts/FormContext";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { routes, createRouteElement } from "./constants/routes";
-import socket from "./utils/socket";
+// import socket from "./utils/socket";
 
 const queryClient = new QueryClient();
 
@@ -18,15 +18,15 @@ const LoadingSpinner = () => (
 );
 
 const App = () =>{ 
-  useEffect(() => {
-    socket.on('notification', (data) => {
-      console.log("New notification received:", data);
-      // You can handle the notification here, e.g., update state or show a toast
-    });
-    return () => {
-      socket.off('notification');
-    }
-  }, []);
+  // useEffect(() => {
+  //   socket.on('notification', (data) => {
+  //     console.log("New notification received:", data);
+  //     // You can handle the notification here, e.g., update state or show a toast
+  //   });
+  //   return () => {
+  //     socket.off('notification');
+  //   }
+  // }, []);
   return(
   
   <QueryClientProvider client={queryClient}>

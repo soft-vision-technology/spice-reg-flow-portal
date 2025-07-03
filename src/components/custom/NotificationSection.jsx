@@ -4,11 +4,10 @@ import { BellOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  markAsRead,
-  markAllAsRead,
-  deleteNotification,
-  clearAllNotifications,
   fetchNotifications,
+  markNotificationAsRead,
+  markAllNotificationAsRead,
+  clearAllNotifications,
 } from "../../store/slices/notificationSlice";
 
 const { Text } = Typography;
@@ -23,18 +22,22 @@ const NotificationSection = () => {
     dispatch(fetchNotifications());
   }, [dispatch]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleMarkAsRead = (id) => {
-    dispatch(markAsRead(id));
+    dispatch(markNotificationAsRead(id)).then(() => {
+      dispatch(fetchNotifications());
+    });
   };
 
   const handleMarkAllAsRead = () => {
-    dispatch(markAllAsRead());
+    dispatch(markAllNotificationAsRead()).then(() => {
+      dispatch(fetchNotifications());
+    });
   };
 
   const handleDeleteNotification = (id) => {
-    dispatch(deleteNotification(id));
+    dispatch(deleteNotificatios(id));
   };
 
   const handleClearAllNotifications = () => {
@@ -43,18 +46,27 @@ const NotificationSection = () => {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'success': return '#10b981';
-      case 'warning': return '#f59e0b';
-      case 'error': return '#ef4444';
-      default: return '#3b82f6';
+      case "success":
+        return "#10b981";
+      case "warning":
+        return "#f59e0b";
+      case "error":
+        return "#ef4444";
+      default:
+        return "#3b82f6";
     }
   };
 
   const notificationItems = (
-    <div className="overflow-hidden flex flex-col bg-white rounded-lg shadow-lg border" style={{ width: 420 }}>
+    <div
+      className="overflow-hidden flex flex-col bg-white rounded-lg shadow-lg border"
+      style={{ width: 420 }}
+    >
       {/* Header */}
       <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-        <Text strong className="text-base text-gray-900">Notifications</Text>
+        <Text strong className="text-base text-gray-900">
+          Notifications
+        </Text>
         {notifications.length > 0 && (
           <div className="flex gap-2">
             {unreadCount > 0 && (
@@ -95,15 +107,21 @@ const NotificationSection = () => {
               <div
                 key={item.id}
                 className={`group relative px-5 py-4 cursor-pointer transition-all duration-200 border-l-3 hover:bg-gray-50 ${
-                  !item.read 
-                    ? 'bg-blue-25 border-l-blue-500' 
-                    : 'border-l-transparent hover:border-l-gray-200'
-                } ${index !== notifications.length - 1 ? 'border-b border-gray-100' : ''}`}
-                style={{ 
-                  borderLeftColor: !item.read ? getTypeColor(item.type) : 'transparent',
+                  !item.read
+                    ? "bg-blue-25 border-l-blue-500"
+                    : "border-l-transparent hover:border-l-gray-200"
+                } ${
+                  index !== notifications.length - 1
+                    ? "border-b border-gray-100"
+                    : ""
+                }`}
+                style={{
+                  borderLeftColor: !item.read
+                    ? getTypeColor(item.type)
+                    : "transparent",
                 }}
                 onClick={(e) => {
-                  if (e.target.closest('.delete-btn')) return;
+                  if (e.target.closest(".delete-btn")) return;
                   handleMarkAsRead(item.id);
                 }}
               >
@@ -125,29 +143,29 @@ const NotificationSection = () => {
                     <div className="flex items-center gap-2 flex-1">
                       {/* Unread Indicator Dot */}
                       {!item.read && (
-                        <div 
+                        <div
                           className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
                           style={{ backgroundColor: getTypeColor(item.type) }}
                         />
                       )}
-                      
+
                       {/* Title */}
-                      <Text 
-                        strong 
+                      <Text
+                        strong
                         className={`text-sm leading-5 ${
-                          !item.read ? 'text-gray-900' : 'text-gray-700'
+                          !item.read ? "text-gray-900" : "text-gray-700"
                         }`}
                       >
                         {item.title}
                       </Text>
                     </div>
                   </div>
-                  
+
                   {/* Message */}
-                  <div className={`${!item.read ? 'ml-4' : ''} mb-2`}>
-                    <Text 
+                  <div className={`${!item.read ? "ml-4" : ""} mb-2`}>
+                    <Text
                       className={`text-sm leading-5 block ${
-                        !item.read ? 'text-gray-700' : 'text-gray-600'
+                        !item.read ? "text-gray-700" : "text-gray-600"
                       }`}
                     >
                       {item.message}
@@ -155,10 +173,8 @@ const NotificationSection = () => {
                   </div>
 
                   {/* Timestamp */}
-                  <div className={`${!item.read ? 'ml-4' : ''}`}>
-                    <Text className="text-xs text-gray-500">
-                      {item.time}
-                    </Text>
+                  <div className={`${!item.read ? "ml-4" : ""}`}>
+                    <Text className="text-xs text-gray-500">{item.time}</Text>
                   </div>
                 </div>
               </div>
@@ -176,7 +192,7 @@ const NotificationSection = () => {
             className="text-sm text-blue-600 hover:text-blue-800 p-0 h-auto"
             onClick={() => {
               setDropdownOpen(false);
-              navigate('/notifications');
+              navigate("/notifications");
             }}
           >
             View All Notifications
@@ -188,15 +204,19 @@ const NotificationSection = () => {
 
   return (
     <Dropdown
-      dropdownRender={() => notificationItems}
-      trigger={['click']}
+      popupRender={() => notificationItems}
+      trigger={["click"]}
       placement="bottomRight"
       overlayClassName="notification-dropdown"
       open={dropdownOpen}
       onOpenChange={setDropdownOpen}
     >
       <div className="cursor-pointer px-3 py-2 flex items-center hover:bg-gray-100 rounded-lg transition-colors">
-        <Badge count={notifications.filter(n => !n.read).length} size="small" offset={[8, -8]}>
+        <Badge
+          count={notifications.filter((n) => !n.read).length}
+          size="small"
+          offset={[8, -8]}
+        >
           <BellOutlined className="text-xl text-gray-600 hover:text-gray-800 transition-colors" />
         </Badge>
       </div>

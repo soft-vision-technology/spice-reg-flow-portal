@@ -28,6 +28,10 @@ import {
   UserSwitchOutlined,
   ReloadOutlined,
   SearchOutlined,
+  UserOutlined,
+  MailOutlined,
+  LockOutlined,
+  IdcardOutlined,
 } from "@ant-design/icons";
 import {
   fetchUsers,
@@ -124,6 +128,7 @@ const UserManagement = () => {
     form.setFieldsValue({
       name: user.name,
       email: user.email,
+      password: user.password,
       role: user.role,
     });
     setEditModalVisible(true);
@@ -375,8 +380,8 @@ const UserManagement = () => {
         open={editModalVisible}
         onCancel={handleModalCancel}
         footer={null}
-        width={600}
-        destroyOnClose
+        width={400}
+        destroyOnHidden
       >
         {updateUserError && (
           <Alert
@@ -394,15 +399,15 @@ const UserManagement = () => {
           form={form}
           layout="vertical"
           onFinish={handleEditSubmit}
-          requiredMark={false}
+          requiredMark={true}
         >
           <Row gutter={16}>
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={24}>
               <Form.Item
                 label="Full Name"
                 name="name"
                 rules={[
-                  { required: true, message: "Please enter the full name" },
+                  { required: false, message: "Please enter the full name" },
                   {
                     min: 2,
                     message: "Name must be at least 2 characters long",
@@ -410,29 +415,35 @@ const UserManagement = () => {
                   { max: 50, message: "Name cannot exceed 50 characters" },
                 ]}
               >
-                <Input placeholder="Enter full name" />
+                <Input
+                  prefix={<UserOutlined />}
+                  placeholder="Enter full name"
+                />
               </Form.Item>
             </Col>
 
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={24}>
               <Form.Item
                 label="Email Address"
                 name="email"
                 rules={[
-                  { required: true, message: "Please enter an email address" },
+                  { required: false, message: "Please enter an email address" },
                   {
                     type: "email",
                     message: "Please enter a valid email address",
                   },
                 ]}
               >
-                <Input placeholder="Enter email address" />
+                <Input
+                  prefix={<MailOutlined />}
+                  placeholder="Enter email address"
+                />
               </Form.Item>
             </Col>
           </Row>
 
           <Row gutter={16}>
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={24}>
               <Form.Item
                 label="Password"
                 name="password"
@@ -444,17 +455,23 @@ const UserManagement = () => {
                   },
                 ]}
               >
-                <Input placeholder="Change password" />
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder="Change password"
+                />
               </Form.Item>
             </Col>
 
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={24}>
               <Form.Item
                 label="Role"
                 name="role"
-                rules={[{ required: true, message: "Please select a role" }]}
+                rules={[{ required: false, message: "Please select a role" }]}
               >
-                <Select placeholder="Select user role">
+                <Select
+                  prefix={<IdcardOutlined />}
+                  placeholder="Select user role"
+                >
                   {userRoles.map((role) => (
                     <Option key={role.value} value={role.value}>
                       {role.label}
@@ -474,6 +491,11 @@ const UserManagement = () => {
               htmlType="submit"
               loading={updateUserLoading}
               icon={<EditOutlined />}
+              onClick={() => {
+                message.info(
+                  "Please double-check all details before updating the user."
+                );
+              }}
             >
               Update User
             </Button>
@@ -545,7 +567,7 @@ const RegisterUser = () => {
       title={
         <div className="flex items-center">
           <UserAddOutlined className="text-xl text-blue-600 mr-2" />
-          <span>Create New User</span>
+          <span>Create New System User</span>
         </div>
       }
       className="h-full"
@@ -684,6 +706,11 @@ const RegisterUser = () => {
             size="large"
             loading={createUserLoading}
             icon={<UserAddOutlined />}
+            onClick={() => {
+              message.info(
+                "Please double-check all details before creating the user."
+              );
+            }}
           >
             Create User
           </Button>

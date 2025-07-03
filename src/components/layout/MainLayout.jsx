@@ -5,8 +5,8 @@ import { useLocation } from "react-router-dom";
 import SidebarMenu from "./SidebarMenu";
 import LogoutButton from "../auth/LogoutButton";
 import NotificationSection from "../custom/NotificationSection";
-import logoFull from "../../assets/logoFull.png";
-import logoIcon from "../../assets/logoIcon.png";
+import logoFull from "../../assets/spiceLogo.jpg";
+import logoIcon from "../../assets/spiceLogo.jpg";
 import { selectAuthUser } from "../../store/slices/authSlice";
 import { useSelector } from "react-redux";
 
@@ -25,7 +25,6 @@ const MainLayout = ({ children }) => {
   const toggle = () => {
     setCollapsed(!collapsed);
   };
-
 
   return (
     <Layout className="h-screen overflow-hidden">
@@ -48,7 +47,7 @@ const MainLayout = ({ children }) => {
               src={collapsed ? logoIcon : logoFull}
               alt="SpiceConnect Logo"
               className={`transition-all duration-300 ${
-                collapsed ? "w-12 h-10" : "w-32 h-12"
+                collapsed ? "w-16 h-16" : "w-24 h-24"
               }`}
             />
           </div>
