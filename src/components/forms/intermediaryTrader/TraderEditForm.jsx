@@ -258,7 +258,7 @@ const handleChange = (changedValues, allValues) => {
               productId: parseInt(product.productId),
               value: parseFloat(product.value),
             })),
-          userId: id,
+          userId: id? parseInt(id) : null,
         };
 
         const response = await axiosInstance.post(

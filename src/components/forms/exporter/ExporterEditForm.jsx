@@ -316,7 +316,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
               value: parseFloat(product.value),
             })),
           certificateId: mappedAll.certificateId || [],
-          userId: id,
+          userId: id? parseInt(id) : null,
         };
 
         const response = await axiosInstance.post(
