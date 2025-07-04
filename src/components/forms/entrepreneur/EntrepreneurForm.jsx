@@ -11,9 +11,10 @@ import {
   Radio,
   Card,
   Space,
+  Checkbox,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useFormContext } from "../../contexts/FormContext";
+import { useFormContext } from "../../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchCertificateOptions,
@@ -24,9 +25,9 @@ import {
   selectCertificateOptions,
   selectNumEmployeeOptions,
   selectProductOptions,
-} from "../../store/slices/utilsSlice";
+} from "../../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
-import axiosInstance from "../../api/axiosInstance";
+import axiosInstance from "../../../api/axiosInstance";
 
 const { Option } = Select;
 
@@ -58,7 +59,9 @@ const EntrepreneurForm = (props) => {
       businessRegistrationNumber: allValues.businessRegistrationNumber || null, // Keep original form field name
       businessAddress: allValues.businessAddress || null,
       numberOfEmployees: allValues.numberOfEmployees || null,
-      certifications: allValues.certifications || null,
+      certifications: Array.isArray(allValues.certifications)
+        ? allValues.certifications.map((id) => parseInt(id))
+        : [],
       yearsExporting: allValues.yearsExporting || null,
       businessExperience: allValues.businessExperience || null,
       registrationDate: allValues.registrationDate
@@ -118,9 +121,9 @@ const EntrepreneurForm = (props) => {
       numberOfEmployeeId: values.numberOfEmployees
         ? parseInt(values.numberOfEmployees)
         : null,
-      certificateId: values.certifications
-        ? parseInt(values.certifications)
-        : null,
+      certificateIds: Array.isArray(values.certifications)
+        ? values.certifications.map((id) => parseInt(id))
+        : [],
       businessExperienceId: values.yearsExporting
         ? parseInt(values.yearsExporting)
         : null,

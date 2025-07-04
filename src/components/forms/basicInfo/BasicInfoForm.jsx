@@ -1,62 +1,45 @@
 import React, { useEffect, useState } from "react";
 import { Form, Input, Select, Col, Row } from "antd";
-import { useDispatch, useSelector } from "react-redux";
 import { useFormContext } from "../../../contexts/FormContext";
-import { fetchProvince, selectProvinceOptions } from "../../../store/slices/utilsSlice";
+import {  selectProvinceOptions, fetchProvince } from "../../../store/slices/utilsSlice";
+import { updateBasicInfo, saveBasicInfo, fetchBasicInfo } from "../../../store/slices/basicInfoSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const { Option } = Select;
 
-const BasicInfoEdit = ({ user }) => {
+const BasicInfoForm = () => {
   const dispatch = useDispatch();
   const { updateFormData } = useFormContext();
-  const provinces = useSelector(selectProvinceOptions);
-
-  const [form] = Form.useForm();               // 1️⃣ grab a form instance
   const [selectedProvince, setSelectedProvince] = useState(null);
 
-  /* fetch lookup tables on mount */
   useEffect(() => {
+    // Fetch provinces when the component mounts
     dispatch(fetchProvince());
   }, [dispatch]);
+  const provinces = useSelector(selectProvinceOptions);
 
-  /* hydrate when the user payload shows up */
-  useEffect(() => {
-    if (!user) return;                          // may be undefined on first render
+  const handleProvinceChange = (value) => {
+    setSelectedProvince(value);
+  };
 
-    form.setFieldsValue({
-      title:        user.title,
-      initials:     user.initials?.trim(),
-      fullName:     user.name,                  // API -> form name mismatch
-      nic:          user.nic,
-      address:      user.address,
-      email:        user.email,
-      mobileNumber: user.contactNumber,
-      province:     user.provinceId,
-      district:     user.districtId,
-      dsDivision:   user.dsDivision,
-      gnDivision:   user.gnDivision,
-    });
+  // Find the selected province object
+  const selectedProvinceObj = provinces.find(
+    (province) => province.id === selectedProvince
+  );
 
-    setSelectedProvince(user.provinceId);       // keep district dropdown enabled
-  }, [user, form]);
-
-  /* cascaded district list */
-  const handleProvinceChange = (value) => setSelectedProvince(value);
-  const selectedProvinceObj = provinces.find((p) => p.id === selectedProvince);
+  // Get districts for the selected province, or empty array if none selected
   const districts = selectedProvinceObj ? selectedProvinceObj.districts : [];
 
-  /* bubble every change up to whatever parent/Redux you’ve got */
-  const handleChange = (_, allValues) => updateFormData(allValues);
+  const handleChange = (_, allValues) => {
+    updateFormData(allValues);
+  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
-      <h3 className="text-xl font-medium text-earth-700 mb-6">Basic Information</h3>
-
-      <Form
-        form={form}                   // <-- tie the instance in
-        layout="vertical"
-        onValuesChange={handleChange}
-      >
+      <h3 className="text-xl font-medium text-earth-700 mb-6">
+        Basic Information
+      </h3>
+      <Form layout="vertical" onValuesChange={handleChange}>
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
@@ -71,9 +54,14 @@ const BasicInfoEdit = ({ user }) => {
               </Select>
             </Form.Item>
           </Col>
-
           <Col xs={24} sm={12}>
-            <Form.Item label="Initials" name="initials">
+            <Form.Item
+              label="Initials"
+              name="initials"
+              rules={[
+                { required: false, message: "Please enter your initials" },
+              ]}
+            >
               <Input placeholder="T. N." />
             </Form.Item>
           </Col>
@@ -84,12 +72,13 @@ const BasicInfoEdit = ({ user }) => {
             <Form.Item
               label="Full Name"
               name="fullName"
-              rules={[{ required: true, message: "Please enter your full name" }]}
+              rules={[
+                { required: true, message: "Please enter your full name" },
+              ]}
             >
-              <Input placeholder="John Doe" />
+              <Input placeholder="John Doe" />
             </Form.Item>
           </Col>
-
           <Col xs={24} sm={12}>
             <Form.Item
               label="National ID Number (NIC)"
@@ -132,7 +121,6 @@ const BasicInfoEdit = ({ user }) => {
               <Input placeholder="john.doe@example.com" />
             </Form.Item>
           </Col>
-
           <Col xs={24} sm={12}>
             <Form.Item
               label="Mobile Number"
@@ -141,7 +129,7 @@ const BasicInfoEdit = ({ user }) => {
                 { required: true, message: "Please enter your mobile number" },
                 {
                   pattern: /^[0-9]{10}$/,
-                  message: "Please enter a valid 10‑digit mobile number",
+                  message: "Please enter a valid 10-digit mobile number",
                 },
               ]}
             >
@@ -149,18 +137,24 @@ const BasicInfoEdit = ({ user }) => {
             </Form.Item>
           </Col>
         </Row>
-
+        
         <Row gutter={16}>
           <Col xs={24} sm={12}>
-            <Form.Item label="Province" name="province">
+            <Form.Item
+              label="Province"
+              name="province"
+              rules={[
+                { required: false, message: "Please select your province" },
+              ]}
+            >
               <Select
                 placeholder="Select province"
                 onChange={handleProvinceChange}
                 allowClear
               >
-                {provinces.map((prov) => (
-                  <Option key={prov.id} value={prov.id}>
-                    {prov.name}
+                {provinces.map((province) => (
+                  <Option key={province.id} value={province.id}>
+                    {province.name}
                   </Option>
                 ))}
               </Select>
@@ -168,27 +162,47 @@ const BasicInfoEdit = ({ user }) => {
           </Col>
 
           <Col xs={24} sm={12}>
-            <Form.Item label="District" name="district">
-              <Select placeholder="Select district" disabled={!selectedProvince}>
-                {districts.map((dist) => (
-                  <Option key={dist.id} value={dist.id}>
-                    {dist.name}
+            <Form.Item
+              label="District"
+              name="district"
+              rules={[
+                { required: false, message: "Please select your district" },
+              ]}
+            >
+              <Select
+                placeholder="Select district"
+                disabled={!selectedProvince}
+              >
+                {districts.map((district) => (
+                  <Option key={district.id} value={district.id}>
+                    {district.name}
                   </Option>
                 ))}
               </Select>
             </Form.Item>
           </Col>
         </Row>
-
+                
         <Row gutter={16}>
           <Col xs={24} sm={12}>
-            <Form.Item label="DS Division" name="dsDivision">
+            <Form.Item 
+              label="DS Division" 
+              name="dsDivision"
+              rules={[
+                { required: false, message: "Please enter your DS Division" },
+              ]}
+            >
               <Input placeholder="Gampaha" />
             </Form.Item>
           </Col>
-
           <Col xs={24} sm={12}>
-            <Form.Item label="GN Division" name="gnDivision">
+            <Form.Item 
+              label="GN Division" 
+              name="gnDivision"
+              rules={[
+                { required: false, message: "Please enter your GN Division" },
+              ]}
+            >
               <Input placeholder="Ethgala" />
             </Form.Item>
           </Col>
@@ -198,4 +212,4 @@ const BasicInfoEdit = ({ user }) => {
   );
 };
 
-export default BasicInfoEdit;
+export default BasicInfoForm;

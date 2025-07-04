@@ -35,7 +35,7 @@ import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import { useLocation } from "react-router-dom";
 
-const ExporterFormEdit = ({ roleData, isExisting }) => {
+const ExporterEditForm = ({ roleData, isExisting }) => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { updateFormData, formData } = useFormContext();
@@ -379,4 +379,4 @@ const ExporterFormEdit = ({ roleData, isExisting }) => {
   );
 };
 
-export default ExporterFormEdit;
+export default ExporterEditForm;

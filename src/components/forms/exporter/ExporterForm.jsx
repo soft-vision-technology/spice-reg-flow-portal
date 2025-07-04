@@ -19,7 +19,7 @@ import {
   PlusOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { useFormContext } from "../../contexts/FormContext";
+import { useFormContext } from "../../../contexts/FormContext";
 import countries from "country-json/src/country-by-name.json";
 import {
   fetchCertificateOptions,
@@ -30,7 +30,7 @@ import {
   selectCertificateOptions,
   selectNumEmployeeOptions,
   selectProductOptions,
-} from "../../store/slices/utilsSlice";
+} from "../../../store/slices/utilsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import { useLocation } from "react-router-dom";

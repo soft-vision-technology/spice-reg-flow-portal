@@ -25,7 +25,7 @@ import {
 import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 
-const IntermediaryFormEdit = ({ roleData, isExisting }) => {
+const TraderEditForm = ({ roleData, isExisting }) => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { updateFormData, formData } = useFormContext();
@@ -337,4 +337,4 @@ const IntermediaryFormEdit = ({ roleData, isExisting }) => {
   );
 };
 
-export default IntermediaryFormEdit;
+export default TraderEditForm;

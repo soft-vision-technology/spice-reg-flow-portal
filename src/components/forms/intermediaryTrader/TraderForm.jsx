@@ -12,7 +12,7 @@ import {
   Space,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useFormContext } from "../../contexts/FormContext";
+import { useFormContext } from "../../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchExperienceOptions,
@@ -21,11 +21,11 @@ import {
   selectExperienceOptions,
   selectNumEmployeeOptions,
   selectProductOptions,
-} from "../../store/slices/utilsSlice";
+} from "../../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 
-const IntermediaryForm = ({ isExisting }) => {
+const TraderForm = ({ isExisting }) => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { updateFormData, formData } = useFormContext();
@@ -312,4 +312,4 @@ const IntermediaryForm = ({ isExisting }) => {
   );
 };
 
-export default IntermediaryForm;
+export default TraderForm;

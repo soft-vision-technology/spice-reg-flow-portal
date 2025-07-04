@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Steps, Button, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import IntermediaryForm from "../components/forms/IntermediaryForm";
+import TraderForm from "../components/forms/intermediaryTrader/TraderForm";
 import { useFormContext } from "../contexts/FormContext";
 import axiosInstance from "../api/axiosInstance";
 
@@ -41,7 +41,7 @@ const IntermediaryPage = () => {
   const steps = [
     {
       title: "Trading Business Information",
-      content: <IntermediaryForm isExisting={isExistingBusiness} />,
+      content: <TraderForm isExisting={isExistingBusiness} />,
     },
     {
       title: "Review & Submit",

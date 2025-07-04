@@ -26,12 +26,15 @@ import {
   selectNumEmployeeOptions,
   selectProductOptions,
 } from "../../../store/slices/utilsSlice";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "../../../api/axiosInstance";
+import dayjs from "dayjs";
+import { use } from "react";
 
 const { Option } = Select;
 
-const EntrepreneurFormEdit = ({ roleData, isExisting }) => {
+const EntrepreneurEditForm = ({ roleData, isExisting }) => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
   const { updateFormData } = useFormContext();
@@ -39,6 +42,10 @@ const EntrepreneurFormEdit = ({ roleData, isExisting }) => {
   const [exportProducts, setExportProducts] = useState([
     { productId: null, value: null },
   ]);
+
+  // Store original data for comparison
+  const [originalData, setOriginalData] = useState({});
+  const [originalProducts, setOriginalProducts] = useState([]);
 
   const load = async () => {
     await dispatch(fetchCertificateOptions());
@@ -54,8 +61,8 @@ const EntrepreneurFormEdit = ({ roleData, isExisting }) => {
   useEffect(() => {
     if (!roleData) return;
 
-    // Set form fields
-    form.setFieldsValue({
+    // Prepare initial form data
+    const initialFormData = {
       businessName: roleData.businessName,
       businessRegistrationNumber: roleData.businessRegNo,
       businessAddress: roleData.businessAddress,
@@ -76,24 +83,52 @@ const EntrepreneurFormEdit = ({ roleData, isExisting }) => {
       businessExperience:
         roleData.businessExperience?.id?.toString() ||
         roleData.businessExperienceId?.toString(),
+    };
+
+    // Set form fields
+    form.setFieldsValue(initialFormData);
+
+    // Store original data for comparison
+    setOriginalData({
+      businessName: roleData.businessName,
+      businessRegistrationNumber: roleData.businessRegNo,
+      businessAddress: roleData.businessAddress,
+      numberOfEmployees:
+        roleData.numberOfEmployee?.id?.toString() ||
+        roleData.numberOfEmployeeId?.toString(),
+      certifications: Array.isArray(roleData.certificate)
+        ? roleData.certificate.map((c) => c.id?.toString())
+        : roleData.certificateId
+        ? [roleData.certificateId.toString()]
+        : [],
+      yearsExporting:
+        roleData.businessExperience?.id?.toString() ||
+        roleData.businessExperienceId?.toString(),
+      registrationDate: roleData.registrationDate
+        ? dayjs(roleData.registrationDate).format("YYYY-MM-DD")
+        : undefined,
+      businessExperience:
+        roleData.businessExperience?.id?.toString() ||
+        roleData.businessExperienceId?.toString(),
     });
 
     // Set export products
-    if (Array.isArray(roleData.businessProducts)) {
-      setExportProducts(
-        roleData.businessProducts.map((bp) => ({
+    const initialProducts = Array.isArray(roleData.businessProducts)
+      ? roleData.businessProducts.map((bp) => ({
           productId: bp.productId?.toString() || bp.product?.id?.toString(),
           value: bp.value ? parseFloat(bp.value) : null,
         }))
-      );
-    }
+      : [{ productId: null, value: null }];
+
+    setExportProducts(initialProducts);
+    setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
   }, [roleData, form]);
 
   const handleChange = (changedValues, allValues) => {
     // Format the data according to API requirements
     const formattedData = {
       businessName: allValues.businessName || null,
-      businessRegistrationNumber: allValues.businessRegistrationNumber || null, // Keep original form field name
+      businessRegistrationNumber: allValues.businessRegistrationNumber || null,
       businessAddress: allValues.businessAddress || null,
       numberOfEmployees: allValues.numberOfEmployees || null,
       certifications: allValues.certifications || null,
@@ -147,45 +182,161 @@ const EntrepreneurFormEdit = ({ roleData, isExisting }) => {
     updateFormData({ products: newProducts });
   };
 
-  // Format form data to match API structure
-  const formatFormData = (values) => {
-    const formattedData = {
-      businessName: values.businessName || null,
-      businessRegNo: values.businessRegistrationNumber || null, // Map to correct field
-      businessAddress: values.businessAddress || null,
-      numberOfEmployeeId: values.numberOfEmployees
-        ? parseInt(values.numberOfEmployees)
-        : null,
-      certificateIds: Array.isArray(values.certifications)
-      ? values.certifications.map((id) => parseInt(id))
-      : [],
-      businessExperienceId: values.yearsExporting
-        ? parseInt(values.yearsExporting)
-        : null,
-      userId: location?.state?.result
-        ? parseInt(location?.state?.result)
-        : null,
-      products: exportProducts
+  // Helper function to deep compare arrays
+  const arraysEqual = (arr1, arr2) => {
+    if (arr1.length !== arr2.length) return false;
+    return arr1.every((item, index) => {
+      if (typeof item === "object" && item !== null) {
+        return JSON.stringify(item) === JSON.stringify(arr2[index]);
+      }
+      return item === arr2[index];
+    });
+  };
+
+  // Helper function to get only changed fields
+  const getChangedFields = (currentValues) => {
+    const changedData = {};
+
+    // Compare form fields
+    Object.keys(currentValues).forEach((key) => {
+      let currentValue = currentValues[key];
+      let originalValue = originalData[key];
+
+      // Handle date comparison
+      if (key === "registrationDate") {
+        currentValue = currentValue
+          ? dayjs(currentValue).format("YYYY-MM-DD")
+          : undefined;
+      }
+
+      // Handle array comparison (for certifications)
+      if (Array.isArray(currentValue) && Array.isArray(originalValue)) {
+        if (!arraysEqual(currentValue, originalValue)) {
+          changedData[key] = currentValue;
+        }
+      } else if (currentValue !== originalValue) {
+        changedData[key] = currentValue;
+      }
+    });
+
+    // Compare products
+    if (!arraysEqual(exportProducts, originalProducts)) {
+      changedData.products = exportProducts
         .filter((product) => product.productId && product.value)
         .map((product) => ({
           productId: parseInt(product.productId),
           value: parseFloat(product.value),
-        })),
+        }));
+    }
+
+    return changedData;
+  };
+
+  // Map form field names to API field names
+  const mapFieldNames = (data) => {
+    const fieldMapping = {
+      businessRegistrationNumber: "businessRegNo",
+      numberOfEmployees: "numberOfEmployeeId",
+      certifications: "certificateIds",
+      yearsExporting: "businessExperienceId",
+      businessExperience: "businessExperienceId",
     };
 
-    return formattedData;
+    const mappedData = {};
+
+    Object.keys(data).forEach((key) => {
+      const apiKey = fieldMapping[key] || key;
+      let value = data[key];
+
+      // Handle specific transformations
+      if (key === "numberOfEmployees" && value) {
+        value = parseInt(value);
+      } else if (key === "certifications" && Array.isArray(value)) {
+        value = value.map((id) => parseInt(id));
+      } else if (
+        (key === "yearsExporting" || key === "businessExperience") &&
+        value
+      ) {
+        value = parseInt(value);
+      } else if (key === "registrationDate" && value) {
+        value = dayjs(value).toISOString();
+      }
+
+      mappedData[apiKey] = value;
+    });
+
+    return mappedData;
   };
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      const formattedData = formatFormData(values);
+      const changedFields = getChangedFields(values);
+
+      // If no changes, don't submit
+      if (Object.keys(changedFields).length === 0) {
+        console.log("No changes detected");
+        return;
+      }
+
+      // Map field names to API format
+      const mappedChanges = mapFieldNames(changedFields);
+
+      // Prepare approval request
+      const approvalRequest = {
+        type: "editData",
+        requestName: `Entrepreneur: ${roleData?.user?.name}`,
+        requestData: mappedChanges,
+        requestedUrl: `entrepreneur/${roleData.id || location?.state?.result}`,
+      };
+
+      console.log("Submitting changes:", approvalRequest);
+
+      if (!roleData?.id) {
+        const formattedData = {
+          businessName: mappedChanges?.businessName || null,
+          businessRegNo: mappedChanges?.businessRegistrationNumber || null, // Map to correct field
+          businessAddress: mappedChanges?.businessAddress || null,
+          numberOfEmployeeId: mappedChanges?.numberOfEmployees
+            ? parseInt(mappedChanges?.numberOfEmployees)
+            : null,
+          certificateIds: Array.isArray(mappedChanges?.certifications)
+            ? mappedChanges?.certifications.map((id) => parseInt(id))
+            : [],
+          businessExperienceId: mappedChanges?.yearsExporting
+            ? parseInt(mappedChanges?.yearsExporting)
+            : null,
+          userId: location?.state?.result
+            ? parseInt(location?.state?.result)
+            : null,
+          products: exportProducts
+            .filter((product) => product.productId && product.value)
+            .map((product) => ({
+              productId: parseInt(product.productId),
+              value: parseFloat(product.value),
+            })),
+        };
+
+        const response = await axiosInstance.post(
+          "/api/entreprenuer/",
+          formattedData
+        );
+        console.log(response.data);
+        navigate("/user-management");
+        alert("Success!")
+        return response;
+      }
 
       const response = await axiosInstance.post(
-        "/api/entrepreneur",
-        formattedData
+        "/api/approval/create",
+        approvalRequest
       );
+      navigate("/user-management");
+      console.log("Approval request submitted successfully:", response.data);
+
+      // Optionally show success message or redirect
     } catch (error) {
+      console.error("Failed to submit approval request:", error);
       throw new Error("Failed to submit form: " + error.message);
     }
   };
@@ -413,11 +564,11 @@ const EntrepreneurFormEdit = ({ roleData, isExisting }) => {
         </Row>
 
         <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
-          Submit
+          Submit Changes
         </Button>
       </Form>
     </div>
   );
 };
 
-export default EntrepreneurFormEdit;
+export default EntrepreneurEditForm;

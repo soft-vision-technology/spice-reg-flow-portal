@@ -23,10 +23,10 @@ import {
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import { useDispatch, useSelector } from "react-redux";
-import BasicInfoEdit from "../components/forms/edit/BasicInfoEdit";
-import EntrepreneurFormEdit from "../components/forms/edit/EntrepreneurFormEdit";
-import ExporterFormEdit from "../components/forms/edit/ExporterFormEdit";
-import IntermediaryFormEdit from "../components/forms/edit/IntermediaryFormEdit";
+import BasicInfoEditForm from "../components/forms/basicInfo/BasicInfoEditForm";
+import EntrepreneurEditForm from "../components/forms/entrepreneur/EntrepreneurEditForm";
+import ExporterEditForm from "../components/forms/exporter/ExporterEditForm";
+import TraderEditForm from "../components/forms/intermediaryTrader/TraderEditForm";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -314,8 +314,8 @@ const EditPage = ({ userId, onUserUpdate }) => {
                 }
                 key="basic"
               >
-                <BasicInfoEdit user={user} />
-                <div className="flex justify-end mt-6">
+                <BasicInfoEditForm user={user} />
+                {/* <div className="flex justify-end mt-6">
                   <Button
                     type="primary"
                     size="large"
@@ -328,7 +328,7 @@ const EditPage = ({ userId, onUserUpdate }) => {
                   >
                     Next: Business Information
                   </Button>
-                </div>
+                </div> */}
               </TabPane>
 
               <TabPane
@@ -341,13 +341,13 @@ const EditPage = ({ userId, onUserUpdate }) => {
                 key="business"
               >
                 {editRoleData === "exporter" && (
-                  <ExporterFormEdit roleData={roleData} isExisting={true}/>
+                  <ExporterEditForm roleData={roleData} isExisting={true}/>
                 )}
                 {editRoleData === "entrepreneur" && (
-                  <EntrepreneurFormEdit roleData={roleData} isExisting={true}/>
+                  <EntrepreneurEditForm roleData={roleData} isExisting={true}/>
                 )}
                 {editRoleData === "trader" && (
-                  <IntermediaryFormEdit roleData={roleData} isExisting={true}/>
+                  <TraderEditForm roleData={roleData} isExisting={true}/>
                 )}
               </TabPane>
             </Tabs>
@@ -355,7 +355,7 @@ const EditPage = ({ userId, onUserUpdate }) => {
             <Divider />
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-4">
+            {/* <div className="flex justify-end space-x-4">
               <Button size="large" onClick={handleBack} disabled={loading}>
                 Cancel
               </Button>
@@ -368,7 +368,7 @@ const EditPage = ({ userId, onUserUpdate }) => {
               >
                 {loading ? "Submitting..." : "Submit for Approval"}
               </Button>
-            </div>
+            </div> */}
           </form>
         </Card>
       </div>
