@@ -341,7 +341,7 @@ const EditPage = ({ userId, onUserUpdate }) => {
                 key="business"
               >
                 {editRoleData === "exporter" && (
-                  <ExporterEditForm roleData={roleData} isExisting={true}/>
+                  <ExporterEditForm roleData={roleData} isExisting={true} userId={id}/>
                 )}
                 {editRoleData === "entrepreneur" && (
                   <EntrepreneurEditForm roleData={roleData} isExisting={true}/>

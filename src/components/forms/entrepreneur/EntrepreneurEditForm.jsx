@@ -26,7 +26,7 @@ import {
   selectNumEmployeeOptions,
   selectProductOptions,
 } from "../../../store/slices/utilsSlice";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../../api/axiosInstance";
 import dayjs from "dayjs";
 import { use } from "react";
@@ -39,6 +39,9 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
   const location = useLocation();
   const { updateFormData } = useFormContext();
   const [form] = Form.useForm();
+  const { id } = useParams();
+
+  console.log("from the entre", id);
   const [exportProducts, setExportProducts] = useState([
     { productId: null, value: null },
   ]);
@@ -292,23 +295,25 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
 
       console.log("Submitting changes:", approvalRequest);
 
-      if (!roleData?.id) {
+      if(!roleData?.id) {
+        // Use all form values, not just changed fields
+        const allValues = await form.validateFields();
+        const mappedAll = mapFieldNames(allValues);
+
         const formattedData = {
-          businessName: mappedChanges?.businessName || null,
-          businessRegNo: mappedChanges?.businessRegistrationNumber || null, // Map to correct field
-          businessAddress: mappedChanges?.businessAddress || null,
-          numberOfEmployeeId: mappedChanges?.numberOfEmployees
-            ? parseInt(mappedChanges?.numberOfEmployees)
+          businessName: mappedAll.businessName || null,
+          businessRegNo: mappedAll.businessRegNo || null,
+          businessAddress: mappedAll.businessAddress || null,
+          numberOfEmployeeId: mappedAll.numberOfEmployeeId
+            ? parseInt(mappedAll.numberOfEmployeeId)
             : null,
-          certificateIds: Array.isArray(mappedChanges?.certifications)
-            ? mappedChanges?.certifications.map((id) => parseInt(id))
+          certificateId: Array.isArray(mappedAll.certificateIds)
+            ? mappedAll.certificateIds.map((id) => parseInt(id))
             : [],
-          businessExperienceId: mappedChanges?.yearsExporting
-            ? parseInt(mappedChanges?.yearsExporting)
+          businessExperienceId: mappedAll.businessExperienceId
+            ? parseInt(mappedAll.businessExperienceId)
             : null,
-          userId: location?.state?.result
-            ? parseInt(location?.state?.result)
-            : null,
+          userId: id,
           products: exportProducts
             .filter((product) => product.productId && product.value)
             .map((product) => ({
@@ -317,13 +322,14 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
             })),
         };
 
+
         const response = await axiosInstance.post(
           "/api/entreprenuer/",
           formattedData
         );
         console.log(response.data);
         navigate("/user-management");
-        alert("Success!")
+        alert("Success!");
         return response;
       }
 

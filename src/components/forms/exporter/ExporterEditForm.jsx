@@ -33,49 +33,22 @@ import {
 } from "../../../store/slices/utilsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import axiosInstance from "../../../api/axiosInstance";
 
 const ExporterEditForm = ({ roleData, isExisting }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
   const { updateFormData, formData } = useFormContext();
   const [form] = Form.useForm();
+  const { id } = useParams();
   const [exportProducts, setExportProducts] = useState([
     { productId: null, value: null },
   ]);
 
-  useEffect(() => {
-  if (!roleData) return;
-
-  // Set form fields
-  form.setFieldsValue({
-    businessName: roleData.businessName,
-    businessRegNumber: roleData.businessRegNo,
-    productRange: roleData.productRange,
-    numberOfEmployees: roleData.numberOfEmployee?.id?.toString() || roleData.numberOfEmployeeId?.toString(),
-    yearsExporting: roleData.businessExperience?.id?.toString() || roleData.businessExperienceId?.toString(),
-    exportCountries: roleData.exportingCountries || [],
-    exportStartDate: roleData.startDate ? dayjs(roleData.startDate) : undefined,
-    businessDescription: roleData.businessDescription,
-    certifications: Array.isArray(roleData.certificate)
-      ? roleData.certificate.map((c) => c.id?.toString())
-      : roleData.certificateId
-        ? [roleData.certificateId.toString()]
-        : roleData.certificate?.id
-          ? [roleData.certificate.id.toString()]
-          : [],
-  });
-
-  // Set export products
-  if (Array.isArray(roleData.businessProducts)) {
-    setExportProducts(
-      roleData.businessProducts.map((bp) => ({
-        productId: bp.productId?.toString() || bp.product?.id?.toString(),
-        value: bp.value ? parseFloat(bp.value) : null,
-      }))
-    );
-  }
-}, [roleData, form]);
+  const [originalData, setOriginalData] = useState({});
+  const [originalProducts, setOriginalProducts] = useState([]);
 
   const load = async () => {
     await dispatch(fetchCertificateOptions());
@@ -87,6 +60,108 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
   useEffect(() => {
     load();
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!roleData) return;
+
+    // Set form fields
+    form.setFieldsValue({
+      businessName: roleData.businessName,
+      businessRegNumber: roleData.businessRegNo,
+      productRange: roleData.productRange,
+      numberOfEmployeeId:
+        roleData.numberOfEmployee?.id?.toString() ||
+        roleData.numberOfEmployeeId?.toString(),
+      yearsExporting:
+        roleData.businessExperience?.id?.toString() ||
+        roleData.businessExperienceId?.toString(),
+      exportingCountries: roleData.exportingCountries || [],
+      exportStartDate: roleData.startDate
+        ? dayjs(roleData.startDate)
+        : undefined,
+      businessDescription: roleData.businessDescription,
+      certifications: Array.isArray(roleData.certificate)
+        ? roleData.certificate.map((c) => c.id?.toString())
+        : roleData.certificateId
+        ? [roleData.certificateId.toString()]
+        : roleData.certificate?.id
+        ? [roleData.certificate.id.toString()]
+        : [],
+    });
+
+    // Store original data for comparison
+    setOriginalData({
+      businessName: roleData.businessName,
+      businessRegNumber: roleData.businessRegNo,
+      productRange: roleData.productRange,
+      numberOfEmployeeId:
+        roleData.numberOfEmployee?.id?.toString() ||
+        roleData.numberOfEmployeeId?.toString(),
+      yearsExporting:
+        roleData.businessExperience?.id?.toString() ||
+        roleData.businessExperienceId?.toString(),
+      exportingCountries: roleData.exportingCountries || [],
+      exportStartDate: roleData.startDate
+        ? dayjs(roleData.startDate).format("YYYY-MM-DD")
+        : undefined,
+      businessDescription: roleData.businessDescription,
+      certifications: Array.isArray(roleData.certificate)
+        ? roleData.certificate.map((c) => c.id?.toString())
+        : roleData.certificateId
+        ? [roleData.certificateId.toString()]
+        : roleData.certificate?.id
+        ? [roleData.certificate.id.toString()]
+        : [],
+    });
+
+    // Set export products
+    if (Array.isArray(roleData.businessProducts)) {
+      const initialProducts = roleData.businessProducts.map((bp) => ({
+        productId: bp.productId?.toString() || bp.product?.id?.toString(),
+        value: bp.value ? parseFloat(bp.value) : null,
+      }));
+      setExportProducts(initialProducts);
+      setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
+    }
+  }, [roleData, form]);
+
+  const handleChange = (changedValues, allValues) => {
+    // Format the data according to API requirements
+    const formattedData = {
+      businessName: allValues.businessName || null,
+      businessRegNo: allValues.businessRegNumber || null,
+      numberOfEmployeeId: allValues.numberOfEmployeeId
+        ? parseInt(allValues.numberOfEmployeeId)
+        : null,
+      businessExperienceId: allValues.yearsExporting
+        ? parseInt(allValues.yearsExporting)
+        : null,
+      productRange: allValues.productRange || null,
+      businessDescription: allValues.businessDescription || null,
+      exportingCountries: allValues.exportingCountries || null,
+      exportStartMonth: allValues.exportStartDate
+        ? dayjs(allValues.exportStartDate).format("MMMM")
+        : null,
+      exportStartYear: allValues.exportStartDate
+        ? dayjs(allValues.exportStartDate).format("YYYY")
+        : null,
+      certificateId: allValues.exportCertifications
+        ? parseInt(allValues.exportCertifications)
+        : null,
+      startDate: allValues.exportStartDate
+        ? dayjs(allValues.exportStartDate).toISOString()
+        : null,
+      products: exportProducts
+        .filter((product) => product.productId && product.value)
+        .map((product) => ({
+          productId: parseInt(product.productId),
+          value: parseFloat(product.value),
+        })),
+      userId: location?.state?.result,
+    };
+
+    updateFormData(formattedData);
+  };
 
   const experienceOptions = useSelector(selectExperienceOptions) || [];
   const certificateOptions = useSelector(selectCertificateOptions) || [];
@@ -119,42 +194,151 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
     updateFormData({ products: newProducts });
   };
 
-  const handleChange = (changedValues, allValues) => {
-    // Format the data according to API requirements
-    const formattedData = {
-      businessName: allValues.businessName || null,
-      businessRegNo: allValues.businessRegNumber || null,
-      numberOfEmployeeId: allValues.numberOfEmployees
-        ? parseInt(allValues.numberOfEmployees)
-        : null,
-      businessExperienceId: allValues.yearsExporting
-        ? parseInt(allValues.yearsExporting)
-        : null,
-      productRange: allValues.productRange || null,
-      businessDescription: allValues.businessDescription || null,
-      exportingCountries: allValues.exportCountries || null,
-      exportStartMonth: allValues.exportStartDate
-        ? dayjs(allValues.exportStartDate).format("MMMM")
-        : null,
-      exportStartYear: allValues.exportStartDate
-        ? dayjs(allValues.exportStartDate).format("YYYY")
-        : null,
-      certificateId: allValues.exportCertifications
-        ? parseInt(allValues.exportCertifications)
-        : null,
-      startDate: allValues.exportStartDate
-        ? dayjs(allValues.exportStartDate).toISOString()
-        : null,
-      products: exportProducts
+  const arraysEqual = (arr1, arr2) => {
+    if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false;
+    if (arr1.length !== arr2.length) return false;
+    return arr1.every((item, index) => {
+      if (typeof item === "object" && item !== null) {
+        return JSON.stringify(item) === JSON.stringify(arr2[index]);
+      }
+      return item === arr2[index];
+    });
+  };
+
+  const getChangedFields = (currentValues) => {
+    const changedData = {};
+    Object.keys(currentValues).forEach((key) => {
+      let currentValue = currentValues[key];
+      let originalValue = originalData[key];
+
+      // Handle date comparison
+      if (key === "exportStartDate") {
+        currentValue = currentValue ? dayjs(currentValue).format("YYYY-MM-DD") : undefined;
+        originalValue = originalValue ? dayjs(originalValue).format("YYYY-MM-DD") : undefined;
+      }
+
+      // Handle array comparison
+      if (Array.isArray(currentValue) && Array.isArray(originalValue)) {
+        if (!arraysEqual(currentValue, originalValue)) {
+          changedData[key] = currentValue;
+        }
+      } else if (currentValue !== originalValue) {
+        changedData[key] = currentValue;
+      }
+    });
+
+    // Compare products
+    if (!arraysEqual(exportProducts, originalProducts)) {
+      changedData.businessProducts = exportProducts
         .filter((product) => product.productId && product.value)
         .map((product) => ({
           productId: parseInt(product.productId),
           value: parseFloat(product.value),
-        })),
-      userId: location?.state?.result,
+        }));
+    }
+
+    return changedData;
+  };
+
+  const mapFieldNames = (data) => {
+    const fieldMapping = {
+      businessRegNumber: "businessRegNo",
+      numberOfEmployeeId: "numberOfEmployeeId",
+      certifications: "certificateId",
+      yearsExporting: "businessExperienceId",
+      exportStartDate: "startDate",
+      exportingCountries: "exportingCountries",
+      businessProducts: "businessProducts",
     };
 
-    updateFormData(formattedData);
+    const mappedData = {};
+
+    Object.keys(data).forEach((key) => {
+      const apiKey = fieldMapping[key] || key;
+      let value = data[key];
+
+      // Handle specific transformations
+      if (key === "numberOfEmployeeId" && value) {
+        value = parseInt(value);
+      } else if (key === "certifications" && Array.isArray(value)) {
+        value = value.map((id) => parseInt(id));
+      } else if (key === "yearsExporting" && value) {
+        value = parseInt(value);
+      } else if (key === "exportStartDate" && value) {
+        value = dayjs(value).toISOString();
+      }
+
+      mappedData[apiKey] = value;
+    });
+
+    return mappedData;
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const changedFields = getChangedFields(values);
+
+      if (Object.keys(changedFields).length === 0) {
+        console.log("No changes detected");
+        return;
+      }
+
+      const mappedChanges = mapFieldNames(changedFields);
+
+      const approvalRequest = {
+        type: "editData",
+        requestName: `Exporter: ${roleData?.user?.name}`,
+        requestData: mappedChanges,
+        requestedUrl: `exporter/${roleData.id || location?.state?.result}`,
+      };
+
+      console.log("Submitting changes:", approvalRequest);
+
+      if (!roleData?.id) {
+        // Use all form values for new exporter
+        const allValues = await form.validateFields();
+        const mappedAll = mapFieldNames(allValues);
+
+        const formattedData = {
+          businessName: mappedAll.businessName || null,
+          businessRegNo: mappedAll.businessRegNo || null,
+          yearsExporting: mappedAll.businessExperienceId || null,
+          startDate: mappedAll.startDate || null,
+          numberOfEmployeeId: mappedAll.numberOfEmployeeId || null,
+          exportingCountries: mappedAll.exportingCountries || null,
+          productRange: mappedAll.productRange || null,
+          businessDescription: mappedAll.businessDescription || null,
+          businessProducts: exportProducts
+            .filter((product) => product.productId && product.value)
+            .map((product) => ({
+              productId: parseInt(product.productId),
+              value: parseFloat(product.value),
+            })),
+          certificateId: mappedAll.certificateId || [],
+          userId: id,
+        };
+
+        const response = await axiosInstance.post(
+          "/api/exporter/",
+          formattedData
+        );
+        console.log(response.data);
+        navigate("/user-management");
+        alert("Success!");
+        return response;
+      }
+
+      const response = await axiosInstance.post(
+        "/api/approval/create",
+        approvalRequest
+      );
+      navigate("/user-management");
+      console.log("Approval request submitted successfully:", response.data);
+    } catch (error) {
+      console.error("Failed to submit approval request:", error);
+      throw new Error("Failed to submit form: " + error.message);
+    }
   };
 
   return (
@@ -227,7 +411,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
           <Col xs={24} sm={12}>
             <Form.Item
               label="Number of Employees"
-              name="numberOfEmployees"
+              name="numberOfEmployeeId"
               rules={[
                 { required: true, message: "Please select employee count" },
               ]}
@@ -241,7 +425,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
           <Col xs={24} sm={12}>
             <Form.Item
               label="Name of Country / Countries of Export"
-              name="exportCountries"
+              name="exportingCountries"
               rules={[
                 { required: true, message: "Please select at least one" },
               ]}
@@ -374,6 +558,10 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
             </Form.Item>
           </Col>
         </Row>
+
+        <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
+          Submit Changes
+        </Button>
       </Form>
     </div>
   );

@@ -22,17 +22,23 @@ import {
   selectNumEmployeeOptions,
   selectProductOptions,
 } from "../../../store/slices/utilsSlice";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
+import axiosInstance from "../../../api/axiosInstance";
 
 const TraderEditForm = ({ roleData, isExisting }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
   const { updateFormData, formData } = useFormContext();
   const [form] = Form.useForm();
+  const { id } = useParams();
   const [exportProducts, setExportProducts] = useState([
     { productId: null, value: null },
   ]);
+
+  const [originalData, setOriginalData] = useState({});
+  const [originalProducts, setOriginalProducts] = useState({});
 
   const load = async () => {
     await dispatch(fetchNumEmployeeOptions());
@@ -45,29 +51,65 @@ const TraderEditForm = ({ roleData, isExisting }) => {
   }, [dispatch]);
 
   useEffect(() => {
-  if (!roleData) return;
+    if (!roleData) return;
 
-  // Set form fields
-  form.setFieldsValue({
-    businessName: roleData.businessName,
-    businessRegistrationNumber: roleData.businessRegNo,
-    businessAddress: roleData.businessAddress,
-    numberOfEmployees: roleData.numberOfEmployee?.id?.toString() || roleData.numberOfEmployeeId?.toString(),
-    yearsTrading: roleData.businessExperience?.id?.toString() || roleData.businessExperienceId?.toString(),
-    registrationDate: roleData.businessStartDate ? dayjs(roleData.businessStartDate) : undefined,
-    additionalInfo: roleData.businessDescription || "",
-  });
+    form.setFieldsValue({
+      businessName: roleData.businessName,
+      businessRegistrationNumber: roleData.businessRegNo,
+      businessAddress: roleData.businessAddress,
+      numberOfEmployees: roleData.numberOfEmployee?.id?.toString() || roleData.numberOfEmployeeId?.toString(),
+      yearsTrading: roleData.businessExperience?.id?.toString() || roleData.businessExperienceId?.toString(),
+      registrationDate: roleData.businessStartDate ? dayjs(roleData.businessStartDate) : undefined,
+      additionalInfo: roleData.businessDescription || "",
+    });
 
-  // Set export products
-  if (Array.isArray(roleData.businessProducts)) {
-    setExportProducts(
-      roleData.businessProducts.map((bp) => ({
+    setOriginalData({
+      businessName: roleData.businessName,
+      businessRegistrationNumber: roleData.businessRegNo,
+      businessAddress: roleData.businessAddress,
+      numberOfEmployees: roleData.numberOfEmployee?.id?.toString() || roleData.numberOfEmployeeId?.toString(),
+      yearsTrading: roleData.businessExperience?.id?.toString() || roleData.businessExperienceId?.toString(),
+      registrationDate: roleData.businessStartDate ? dayjs(roleData.businessStartDate).format("YYYY-MM-DD") : undefined,
+      additionalInfo: roleData.businessDescription || "",
+    });
+
+    if (Array.isArray(roleData.businessProducts)) {
+      const initialProducts = roleData.businessProducts.map((bp) => ({
         productId: bp.productId?.toString() || bp.product?.id?.toString(),
         value: bp.value ? parseFloat(bp.value) : null,
-      }))
-    );
-  }
-}, [roleData, form]);
+      }));
+      setExportProducts(initialProducts);
+      setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
+    }
+  }, [roleData, form]);
+
+const handleChange = (changedValues, allValues) => {
+    // Format the data according to API requirements
+    const formattedData = {
+      businessName: allValues.businessName || null,
+      businessRegNo: allValues.businessRegistrationNumber || null,
+      businessAddress: allValues.businessAddress || null,
+      numberOfEmployeeId: allValues.numberOfEmployees
+        ? parseInt(allValues.numberOfEmployees)
+        : null,
+      businessExperienceId: allValues.yearsTrading
+        ? parseInt(allValues.yearsTrading)
+        : null,
+      registrationDate: allValues.registrationDate
+        ? dayjs(allValues.registrationDate).toISOString()
+        : null,
+      additionalInfo: allValues.additionalInfo || null,
+      userId: location?.state?.result,
+      products: exportProducts
+        .filter((product) => product.productId && product.value)
+        .map((product) => ({
+          productId: parseInt(product.productId),
+          value: parseFloat(product.value),
+        })),
+    };
+
+    updateFormData(formattedData);
+  };
 
   const experienceOptions = useSelector(selectExperienceOptions) || [];
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
@@ -99,32 +141,146 @@ const TraderEditForm = ({ roleData, isExisting }) => {
     updateFormData({ products: newProducts });
   };
 
-  const handleChange = (changedValues, allValues) => {
-    // Format the data according to API requirements
-    const formattedData = {
-      businessName: allValues.businessName || null,
-      businessRegNo: allValues.businessRegistrationNumber || null,
-      businessAddress: allValues.businessAddress || null,
-      numberOfEmployeeId: allValues.numberOfEmployees
-        ? parseInt(allValues.numberOfEmployees)
-        : null,
-      businessExperienceId: allValues.yearsTrading
-        ? parseInt(allValues.yearsTrading)
-        : null,
-      registrationDate: allValues.registrationDate
-        ? dayjs(allValues.registrationDate).toISOString()
-        : null,
-      additionalInfo: allValues.additionalInfo || null,
-      userId: location?.state?.result,
-      products: exportProducts
+  const arraysEqual = (arr1, arr2) => {
+    if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false;
+    if (arr1.length !== arr2.length) return false;
+    return arr1.every((item, index) => {
+      if (typeof item === "object" && item !== null) {
+        return JSON.stringify(item) === JSON.stringify(arr2[index]);
+      }
+      return item === arr2[index];
+    });
+  };
+
+  const getChangedFields = (currentValues) => {
+    const changedData = {};
+    Object.keys(currentValues).forEach((key) => {
+      let currentValue = currentValues[key];
+      let originalValue = originalData[key];
+
+      // Handle date comparison
+      if (key === "registrationDate") {
+        currentValue = currentValue ? dayjs(currentValue).format("YYYY-MM-DD") : undefined;
+        originalValue = originalValue ? dayjs(originalValue).format("YYYY-MM-DD") : undefined;
+      }
+
+      // Handle array comparison
+      if (Array.isArray(currentValue) && Array.isArray(originalValue)) {
+        if (!arraysEqual(currentValue, originalValue)) {
+          changedData[key] = currentValue;
+        }
+      } else if (currentValue !== originalValue) {
+        changedData[key] = currentValue;
+      }
+    });
+
+    // Compare products
+    if (!arraysEqual(exportProducts, originalProducts)) {
+      changedData.businessProducts = exportProducts
         .filter((product) => product.productId && product.value)
         .map((product) => ({
           productId: parseInt(product.productId),
           value: parseFloat(product.value),
-        })),
+        }));
+    }
+
+    return changedData;
+  };
+
+  const mapFieldNames = (data) => {
+    const fieldMapping = {
+      businessRegistrationNumber: "businessRegNo",
+      numberOfEmployees: "numberOfEmployeeId",
+      yearsTrading: "businessExperienceId",
+      registrationDate: "businessStartDate",
+      businessProducts: "businessProducts",
+      additionalInfo: "businessDescription",
     };
 
-    updateFormData(formattedData);
+    const mappedData = {};
+
+    Object.keys(data).forEach((key) => {
+      const apiKey = fieldMapping[key] || key;
+      let value = data[key];
+
+      // Handle specific transformations
+      if (key === "numberOfEmployees" && value) {
+        value = parseInt(value);
+      } else if (key === "yearsTrading" && value) {
+        value = parseInt(value);
+      } else if (key === "registrationDate" && value) {
+        value = dayjs(value).toISOString();
+      }
+
+      mappedData[apiKey] = value;
+    });
+
+    return mappedData;
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const changedFields = getChangedFields(values);
+
+      if (Object.keys(changedFields).length === 0) {
+        console.log("No changes detected");
+        return;
+      }
+
+      const mappedChanges = mapFieldNames(changedFields);
+
+      const approvalRequest = {
+        type: "editData",
+        requestName: `Intermediary Trader: ${roleData?.user?.name}`,
+        requestData: mappedChanges,
+        requestedUrl: `trader/${roleData.id || location?.state?.result}`,
+      };
+
+      console.log("Submitting changes:", approvalRequest);
+
+      if (!roleData?.id) {
+        // Use all form values for new trader
+        const allValues = await form.validateFields();
+        const mappedAll = mapFieldNames(allValues);
+
+        const formattedData = {
+          businessName: mappedAll.businessName || null,
+          businessRegNo: mappedAll.businessRegNo || null,
+          businessAddress: mappedAll.businessAddress || null,
+          numberOfEmployeeId: mappedAll.numberOfEmployeeId || null,
+          businessExperienceId: mappedAll.businessExperienceId || null,
+          businessStartDate: mappedAll.businessStartDate || null,
+          businessDescription: mappedAll.businessDescription || null,
+          businessProducts: exportProducts
+            .filter((product) => product.productId && product.value)
+            .map((product) => ({
+              productId: parseInt(product.productId),
+              value: parseFloat(product.value),
+            })),
+          userId: id,
+        };
+
+        const response = await axiosInstance.post(
+          "/api/trader/",
+          formattedData
+        );
+        console.log(response.data);
+        navigate("/user-management");
+        alert("Success!");
+        return response;
+      }
+
+      const response = await axiosInstance.post(
+        "/api/approval/create",
+        approvalRequest
+      );
+      navigate("/user-management");
+      console.log("Approval request submitted successfully:", response.data);
+    } catch (error) {
+      console.error("Failed to submit approval request:", error);
+      throw new Error("Failed to submit form: " + error.message);
+    }
   };
 
   return (
@@ -331,6 +487,9 @@ const TraderEditForm = ({ roleData, isExisting }) => {
               />
             </Form.Item>
           </Col>
+          <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
+          Submit Changes
+        </Button>
         </Row>
       </Form>
     </div>
