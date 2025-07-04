@@ -44,17 +44,42 @@ const NotificationSection = () => {
     dispatch(clearAllNotifications());
   };
 
-  const getTypeColor = (type) => {
-    switch (type) {
-      case "success":
-        return "#10b981";
-      case "warning":
-        return "#f59e0b";
-      case "error":
-        return "#ef4444";
-      default:
-        return "#3b82f6";
+  const handleNotificationClick = (notification) => {
+    // Mark as read firs
+    if (!notification.isRead) {
+      handleMarkAsRead(notification.id);
     }
+    
+    // Close dropdown
+    setDropdownOpen(false);
+    
+    // Navigate to sendUrl
+    if (notification.sendUrl) {
+      // Extract the path from the full URL
+      const url = new URL(notification.sendUrl);
+      const path = url.pathname;
+      navigate(path);
+    }
+  };
+
+  const getTypeColor = (type) => {
+    // Enhanced type detection based on your notification types
+    if (type.toLowerCase().includes("approval")) {
+      return "#f59e0b"; // warning/orange for approvals
+    }
+    if (
+      type.toLowerCase().includes("entrepreneur") ||
+      type.toLowerCase().includes("user")
+    ) {
+      return "#10b981"; // success/green for user actions
+    }
+    if (type.toLowerCase().includes("certificate")) {
+      return "#8b5cf6"; // purple for certificates
+    }
+    if (type.toLowerCase().includes("delete")) {
+      return "#ef4444"; // error/red for deletions
+    }
+    return "#3b82f6"; // default blue
   };
 
   const notificationItems = (
@@ -122,7 +147,7 @@ const NotificationSection = () => {
                 }}
                 onClick={(e) => {
                   if (e.target.closest(".delete-btn")) return;
-                  handleMarkAsRead(item.id);
+                  handleNotificationClick(item);
                 }}
               >
                 <Button

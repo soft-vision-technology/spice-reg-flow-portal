@@ -313,7 +313,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           businessExperienceId: mappedAll.businessExperienceId
             ? parseInt(mappedAll.businessExperienceId)
             : null,
-          userId: id? parseInt(id) : null,
+          userId: id? Number(id) : null,
           products: exportProducts
             .filter((product) => product.productId && product.value)
             .map((product) => ({

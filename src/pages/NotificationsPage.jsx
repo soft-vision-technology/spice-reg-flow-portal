@@ -22,6 +22,7 @@ import {
   SearchOutlined,
   FilterOutlined,
   InboxOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -30,6 +31,7 @@ import {
   markNotificationAsRead,
   markAllNotificationAsRead,
 } from "../store/slices/notificationSlice";
+import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -37,6 +39,7 @@ const { Option } = Select;
 
 const NotificationsPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const notifications = useSelector((state) => state.notifications.items);
   const loading = useSelector((state) => state.notifications.loading);
   const [selectedNotifications, setSelectedNotifications] = useState([]);
@@ -97,13 +100,49 @@ const NotificationsPage = () => {
     setSelectedNotifications([]);
   };
 
+  const getNotificationTypeTag = (type) => {
+    if (type.toLowerCase().includes("approval")) {
+      return { color: "orange", text: "Approval" };
+    }
+    if (
+      type.toLowerCase().includes("entrepreneur") ||
+      type.toLowerCase().includes("user")
+    ) {
+      return { color: "green", text: "User Action" };
+    }
+    if (type.toLowerCase().includes("certificate")) {
+      return { color: "purple", text: "Certificate" };
+    }
+    if (type.toLowerCase().includes("delete")) {
+      return { color: "red", text: "Delete" };
+    }
+    return { color: "blue", text: "Info" };
+  };
+
+  const handleNotificationClick = (notification) => {
+    // Mark as read if not already read
+    if (!notification.isRead) {
+      handleMarkAsRead(notification.id);
+    }
+
+    // Navigate to sendUrl
+    if (notification.sendUrl) {
+      // Extract the path from the full URL
+      const url = new URL(notification.sendUrl);
+      const path = url.pathname;
+      navigate(path);
+    }
+  };
+
   // Filter notifications
   const filteredNotifications = notifications.filter((notification) => {
     const matchesSearch =
       notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       notification.message.toLowerCase().includes(searchTerm.toLowerCase());
+    const typeTag = getNotificationTypeTag(notification.type);
     const matchesType =
-      filterType === "all" || notification.type === filterType;
+      filterType === "all" ||
+      typeTag.text.toLowerCase() === filterType.toLowerCase();
     const matchesStatus =
       filterStatus === "all" ||
       (filterStatus === "read" && notification.read) ||
@@ -208,74 +247,90 @@ const NotificationsPage = () => {
             <List
               itemLayout="vertical"
               dataSource={paginatedNotifications}
-              renderItem={(item) => (
-                <Card
-                  className={`mb-4 transition-all duration-200 hover:shadow-md cursor-pointer ${
-                    !item.read ? "border-l-4 border-l-blue-500 bg-blue-50" : ""
-                  } ${
-                    selectedNotifications.includes(item.id)
-                      ? "ring-2 ring-blue-300"
-                      : ""
-                  }`}
-                  onClick={() => toggleSelection(item.id)}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedNotifications.includes(item.id)}
-                          onChange={() => toggleSelection(item.id)}
-                          className="cursor-pointer"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <Title
-                          level={4}
-                          className={`mb-0 ${
-                            !item.read ? "text-blue-700" : ""
-                          }`}
-                        >
-                          {item.title}
-                        </Title>
-                        {!item.read && <Badge status="processing" />}
-                        <Tag
-                          color={item.type === "approval" ? "blue" : "default"}
-                          className="ml-auto"
-                        >
-                          {item.type}
-                        </Tag>
-                        <Tag color={item.priority === "high" ? "red" : "blue"}>
-                          {item.priority} priority
-                        </Tag>
+              renderItem={(item) => {
+                const typeTag = getNotificationTypeTag(item.type);
+                return (
+                  <Card
+                    className={`mb-4 transition-all duration-200 hover:shadow-md cursor-pointer ${
+                      !item.read
+                        ? "border-l-4 border-l-blue-500 bg-blue-50"
+                        : ""
+                    } ${
+                      selectedNotifications.includes(item.id)
+                        ? "ring-2 ring-blue-300"
+                        : ""
+                    }`}
+                    onClick={() => toggleSelection(item.id)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedNotifications.includes(item.id)}
+                            onChange={() => toggleSelection(item.id)}
+                            className="cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <Title
+                            level={4}
+                            className={`mb-0 ${
+                              !item.read ? "text-blue-700" : ""
+                            }`}
+                          >
+                            {item.title}
+                          </Title>
+                          {!item.read && <Badge status="processing" />}
+                          <Tag color={typeTag.color} className="ml-auto">
+                            {typeTag.text}
+                          </Tag>
+                          <Tag
+                            color={item.priority === "high" ? "red" : "blue"}
+                          >
+                            {item.priority} priority
+                          </Tag>
+                        </div>
+
+                        <Text className="block mb-3 text-gray-700">
+                          {item.message}
+                        </Text>
+
+                        <Text type="secondary" className="text-sm">
+                          {item.time} • {item.timestamp.toLocaleDateString()} at{" "}
+                          {item.timestamp.toLocaleTimeString()}
+                        </Text>
                       </div>
 
-                      <Text className="block mb-3 text-gray-700">
-                        {item.message}
-                      </Text>
-
-                      <Text type="secondary" className="text-sm">
-                        {item.time} • {item.timestamp.toLocaleDateString()} at{" "}
-                        {item.timestamp.toLocaleTimeString()}
-                      </Text>
+                      <div className="flex flex-col gap-2 ml-4">
+                        <Button
+                          size="small"
+                          icon={<EyeOutlined />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleNotificationClick(item);
+                          }}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          size="small"
+                          icon={
+                            item.read ? <BellOutlined /> : <CheckOutlined />
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            item.read
+                              ? markAsUnreadHandler(item.id)
+                              : handleMarkAsRead(item.id);
+                          }}
+                        >
+                          {item.read ? "Mark Unread" : "Mark Read"}
+                        </Button>
+                      </div>
                     </div>
-
-                    <div className="flex flex-col gap-2 ml-4">
-                      <Button
-                        size="small"
-                        icon={item.read ? <BellOutlined /> : <CheckOutlined />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          item.read
-                            ? markAsUnreadHandler(item.id)
-                            : handleMarkAsRead(item.id);
-                        }}
-                      >
-                        {item.read ? "Mark Unread" : "Mark Read"}
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              )}
+                  </Card>
+                );
+              }}
             />
 
             {/* Pagination */}
