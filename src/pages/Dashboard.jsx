@@ -10,6 +10,7 @@ import {
 import { RegistrationDashboard } from "../components/charts/RegistrationCharts";
 import { overviewData, timeSeriesData, geoData, demoData, sectorData, approvalData, regTimeData, docData, funnelData } from "../hooks/mockData";
 
+
 const { Title, Paragraph, Text } = Typography;
 
 const Mainpage = () => {
