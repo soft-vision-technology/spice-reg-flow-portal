@@ -37,6 +37,7 @@ import {
 } from "../store/slices/reportSlice";
 import EditPage from "./EditPage";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -53,15 +54,19 @@ const UserManagement = () => {
   const [form] = Form.useForm();
   const [editUserId, setEditUserId] = useState(null);
   const dispatch = useDispatch();
-  const { existingEntrepreneurs, existingExporters, startingExporters, existingTraders, loading } =
-    useSelector((state) => state.report);
+  const {
+    existingEntrepreneurs,
+    existingExporters,
+    startingExporters,
+    existingTraders,
+    loading,
+  } = useSelector((state) => state.report);
 
   // Fetch users on mount
   useEffect(() => {
     dispatch(fetchExistingEntrepreneurs());
     dispatch(fetchExistingExporters());
-    dispatch(fetchStartingExporters()),
-    dispatch(fetchExistingTraders());
+    dispatch(fetchStartingExporters()), dispatch(fetchExistingTraders());
   }, [dispatch]);
 
   // Combine all users for statistics and certificate drawer
@@ -78,7 +83,7 @@ const UserManagement = () => {
       case "Entrepreneur":
         return existingEntrepreneurs || [];
       case "Exporter":
-     return [...(existingExporters || []), ...(startingExporters || [])];
+        return [...(existingExporters || []), ...(startingExporters || [])];
       case "IntermediaryTrader":
         return existingTraders || [];
       default:
@@ -88,24 +93,28 @@ const UserManagement = () => {
 
   // --- Edit, View, Delete handlers using API ---
   const handleView = (user) => {
-    console.log("when click view", user)
+    console.log("when click view", user);
     navigate(`/users/${user.id}`);
   };
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   // Replace handleEdit to open EditPage
   const handleEdit = (user) => {
     const userRole = user?.role.name.toLowerCase();
-    const roleIdOfUser = userRole == 'intermediarytrader'?  user.intermediaryTrader?.id : user[userRole]?.id;
-    navigate(`/user-management-edit/${user.id}`, { state: { usersRoleId: roleIdOfUser, userRole:(userRole.toLowerCase())} });
-    console.log('userRole: ',userRole)
-    console.log('userRoleId: ',roleIdOfUser)
+    const roleIdOfUser =
+      userRole == "intermediarytrader"
+        ? user.intermediaryTrader?.id
+        : user[userRole]?.id;
+    navigate(`/user-management-edit/${user.id}`, {
+      state: { usersRoleId: roleIdOfUser, userRole: userRole.toLowerCase() },
+    });
+    console.log("userRole: ", userRole);
+    console.log("userRoleId: ", roleIdOfUser);
   };
 
   const handleEditBack = () => {
     setEditUserId(null);
-  };  
-
+  };
 
   const handleUserUpdate = (updatedUser) => {
     // Optionally, refresh users from API or update local state
@@ -152,27 +161,35 @@ const UserManagement = () => {
     const actionId = `delete-${user.id}-${Date.now()}`;
     setPendingActions((prev) => new Set([...prev, actionId]));
 
-    message.info({
-      content: "Delete request submitted for approval",
-      icon: <ClockCircleOutlined style={{ color: "#e67324" }} />,
-    });
+    // Build the approval request payload
+    const approvalRequest = {
+      type: "deleteData",
+      requestName: "User",
+      requestData: {
+        id: user.id,
+      },
+      requestedUrl: `user/${user.id}`,
+    };
 
-    setTimeout(async () => {
-      try {
-        await dispatch(deleteUserApi(user.id));
-        message.success({
-          content: "User deleted successfully",
-          icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
+    // Send approval request to API
+    axiosInstance
+      .post("/api/approval/create/", approvalRequest)
+      .then(() => {
+        message.info({
+          content: "Delete request submitted for approval",
+          icon: <ClockCircleOutlined style={{ color: "#e67324" }} />,
         });
-      } catch (e) {
-        message.error("Failed to delete user");
-      }
-      setPendingActions((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(actionId);
-        return newSet;
+      })
+      .catch(() => {
+        message.error("Failed to submit delete request for approval");
+      })
+      .finally(() => {
+        setPendingActions((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(actionId);
+          return newSet;
+        });
       });
-    }, 3000);
   };
 
   const handleCertificatePrintSubmit = (printData) => {

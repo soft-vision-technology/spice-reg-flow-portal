@@ -270,7 +270,7 @@ const ApprovalPage = () => {
               label="Remarks"
               name="remarks"
               rules={[
-                { required: true, message: "Remarks are required" },
+                { required: false, message: "Remarks are required" },
                 { min: 10, message: "Remarks must be at least 10 characters" },
               ]}
             >
@@ -283,7 +283,7 @@ const ApprovalPage = () => {
               />
             </Form.Item>
 
-            {approval.status !== "approved" &&(
+            {approval.status !== "approved" && (
               <Form.Item>
                 <Space>
                   <Button

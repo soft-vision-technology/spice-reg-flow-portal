@@ -11,7 +11,7 @@ const ReportsPage = React.lazy(() => import('../pages/ReportsPage'));
 const UserManagement = React.lazy(() => import('../pages/UserManagement'));
 const EditPage = React.lazy(() => import('../pages/EditPage'));
 const ViewUserPage = React.lazy(() => import('../pages/ViewUserPage'));
-const ApprovalPage = React.lazy(() => import('../pages/AprrovalPage'));
+const ApprovalPage = React.lazy(() => import('../pages/ApprovalPage'));
 const NotificationsPage = React.lazy(() => import('../pages/NotificationsPage'));
 const RegisterUser = React.lazy(() => import('../AdminPages/RegisterUser'));
 const ImportDataPage = React.lazy(() => import('../pages/ImportDataPage'));
