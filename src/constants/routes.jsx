@@ -9,8 +9,9 @@ const ExistingBusinessPage = React.lazy(() => import('../pages/ExistingBusinessP
 const IntermediaryPage = React.lazy(() => import('../pages/IntermediaryPage'));
 const ReportsPage = React.lazy(() => import('../pages/ReportsPage'));
 const UserManagement = React.lazy(() => import('../pages/UserManagement'));
-const ApprovalPage = React.lazy(() => import('../pages/AprrovalPage'));
 const EditPage = React.lazy(() => import('../pages/EditPage'));
+const ViewUserPage = React.lazy(() => import('../pages/ViewUserPage'));
+const ApprovalPage = React.lazy(() => import('../pages/AprrovalPage'));
 const NotificationsPage = React.lazy(() => import('../pages/NotificationsPage'));
 const RegisterUser = React.lazy(() => import('../AdminPages/RegisterUser'));
 const ImportDataPage = React.lazy(() => import('../pages/ImportDataPage'));
@@ -34,6 +35,7 @@ export const routes = [
   { path: '/reports', exact: true, name: 'ReportsPage', element: ReportsPage, protected: true },
   { path: '/user-management', exact: true, name: 'UserManagement', element: UserManagement, protected: true },
   { path: '/user-management-edit/:id', exact: true, name: 'EditPage', element: EditPage, protected: true },
+  { path: '/users/:id', exact:true, name: 'ViewUserPage', element: ViewUserPage, protected: true },
   { path: '/admin/approve/review/editData/:id', exact: true, name: 'ApprovalPage', element: ApprovalPage, protected: true },
   { path: '/notifications', exact: true, name: 'NotificationsPage', element: NotificationsPage, protected: true },
   { path: '/import-data', exact: true, name: 'ImportDataPage', element: ImportDataPage, protected: true },

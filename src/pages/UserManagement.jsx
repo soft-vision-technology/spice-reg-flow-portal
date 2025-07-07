@@ -88,8 +88,8 @@ const UserManagement = () => {
 
   // --- Edit, View, Delete handlers using API ---
   const handleView = (user) => {
-    setSelectedUser(user);
-    setViewModalVisible(true);
+    console.log("when click view", user)
+    navigate(`/users/${user.id}`);
   };
 
   const navigate = useNavigate()

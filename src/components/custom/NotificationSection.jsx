@@ -58,7 +58,7 @@ const NotificationSection = () => {
       // Extract the path from the full URL
       const url = new URL(notification.sendUrl);
       const path = url.pathname;
-      navigate(path);
+      window.location.replace(path);
     }
   };
 

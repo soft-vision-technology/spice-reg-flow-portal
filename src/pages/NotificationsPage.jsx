@@ -96,10 +96,6 @@ const NotificationsPage = () => {
     setSelectedNotifications(filteredIds);
   };
 
-  const clearSelection = () => {
-    setSelectedNotifications([]);
-  };
-
   const getNotificationTypeTag = (type) => {
     if (type.toLowerCase().includes("approval")) {
       return { color: "orange", text: "Approval" };
@@ -130,7 +126,7 @@ const NotificationsPage = () => {
       // Extract the path from the full URL
       const url = new URL(notification.sendUrl);
       const path = url.pathname;
-      navigate(path);
+      window.location.replace(path);
     }
   };
 
