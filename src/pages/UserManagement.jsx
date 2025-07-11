@@ -1,165 +1,153 @@
-import { useState } from "react";
-import { 
-  Table, 
-  Button, 
-  Card, 
-  Tag, 
-  Space, 
-  Modal, 
-  Form, 
-  Input, 
-  Select, 
-  message, 
+import { useState, useEffect } from "react";
+import {
+  Table,
+  Button,
+  Card,
+  Tag,
+  Space,
+  Modal,
+  Form,
+  Input,
+  Select,
+  message,
   Popconfirm,
   Avatar,
   Typography,
   Row,
   Col,
-  Tabs
+  Tabs,
 } from "antd";
-import { 
-  EditOutlined, 
-  DeleteOutlined, 
-  UserOutlined, 
+import {
+  EditOutlined,
+  DeleteOutlined,
+  UserOutlined,
   ExclamationCircleOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   EyeOutlined,
-  PrinterOutlined
+  PrinterOutlined,
 } from "@ant-design/icons";
 import CertificatePrintDrawer from "../components/custom/CertificatePrintDrawer";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchExistingEntrepreneurs,
+  fetchExistingExporters,
+  fetchExistingTraders,
+  fetchStartingExporters,
+} from "../store/slices/reportSlice";
+import EditPage from "./EditPage";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
 
 const { Title } = Typography;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
 const UserManagement = () => {
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "John Smith",
-      email: "john.smith@spiceregistry.gov",
-      role: "Entrepreneur",
-      status: "Active",
-      department: "Quality Control",
-      lastLogin: "2025-06-26",
-      registrationDate: "2024-01-15",
-      businessName: "Spice World Enterprises",
-      businessType: "Manufacturing",
-      location: "Colombo"
-    },
-    {
-      id: 2,
-      name: "Sarah Johnson",
-      email: "sarah.johnson@spiceregistry.gov",
-      role: "Exporter",
-      status: "Active",
-      department: "Field Operations",
-      lastLogin: "2025-06-25",
-      registrationDate: "2024-03-22",
-      businessName: "Global Spice Exports",
-      businessType: "Export",
-      location: "Galle"
-    },
-    {
-      id: 3,
-      name: "Michael Chen",
-      email: "michael.chen@spiceregistry.gov",
-      role: "IntermediaryTrader",
-      status: "Inactive",
-      department: "Data Analysis",
-      lastLogin: "2025-06-20",
-      registrationDate: "2024-02-10",
-      businessName: "Trading Hub Lanka",
-      businessType: "Trading",
-      location: "Kandy"
-    },
-    {
-      id: 4,
-      name: "Emma Davis",
-      email: "emma.davis@spiceregistry.gov",
-      role: "Entrepreneur",
-      status: "Active",
-      department: "Compliance",
-      lastLogin: "2025-06-27",
-      registrationDate: "2023-11-05",
-      businessName: "Ceylon Spice Co.",
-      businessType: "Processing",
-      location: "Matara"
-    },
-    {
-      id: 5,
-      name: "David Wilson",
-      email: "david.wilson@spiceregistry.gov",
-      role: "Exporter",
-      status: "Active",
-      department: "Export Division",
-      lastLogin: "2025-06-28",
-      registrationDate: "2024-05-12",
-      businessName: "Premium Spice Exports",
-      businessType: "Export",
-      location: "Colombo"
-    },
-    {
-      id: 6,
-      name: "Lisa Anderson",
-      email: "lisa.anderson@spiceregistry.gov",
-      role: "IntermediaryTrader",
-      status: "Active",
-      department: "Trading Operations",
-      lastLogin: "2025-06-29",
-      registrationDate: "2024-04-18",
-      businessName: "Spice Connect",
-      businessType: "Intermediary",
-      location: "Negombo"
-    }
-  ]);
-
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [viewModalVisible, setViewModalVisible] = useState(false);
-  const [certificateDrawerVisible, setCertificateDrawerVisible] = useState(false);
+  const [certificateDrawerVisible, setCertificateDrawerVisible] =
+    useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [pendingActions, setPendingActions] = useState(new Set());
   const [activeTab, setActiveTab] = useState("entrepreneurs");
   const [form] = Form.useForm();
+  const [editUserId, setEditUserId] = useState(null);
+  const dispatch = useDispatch();
+  const {
+    existingEntrepreneurs,
+    existingExporters,
+    startingExporters,
+    existingTraders,
+    loading,
+  } = useSelector((state) => state.report);
 
-  const handleView = (user) => {
-    setSelectedUser(user);
-    setViewModalVisible(true);
+  // Fetch users on mount
+  useEffect(() => {
+    dispatch(fetchExistingEntrepreneurs());
+    dispatch(fetchExistingExporters());
+    dispatch(fetchStartingExporters()), dispatch(fetchExistingTraders());
+  }, [dispatch]);
+
+  // Combine all users for statistics and certificate drawer
+  const allUsers = [
+    ...(existingEntrepreneurs || []),
+    ...(existingExporters || []),
+    ...(startingExporters || []),
+    ...(existingTraders || []),
+  ];
+
+  // Helper to get users by role
+  const getDataByRole = (role) => {
+    switch (role) {
+      case "Entrepreneur":
+        return existingEntrepreneurs || [];
+      case "Exporter":
+        return [...(existingExporters || []), ...(startingExporters || [])];
+      case "IntermediaryTrader":
+        return existingTraders || [];
+      default:
+        return [];
+    }
   };
 
+  // --- Edit, View, Delete handlers using API ---
+  const handleView = (user) => {
+    console.log("when click view", user);
+    navigate(`/users/${user.id}`);
+  };
+
+  const navigate = useNavigate();
+  // Replace handleEdit to open EditPage
   const handleEdit = (user) => {
-    setSelectedUser(user);
-    form.setFieldsValue(user);
-    setEditModalVisible(true);
+    const userRole = user?.role.name.toLowerCase();
+    const roleIdOfUser =
+      userRole == "intermediarytrader"
+        ? user.intermediaryTrader?.id
+        : user[userRole]?.id;
+    navigate(`/user-management-edit/${user.id}`, {
+      state: { usersRoleId: roleIdOfUser, userRole: userRole.toLowerCase() },
+    });
+    console.log("userRole: ", userRole);
+    console.log("userRoleId: ", roleIdOfUser);
+  };
+
+  const handleEditBack = () => {
+    setEditUserId(null);
+  };
+
+  const handleUserUpdate = (updatedUser) => {
+    // Optionally, refresh users from API or update local state
+    // For now, just close the EditPage
+    setEditUserId(null);
+    // Optionally show a message or refresh user list
   };
 
   const handleEditSubmit = () => {
-    form.validateFields().then(values => {
+    form.validateFields().then(async (values) => {
       const actionId = `edit-${selectedUser.id}-${Date.now()}`;
-      setPendingActions(prev => new Set([...prev, actionId]));
-      
+      setPendingActions((prev) => new Set([...prev, actionId]));
+
       message.info({
-        content: 'Edit request submitted for approval',
-        icon: <ClockCircleOutlined style={{ color: '#e67324' }} />
+        content: "Edit request submitted for approval",
+        icon: <ClockCircleOutlined style={{ color: "#e67324" }} />,
       });
 
-      // Simulate approval process
-      setTimeout(() => {
-        setUsers(prevUsers => 
-          prevUsers.map(user => 
-            user.id === selectedUser.id ? { ...user, ...values } : user
-          )
-        );
-        setPendingActions(prev => {
+      // Simulate approval process, then call API
+      setTimeout(async () => {
+        try {
+          await dispatch(updateUserApi({ id: selectedUser.id, ...values }));
+          message.success({
+            content: "User information updated successfully",
+            icon: <CheckCircleOutlined style={{ color: "#52c41a" }} />,
+          });
+        } catch (e) {
+          message.error("Failed to update user");
+        }
+        setPendingActions((prev) => {
           const newSet = new Set(prev);
           newSet.delete(actionId);
           return newSet;
-        });
-        
-        message.success({
-          content: 'User information updated successfully',
-          icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />
         });
       }, 3000);
 
@@ -171,36 +159,46 @@ const UserManagement = () => {
 
   const handleDelete = (user) => {
     const actionId = `delete-${user.id}-${Date.now()}`;
-    setPendingActions(prev => new Set([...prev, actionId]));
-    
-    message.info({
-      content: 'Delete request submitted for approval',
-      icon: <ClockCircleOutlined style={{ color: '#e67324' }} />
-    });
+    setPendingActions((prev) => new Set([...prev, actionId]));
 
-    // Simulate approval process
-    setTimeout(() => {
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== user.id));
-      setPendingActions(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(actionId);
-        return newSet;
+    // Build the approval request payload
+    const approvalRequest = {
+      type: "deleteData",
+      requestName: "User",
+      requestData: {
+        id: user.id,
+      },
+      requestedUrl: `users/${user.id}`,
+    };
+
+    // Send approval request to API
+    axiosInstance
+      .post("/api/approval/create/", approvalRequest)
+      .then(() => {
+        message.info({
+          content: "Delete request submitted for approval",
+          icon: <ClockCircleOutlined style={{ color: "#e67324" }} />,
+        });
+      })
+      .catch(() => {
+        message.error("Failed to submit delete request for approval");
+      })
+      .finally(() => {
+        setPendingActions((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(actionId);
+          return newSet;
+        });
       });
-      
-      message.success({
-        content: 'User deleted successfully',
-        icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />
-      });
-    }, 3000);
   };
 
   const handleCertificatePrintSubmit = (printData) => {
     const actionId = `certificate-print-${Date.now()}`;
-    setPendingActions(prev => new Set([...prev, actionId]));
+    setPendingActions((prev) => new Set([...prev, actionId]));
 
     // Simulate approval process for certificate printing
     setTimeout(() => {
-      setPendingActions(prev => {
+      setPendingActions((prev) => {
         const newSet = new Set(prev);
         newSet.delete(actionId);
         return newSet;
@@ -210,129 +208,171 @@ const UserManagement = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active': return 'green';
-      case 'Inactive': return 'red';
-      case 'Suspended': return 'orange';
-      default: return 'default';
+      case "Active":
+        return "green";
+      case "Inactive":
+        return "red";
+      case "Suspended":
+        return "orange";
+      default:
+        return "default";
     }
   };
 
   const getRoleColor = (role) => {
     switch (role) {
-      case 'Entrepreneur': return 'purple';
-      case 'Exporter': return 'blue';
-      case 'IntermediaryTrader': return 'green';
-      default: return 'default';
+      case "Entrepreneur":
+        return "purple";
+      case "Exporter":
+        return "blue";
+      case "IntermediaryTrader":
+        return "green";
+      default:
+        return "default";
     }
   };
 
-  const getDataByRole = (role) => {
-    return users.filter(user => user.role === role);
-  };
-
-  const getColumns = (tabType) => {
-    const baseColumns = [
-      {
-        title: 'User',
-        dataIndex: 'name',
-        key: 'name',
-        render: (text, record) => (
-          <div className="flex items-center space-x-3">
-            <Avatar 
-              size={40} 
-              icon={<UserOutlined />} 
-              style={{ backgroundColor: '#e67324' }}
-            />
-            <div>
-              <div className="font-medium text-gray-900">{text}</div>
-              <div className="text-sm text-gray-500">{record.email}</div>
+  // --- Columns for each tab (adapted from ReportsPage) ---
+  const getColumns = (role) => [
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      render: (text, record) => (
+        <div className="flex items-center space-x-3">
+          <Avatar
+            size={40}
+            icon={<UserOutlined />}
+            style={{ backgroundColor: "#e67324" }}
+          />
+          <div>
+            <div className="font-medium text-gray-900">
+              {record.title ? `${record.title} ${text}` : text}
             </div>
+            <div className="text-sm text-gray-500">{record.email}</div>
           </div>
-        ),
+        </div>
+      ),
+      width: 200,
+    },
+    {
+      title: "Role",
+      dataIndex: ["role", "name"],
+      key: "role",
+      render: (role) => {
+        const color =
+          role === "Entrepreneur"
+            ? "blue"
+            : role === "Exporter"
+            ? "green"
+            : "orange";
+        return <Tag color={color}>{role}</Tag>;
       },
-      {
-        title: 'Business Name',
-        dataIndex: 'businessName',
-        key: 'businessName',
+      width: 120,
+    },
+    {
+      title: "Business Status",
+      dataIndex: "businessStatus",
+      key: "businessStatus",
+      render: (status) => (
+        <Tag color={status === "EXISTING" ? "green" : "blue"}>{status}</Tag>
+      ),
+      width: 120,
+    },
+    {
+      title: "Location",
+      key: "location",
+      render: (_, record) => (
+        <div>
+          <div>{record.district?.name || record.location}</div>
+          <div className="text-sm text-gray-500">{record.province?.name}</div>
+        </div>
+      ),
+      width: 150,
+    },
+    {
+      title: "Contact",
+      key: "contact",
+      render: (_, record) => (
+        <div>
+          <div className="text-sm">{record.email}</div>
+          <div className="text-sm text-gray-500">{record.contactNumber}</div>
+        </div>
+      ),
+      width: 200,
+    },
+    {
+      title: "Business Name",
+      dataIndex: ["entrepreneur", "exporter", "intermediaryTrader"],
+      key: "businessName",
+      render: (_, record) => {
+        const businessData =
+          record.exporter || record.entrepreneur || record.intermediaryTrader;
+        return businessData?.businessName || "N/A";
       },
-      {
-        title: 'Business Type',
-        dataIndex: 'businessType',
-        key: 'businessType',
+      width: 150,
+    },
+    {
+      title: "Registration Date",
+      dataIndex: "createdAt",
+      key: "registrationDate",
+      render: (date, record) =>
+        date
+          ? new Date(date).toLocaleDateString()
+          : record.registrationDate || "N/A",
+      width: 120,
+    },
+    {
+      title: "Active Status",
+      dataIndex: "status",
+      key: "status",
+      render: (_, record) => {
+        const status = record.status || "Active"; // Default to Active if not set
+        return <Tag color={getStatusColor(status)}>{status}</Tag>;
       },
-      {
-        title: 'Location',
-        dataIndex: 'location',
-        key: 'location',
-      },
-      {
-        title: 'Status',
-        dataIndex: 'status',
-        key: 'status',
-        render: (status) => (
-          <Tag color={getStatusColor(status)}>
-            {status}
-          </Tag>
-        ),
-      },
-      {
-        title: 'Registration Date',
-        dataIndex: 'registrationDate',
-        key: 'registrationDate',
-      },
-      {
-        title: 'Last Login',
-        dataIndex: 'lastLogin',
-        key: 'lastLogin',
-      },
-      {
-        title: 'Actions',
-        key: 'actions',
-        fixed: 'right',
-        width: 200,
-        render: (_, record) => (
-          <Space size="small">
-            <Button
-              type="default"
-              icon={<EyeOutlined />}
-              size="small"
-              onClick={() => handleView(record)}
-            >
-              View
+      width: 120,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      fixed: "right",
+      width: 200,
+      render: (_, record) => (
+        <Space size="small">
+          <Button
+            type="default"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => handleView(record)}
+          >
+            View
+          </Button>
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            size="small"
+            style={{ backgroundColor: "#e67324", borderColor: "#e67324" }}
+            onClick={() => handleEdit(record)}
+          >
+            Edit
+          </Button>
+          <Popconfirm
+            title="Delete User"
+            description="Are you sure you want to delete this user? This action requires approval."
+            icon={<ExclamationCircleOutlined style={{ color: "red" }} />}
+            onConfirm={() => handleDelete(record)}
+            okText="Yes, Delete"
+            cancelText="Cancel"
+            okButtonProps={{ danger: true }}
+          >
+            <Button danger icon={<DeleteOutlined />} size="small">
+              Delete
             </Button>
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              size="small"
-              style={{ backgroundColor: '#e67324', borderColor: '#e67324' }}
-              onClick={() => handleEdit(record)}
-            >
-              Edit
-            </Button>
-            <Popconfirm
-              title="Delete User"
-              description="Are you sure you want to delete this user? This action requires approval."
-              icon={<ExclamationCircleOutlined style={{ color: 'red' }} />}
-              onConfirm={() => handleDelete(record)}
-              okText="Yes, Delete"
-              cancelText="Cancel"
-              okButtonProps={{ danger: true }}
-            >
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                size="small"
-              >
-                Delete
-              </Button>
-            </Popconfirm>
-          </Space>
-        ),
-      },
-    ];
-
-    return baseColumns;
-  };
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
 
   const pendingActionsCount = pendingActions.size;
 
@@ -350,14 +390,14 @@ const UserManagement = () => {
                 Manage user accounts for the Spice Registration System
               </p>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               {/* Print Certificates Button */}
               <Button
                 type="primary"
                 icon={<PrinterOutlined />}
                 onClick={() => setCertificateDrawerVisible(true)}
-                style={{ backgroundColor: '#e67324', borderColor: '#e67324' }}
+                style={{ backgroundColor: "#e67324", borderColor: "#e67324" }}
               >
                 Print Certificates
               </Button>
@@ -366,9 +406,10 @@ const UserManagement = () => {
               {pendingActionsCount > 0 && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <div className="flex items-center space-x-2">
-                    <ClockCircleOutlined style={{ color: '#e67324' }} />
+                    <ClockCircleOutlined style={{ color: "#e67324" }} />
                     <span className="text-orange-800 font-medium">
-                      {pendingActionsCount} action{pendingActionsCount !== 1 ? 's' : ''} pending approval
+                      {pendingActionsCount} action
+                      {pendingActionsCount !== 1 ? "s" : ""} pending approval
                     </span>
                   </div>
                 </div>
@@ -405,7 +446,7 @@ const UserManagement = () => {
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <Card className="text-center">
-              <div className="text-2xl font-bold" style={{ color: '#e67324' }}>
+              <div className="text-2xl font-bold" style={{ color: "#e67324" }}>
                 {pendingActionsCount}
               </div>
               <div className="text-gray-500">Pending Actions</div>
@@ -428,9 +469,10 @@ const UserManagement = () => {
               key="entrepreneurs"
             >
               <Table
-                columns={getColumns("entrepreneurs")}
+                columns={getColumns("Entrepreneur")}
                 dataSource={getDataByRole("Entrepreneur")}
                 rowKey="id"
+                loading={loading}
                 pagination={{
                   pageSize: 10,
                   showSizeChanger: true,
@@ -454,9 +496,10 @@ const UserManagement = () => {
               key="exporters"
             >
               <Table
-                columns={getColumns("exporters")}
+                columns={getColumns("Exporter")}
                 dataSource={getDataByRole("Exporter")}
                 rowKey="id"
+                loading={loading}
                 pagination={{
                   pageSize: 10,
                   showSizeChanger: true,
@@ -480,9 +523,10 @@ const UserManagement = () => {
               key="traders"
             >
               <Table
-                columns={getColumns("traders")}
+                columns={getColumns("IntermediaryTrader")}
                 dataSource={getDataByRole("IntermediaryTrader")}
                 rowKey="id"
+                loading={loading}
                 pagination={{
                   pageSize: 10,
                   showSizeChanger: true,
@@ -501,7 +545,7 @@ const UserManagement = () => {
         <CertificatePrintDrawer
           visible={certificateDrawerVisible}
           onClose={() => setCertificateDrawerVisible(false)}
-          users={users}
+          users={allUsers}
           onSubmitForApproval={handleCertificatePrintSubmit}
         />
 
@@ -516,7 +560,7 @@ const UserManagement = () => {
           footer={[
             <Button key="close" onClick={() => setViewModalVisible(false)}>
               Close
-            </Button>
+            </Button>,
           ]}
           width={600}
         >
@@ -525,13 +569,17 @@ const UserManagement = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Full Name</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Full Name
+                    </label>
                     <div className="text-gray-900">{selectedUser.name}</div>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Email
+                    </label>
                     <div className="text-gray-900">{selectedUser.email}</div>
                   </div>
                 </Col>
@@ -539,9 +587,14 @@ const UserManagement = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Role</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Role
+                    </label>
                     <div>
-                      <Tag color={getRoleColor(selectedUser.role)} className="mt-1">
+                      <Tag
+                        color={getRoleColor(selectedUser.role)}
+                        className="mt-1"
+                      >
                         {selectedUser.role}
                       </Tag>
                     </div>
@@ -549,9 +602,14 @@ const UserManagement = () => {
                 </Col>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Status</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Status
+                    </label>
                     <div>
-                      <Tag color={getStatusColor(selectedUser.status)} className="mt-1">
+                      <Tag
+                        color={getStatusColor(selectedUser.status)}
+                        className="mt-1"
+                      >
                         {selectedUser.status}
                       </Tag>
                     </div>
@@ -561,42 +619,73 @@ const UserManagement = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Business Name</label>
-                    <div className="text-gray-900">{selectedUser.businessName}</div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Business Name
+                    </label>
+                    <div className="text-gray-900">
+                      {selectedUser.businessName ||
+                        selectedUser.entrepreneur?.businessName ||
+                        selectedUser.exporter?.businessName ||
+                        selectedUser.intermediaryTrader?.businessName ||
+                        "N/A"}
+                    </div>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Business Type</label>
-                    <div className="text-gray-900">{selectedUser.businessType}</div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Business Type
+                    </label>
+                    <div className="text-gray-900">
+                      {selectedUser.businessType ||
+                        selectedUser.entrepreneur?.businessType ||
+                        selectedUser.exporter?.businessType ||
+                        selectedUser.intermediaryTrader?.businessType ||
+                        "N/A"}
+                    </div>
                   </div>
                 </Col>
               </Row>
               <Row gutter={16}>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Location</label>
-                    <div className="text-gray-900">{selectedUser.location}</div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Location
+                    </label>
+                    <div className="text-gray-900">
+                      {selectedUser.location?.name ||
+                        selectedUser.district?.name ||
+                        (typeof selectedUser.location === "string"
+                          ? selectedUser.location
+                          : "N/A")}
+                    </div>
                   </div>
                 </Col>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Department</label>
-                    <div className="text-gray-900">{selectedUser.department}</div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Department
+                    </label>
+                    <div className="text-gray-900">
+                      {selectedUser.department || "N/A"}
+                    </div>
                   </div>
                 </Col>
               </Row>
               <Row gutter={16}>
                 <Col span={12}>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Registration Date</label>
-                    <div className="text-gray-900">{selectedUser.registrationDate}</div>
-                  </div>
-                </Col>
-                <Col span={12}>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Last Login</label>
-                    <div className="text-gray-900">{selectedUser.lastLogin}</div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Registration Date
+                    </label>
+                    <div className="text-gray-900">
+                      {selectedUser.registrationDate ||
+                        (selectedUser.createdAt
+                          ? new Date(
+                              selectedUser.createdAt
+                            ).toLocaleDateString()
+                          : "N/A")}
+                    </div>
                   </div>
                 </Col>
               </Row>
@@ -604,132 +693,27 @@ const UserManagement = () => {
           )}
         </Modal>
 
-        {/* Edit User Modal */}
-        <Modal
-          title="Edit User Information"
-          open={editModalVisible}
-          onOk={handleEditSubmit}
-          onCancel={() => {
-            setEditModalVisible(false);
-            setSelectedUser(null);
-            form.resetFields();
-          }}
-          okText="Submit for Approval"
-          okButtonProps={{
-            style: { backgroundColor: '#e67324', borderColor: '#e67324' }
-          }}
-          width={600}
-        >
-          <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-            <div className="flex items-center space-x-2 text-orange-800">
-              <ExclamationCircleOutlined />
-              <span className="text-sm">
-                Changes require administrator approval before taking effect.
-              </span>
-            </div>
-          </div>
-
-          <Form
-            form={form}
-            layout="vertical"
-            className="space-y-4"
+        {/* EditPage overlay */}
+        {editUserId && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              background: "rgba(0,0,0,0.15)",
+              zIndex: 2000,
+              overflow: "auto",
+            }}
           >
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Full Name"
-                  name="name"
-                  rules={[{ required: true, message: 'Please enter full name' }]}
-                >
-                  <Input placeholder="Enter full name" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Email Address"
-                  name="email"
-                  rules={[
-                    { required: true, message: 'Please enter email address' },
-                    { type: 'email', message: 'Please enter valid email' }
-                  ]}
-                >
-                  <Input placeholder="Enter email address" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Role"
-                  name="role"
-                  rules={[{ required: true, message: 'Please select role' }]}
-                >
-                  <Select placeholder="Select role">
-                    <Option value="Entrepreneur">Entrepreneur</Option>
-                    <Option value="Exporter">Exporter</Option>
-                    <Option value="IntermediaryTrader">Intermediary Trader</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Department"
-                  name="department"
-                  rules={[{ required: true, message: 'Please enter department' }]}
-                >
-                  <Input placeholder="Enter department" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Business Name"
-                  name="businessName"
-                  rules={[{ required: true, message: 'Please enter business name' }]}
-                >
-                  <Input placeholder="Enter business name" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Business Type"
-                  name="businessType"
-                  rules={[{ required: true, message: 'Please enter business type' }]}
-                >
-                  <Input placeholder="Enter business type" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  label="Location"
-                  name="location"
-                  rules={[{ required: true, message: 'Please enter location' }]}
-                >
-                  <Input placeholder="Enter location" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Status"
-                  name="status"
-                  rules={[{ required: true, message: 'Please select status' }]}
-                >
-                  <Select placeholder="Select status">
-                    <Option value="Active">Active</Option>
-                    <Option value="Inactive">Inactive</Option>
-                    <Option value="Suspended">Suspended</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        </Modal>
+            <EditPage
+              userId={editUserId}
+              onBack={handleEditBack}
+              onUserUpdate={handleUserUpdate}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

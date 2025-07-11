@@ -1,22 +1,32 @@
 import { Menu, Badge } from "antd";
 import {
-  UserOutlined,
   FileDoneOutlined,
   TeamOutlined,
   FormOutlined,
   UserAddOutlined,
   NotificationOutlined,
   HomeOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useFormContext } from "../../contexts/FormContext";
+import { selectAuthUser } from "../../store/slices/authSlice";
+import { useSelector } from "react-redux";
+
+
 
 const SidebarMenu = () => {
+  const user = useSelector(selectAuthUser);
   const location = useLocation();
   const { role, status } = useFormContext();
 
+  // Wait for user to be loaded
+  if (!user) return null; // or a spinner
+
   const hasSelectedRole = role !== "";
   const hasSelectedStatus = status !== "";
+
+  const isAdmin = user?.userRole === 1;
 
   return (
     <Menu
@@ -24,6 +34,7 @@ const SidebarMenu = () => {
       mode="inline"
       selectedKeys={[location.pathname]}
       className="bg-sidebar border-r-0"
+      style={{ height: "100%", display: "flex", flexDirection: "column" }}
     >
       <Menu.Item key="/dashboard" icon={<HomeOutlined />}>
         <Link to="/dashboard">Dashboard</Link>
@@ -33,8 +44,8 @@ const SidebarMenu = () => {
         <Link to="/select">Registration</Link>
       </Menu.Item>
 
-      <Menu.Item key="/members" icon={<TeamOutlined />}>
-        <Link to="/members">Manage Members</Link>
+      <Menu.Item key="/user-management" icon={<TeamOutlined />}>
+        <Link to="/user-management">Manage Members</Link>
       </Menu.Item>
 
       <Menu.Item key="/reports" icon={<FileDoneOutlined />}>
@@ -44,15 +55,30 @@ const SidebarMenu = () => {
         </Link>
       </Menu.Item>
 
-      <Menu.Item key="/create" icon={<UserAddOutlined />}>
-        <Link to="/create">Register System User</Link>
-      </Menu.Item>
+      {isAdmin && (
+        <Menu.Item key="/create" icon={<UserAddOutlined />}>
+          <Link to="/create">Register System User</Link>
+        </Menu.Item>
+      )}
 
       <Menu.Item key="/notifications" icon={<NotificationOutlined />}>
         <Link to="/notifications">
           Notifications
         </Link>
       </Menu.Item>
+      {isAdmin && (
+      <Menu.Item
+        key="/settings"
+        icon={<SettingOutlined />}
+        style={{
+          marginBottom: 5,
+          position: "absolute",
+          bottom: 0,
+        }}
+      >
+        <Link to="/settings">Settings</Link>
+      </Menu.Item>
+      )}
     </Menu>
   );
 };

@@ -4,10 +4,6 @@ import {
   GeographicDistributionChart,
   DemographicsStackedBar,
   SectorWiseBar,
-  // ApprovalStatusDonut,
-  // RegistrationTimeBoxPlot,
-  // DocumentComplianceGrid,
-  // RegistrationFunnel,
 } from "./index";
 
 export const RegistrationDashboard = (props) => {
@@ -17,10 +13,6 @@ export const RegistrationDashboard = (props) => {
     geo = [],
     demographics = [],
     sectors = [],
-    // approval = [],
-    // regTime = [],
-    // docs = [],
-    // funnel = [],
   } = props;
 
   return (
@@ -59,34 +51,6 @@ export const RegistrationDashboard = (props) => {
         </h3>
         <SectorWiseBar data={sectors} />
       </div>
-
-      {/* <div className="bg-white rounded-2xl shadow p-4 dark:bg-slate-800">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-          Approval Status
-        </h3>
-        <ApprovalStatusDonut data={approval} />
-      </div>
-
-      <div className="bg-white rounded-2xl shadow p-4 dark:bg-slate-800">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-          Registration Time Distribution
-        </h3>
-        <RegistrationTimeBoxPlot data={regTime} />
-      </div>
-
-      <div className="bg-white rounded-2xl shadow p-4 lg:col-span-2 dark:bg-slate-800">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-          Document Compliance
-        </h3>
-        <DocumentComplianceGrid data={docs} />
-      </div>
-
-      <div className="bg-white rounded-2xl shadow p-4 lg:col-span-2 dark:bg-slate-800">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-          Registration Funnel
-        </h3>
-        <RegistrationFunnel data={funnel} />
-      </div> */}
     </div>
   );
 };

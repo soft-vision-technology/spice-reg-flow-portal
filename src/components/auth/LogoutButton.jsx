@@ -17,6 +17,7 @@ const LogoutButton = ({ className = "" }) => {
   const confirmLogout = () => {
     // Clear token from localStorage
     localStorage.removeItem('token');
+    localStorage.removeItem("user");
     
     // Clear Redux state
     dispatch(logout());

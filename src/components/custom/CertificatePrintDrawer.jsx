@@ -50,8 +50,8 @@ const CertificatePrintDrawer = ({
     },
     {
       id: 'gmq-certification',
-      title: 'GMQ Certification',
-      description: 'Good Manufacturing Quality certification',
+      title: 'GMP Certification',
+      description: 'Good Manufacturing Practice certification',
       icon: <AwardIcon style={{ fontSize: '24px', color: '#52c41a' }} />
     }
   ];
@@ -67,7 +67,7 @@ const CertificatePrintDrawer = ({
         borderColor: '#e67324'
       },
       'gmq-certification': {
-        title: 'GOOD MANUFACTURING QUALITY CERTIFICATE',
+        title: 'GOOD MANUFACTURING PRACTICE CERTIFICATE',
         subtitle: 'Quality Assurance Division',
         content: `This certificate confirms that the manufacturing processes and quality standards meet the requirements set forth by the Sri Lankan Spice Quality Standards and are compliant with international best practices.`,
         backgroundColor: '#f6ffed',
