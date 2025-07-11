@@ -45,7 +45,7 @@ const NotificationSection = () => {
   };
 
   const handleNotificationClick = (notification) => {
-    // Mark as read firs
+    // Mark as read first
     if (!notification.isRead) {
       handleMarkAsRead(notification.id);
     }

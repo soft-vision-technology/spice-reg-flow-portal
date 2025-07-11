@@ -159,20 +159,7 @@ const NotificationsPage = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <BellOutlined className="text-2xl text-blue-600" />
-              <Title level={2} className="mb-0">
-                Notifications
-              </Title>
-            </div>
-            <div className="flex items-center gap-4">
-              <Badge count={unreadCount} className="mr-2">
-                <InboxOutlined className="text-xl" />
-              </Badge>
-              <Text type="secondary">{totalCount} total notifications</Text>
-            </div>
-          </div>
+          
 
           {/* Filters and Search */}
           <Card className="mb-4">

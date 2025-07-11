@@ -17,6 +17,7 @@ const RegisterUser = React.lazy(() => import('../AdminPages/RegisterUser'));
 const ImportDataPage = React.lazy(() => import('../pages/ImportDataPage'));
 const SettingsPage = React.lazy(() => import('../pages/SettingsPage'));
 const NotFound = React.lazy(() => import('../pages/NotFound'));
+const ViewUser = React.lazy(()=>import('../pages/ViewUserPage'))
 
 // Auth pages
 const LandingPage = React.lazy(() => import('../pages/LandingPage'));
@@ -34,6 +35,7 @@ export const routes = [
   { path: '/intermediary-form', exact: true, name: 'IntermediaryPage', element: IntermediaryPage, protected: true },
   { path: '/reports', exact: true, name: 'ReportsPage', element: ReportsPage, protected: true },
   { path: '/user-management', exact: true, name: 'UserManagement', element: UserManagement, protected: true },
+  { path: '/users/:id', exact: true, name: 'ViewUser', element:ViewUser, protected: true },
   { path: '/user-management-edit/:id', exact: true, name: 'EditPage', element: EditPage, protected: true },
   { path: '/admin/approve/review/editData/:id', exact: true, name: 'ApprovalPage', element: ApprovalPage, protected: true },
   { path: '/admin/approve/review/deleteData/:id', exact: true, name: 'DeletePage', element: DeletePage, protected: true },
