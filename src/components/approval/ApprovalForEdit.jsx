@@ -150,10 +150,10 @@ const ApprovalForEdit = ({ approval, currentData, currentLoading, approvalId, on
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
       <Descriptions>
         <Descriptions.Item label="Request Name">
-          {approval.requestName}
+          {approval?.requestName || 'NO'}
         </Descriptions.Item>
         <Descriptions.Item label="Status">
-          {getStatusTag(approval.status)}
+          {getStatusTag(approval?.status)}
         </Descriptions.Item>
         <Descriptions.Item label="Type">
           <Tag color="blue">Edit Request</Tag>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Typography,
   Table,
@@ -21,15 +21,49 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "../../api/axiosInstance";
+import { useNavigate, useParams } from "react-router-dom";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { confirm } = Modal;
 
-const ApprovalForDelete = ({ approval, currentData, currentLoading, approvalId, onSuccess }) => {
+const ApprovalForDelete = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [approval, setApproval] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [remarks, setRemarks] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm();
+
+  console.log("delete",id)
+  console.log("deleteapproval",approval)
+
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      try {
+        const { data } = await axiosInstance.get(`/api/approval/get/${id}`);
+        setApproval(data?.newRequest);
+      } catch (e) {
+        message.error("Failed to load approval request");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "40px" }}>
+        <Spin />
+      </div>
+    );
+  }
+
+  if (!approval) {
+    return <Alert message="Approval not found" type="error" showIcon />;
+  }
 
   const getStatusTag = (status) => {
     const statusConfig = {
@@ -76,7 +110,7 @@ const ApprovalForDelete = ({ approval, currentData, currentLoading, approvalId, 
           // 1. Delete the record using DELETE method
           await axiosInstance.delete(`/api/${approval.requestedUrl}`);
           // 2. Update approval status
-          await axiosInstance.patch(`/api/approval/update/${approvalId}`, {
+          await axiosInstance.patch(`/api/approval/update/${id}`, {
             remarks,
             status: "approved",
           });
@@ -107,7 +141,7 @@ const ApprovalForDelete = ({ approval, currentData, currentLoading, approvalId, 
         setSubmitting(true);
         try {
           // Only update approval status, do not delete the record
-          await axiosInstance.patch(`/api/approval/update/${approvalId}`, {
+          await axiosInstance.patch(`/api/approval/update/${id}`, {
             remarks,
             status: "denied",
           });
@@ -149,6 +183,8 @@ const ApprovalForDelete = ({ approval, currentData, currentLoading, approvalId, 
     }));
   };
 
+  console.log(approval)
+
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
       <Descriptions>
@@ -174,7 +210,7 @@ const ApprovalForDelete = ({ approval, currentData, currentLoading, approvalId, 
 
       <div>
         <Title level={3}>Record to be Deleted</Title>
-        {currentLoading ? (
+        {loading ? (
           <div style={{ textAlign: "center", padding: "40px 0" }}>
             <Spin />
             <div style={{ marginTop: 8 }}>
