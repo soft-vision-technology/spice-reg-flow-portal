@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Steps, Button, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import ExporterForm from "../components/forms/ExporterForm";
+import ExporterForm from "../components/forms/exporter/ExporterForm";
 import { useFormContext } from "../contexts/FormContext";
 import axiosInstance from "../api/axiosInstance";
 
