@@ -728,7 +728,7 @@ const UserManagementSystem = () => {
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            User Management System
+            System User Management
           </h1>
           <p className="text-gray-600">
             Create and manage system users • Total: {users.length} users

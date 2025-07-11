@@ -1,5 +1,4 @@
-import React from "react";
-import { Button, Card, Statistic, Space, Typography, Row, Col, Progress, Tag, Divider } from "antd";
+import { Button, Card, Statistic, Space, Typography, Row, Col, Progress, Tag } from "antd";
 import { Link } from "react-router-dom";
 import {
   GlobalOutlined,
@@ -11,7 +10,6 @@ import {
   RiseOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
-  ExclamationCircleOutlined
 } from "@ant-design/icons";
 import { TrendingUp } from "lucide-react";
 
@@ -313,7 +311,7 @@ const RegistrationDashboard = (props) => {
           </div>
           <Space>
             <Button type="primary" style={{ backgroundColor: '#E67324', borderColor: '#E67324' }}>
-              <Link to="/register">New Registration</Link>
+              <Link to="/select">New Registration</Link>
             </Button>
             <Button type="outline" style={{ borderColor: '#E67324', color: '#E67324' }}>
               <Link to="/reports">View Reports</Link>

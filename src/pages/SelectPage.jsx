@@ -103,37 +103,31 @@ const SelectPage = () => {
   const canContinue = hasBasicInfo && hasRegistrationInfo;
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-earth-700 text-center mb-2">
-          Complete Your Registration
-        </h1>
-        <p className="text-gray-600 text-center">
-          Please provide your information and select your registration
-          preferences
-        </p>
+    <div className="w-full max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
+      {/* Import Data Button - Centered with responsive sizing */}
+      <div className="flex justify-center mb-4 sm:mb-6">
+        <Button
+          type="default"
+          size="large"
+          icon={<ImportOutlined />}
+          onClick={handleImportData}
+          className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-600 px-4 sm:px-6 lg:px-8 py-2 h-10 sm:h-12 text-sm sm:text-base w-full sm:w-auto max-w-xs sm:max-w-none"
+        >
+          <span className="hidden sm:inline">Import Data from Excel</span>
+          <span className="sm:hidden">Import Excel</span>
+        </Button>
       </div>
-      <div className="flex justify-center mb-6">
-          <Button
-            type="default"
-            size="large"
-            icon={<ImportOutlined />}
-            onClick={handleImportData}
-            className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-600 px-8 py-2 h-10"
-          >
-            Import Data from Excel
-          </Button>
-        </div>
 
-      <Row gutter={32} className="mb-8">
-        {/* Left Side - Registration Type & Role Selection */}
-        <Col xs={24} lg={12}>
+      {/* Main Content Row - Responsive layout */}
+      <Row gutter={[16, 24]} className="mb-6 sm:mb-8">
+        {/* Role Selection Card - Full width on mobile, half on desktop */}
+        <Col xs={24} lg={12} className="mb-6 lg:mb-0">
           <div className="h-full">
             <RoleSelectionCard setRoleId={setRoleId} />
           </div>
         </Col>
 
-        {/* Right Side - Basic Information Form */}
+        {/* Basic Information Form - Full width on mobile, half on desktop */}
         <Col xs={24} lg={12}>
           <div className="h-full">
             <BasicInfoForm />
@@ -141,23 +135,28 @@ const SelectPage = () => {
         </Col>
       </Row>
 
-      {/* Continue Button */}
-      <div className="flex justify-center">
+      {/* Continue Button - Responsive sizing and positioning */}
+      <div className="flex justify-center px-4 sm:px-0">
         <Button
           type="primary"
           size="large"
           onClick={handleContinue}
           disabled={!canContinue}
           loading={loading}
-          className="bg-spice-500 hover:bg-spice-600 px-12 py-2 h-12 text-lg"
+          className="bg-spice-500 hover:bg-spice-600 px-6 sm:px-8 lg:px-12 py-2 h-12 sm:h-14 text-base sm:text-lg w-full sm:w-auto max-w-sm sm:max-w-none"
         >
-          {loading ? "Saving..." : "Continue to Next Step"}
+          {loading ? "Saving..." : (
+            <>
+              <span className="hidden sm:inline">Continue to Next Step</span>
+              <span className="sm:hidden">Continue</span>
+            </>
+          )}
         </Button>
       </div>
 
-      {/* Progress indicator */}
-      <div className="mt-8 text-center">
-        <div className="flex justify-center items-center space-x-4 text-sm text-gray-500">
+      {/* Progress indicator - Responsive layout */}
+      <div className="mt-6 sm:mt-8 text-center px-4 sm:px-0">
+        <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-6 text-sm text-gray-500">
           <div
             className={`flex items-center ${
               hasRegistrationInfo ? "text-green-600" : "text-gray-400"
@@ -168,7 +167,7 @@ const SelectPage = () => {
                 hasRegistrationInfo ? "bg-green-500" : "bg-gray-300"
               }`}
             ></span>
-            Registration Type
+            <span className="text-xs sm:text-sm">Registration Type</span>
           </div>
           <div
             className={`flex items-center ${
@@ -180,7 +179,7 @@ const SelectPage = () => {
                 hasBasicInfo ? "bg-green-500" : "bg-gray-300"
               }`}
             ></span>
-            Basic Information
+            <span className="text-xs sm:text-sm">Basic Information</span>
           </div>
         </div>
       </div>

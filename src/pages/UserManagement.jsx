@@ -168,7 +168,7 @@ const UserManagement = () => {
       requestData: {
         id: user.id,
       },
-      requestedUrl: `user/${user.id}`,
+      requestedUrl: `users/${user.id}`,
     };
 
     // Send approval request to API
