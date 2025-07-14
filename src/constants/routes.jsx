@@ -10,21 +10,23 @@ const IntermediaryPage = React.lazy(() => import('../pages/IntermediaryPage'));
 const ReportsPage = React.lazy(() => import('../pages/ReportsPage'));
 const UserManagement = React.lazy(() => import('../pages/UserManagement'));
 const ApprovalPage = React.lazy(() => import('../pages/ApprovalPage'));
-const DeletePage = React.lazy(() => import('../components/approval/ApprovalForDelete'));
+const ViewUser = React.lazy(()=>import('../pages/ViewUserPage'))
 const EditPage = React.lazy(() => import('../pages/EditPage'));
+const DeletePage = React.lazy(() => import('../components/approval/ApprovalForDelete'));
 const NotificationsPage = React.lazy(() => import('../pages/NotificationsPage'));
 const RegisterUser = React.lazy(() => import('../AdminPages/RegisterUser'));
 const ImportDataPage = React.lazy(() => import('../pages/ImportDataPage'));
 const SettingsPage = React.lazy(() => import('../pages/SettingsPage'));
 const NotFound = React.lazy(() => import('../pages/NotFound'));
-const ViewUser = React.lazy(()=>import('../pages/ViewUserPage'))
 
 // Auth pages
 const LandingPage = React.lazy(() => import('../pages/LandingPage'));
+const Landing = React.lazy(() => import('../pages/Landing.jsx'));
 
 export const routes = [
   // Public routes
   { path: '/', exact: true, name: 'LandingPage', element: LandingPage, protected: false },
+  { path: '/l', exact: true, name: 'Landing', element: Landing, protected: false},
   
   // Protected dashboard routes
   { path: '/dashboard', exact: true, name: 'Dashboard', element: Dashboard, protected: true },

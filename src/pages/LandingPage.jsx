@@ -9,7 +9,7 @@ const { Title, Paragraph } = Typography;
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-spice-100 to-earth-100">
+    <div className="bg-gradient-to-br from-spice-100 to-earth-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-24">
           <div className="text-center mb-16">
@@ -98,6 +98,13 @@ const HomePage = () => {
           </Row>
         </div>
       </div>
+      <footer className="bg-spice-500 py-6">
+        <div className="text-center">
+          <span className="text-white">
+            © 2025 Ceylon Spice Industry. All rights reserved.
+          </span>
+        </div>
+      </footer>
     </div>
   );
 };
