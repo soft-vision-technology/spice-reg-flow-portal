@@ -475,7 +475,7 @@ const Landing = () => {
       <div className="absolute bottom-0 left-0 right-0 bg-spice-500 backdrop-blur-sm border-t-2 border-white p-4">
         <div className="text-center">
           <p className="text-white text-xs">
-            © 2025 . All rights reserved.
+            <span className="font-semibold">© 2025 </span><span className="font-custom">Soft Vision Technologies Pvt Ltd</span><span className="font-semibold">. All rights reserved.</span>
           </p>
         </div>
       </div>

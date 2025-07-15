@@ -19,7 +19,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        custom: ["Sugar and Spice HandSans"],
+        custom: ["Ethernal"],
       },
       colors: {
         border: "hsl(var(--border))",
