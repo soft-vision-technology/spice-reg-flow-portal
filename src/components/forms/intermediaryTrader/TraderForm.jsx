@@ -4,38 +4,28 @@ import {
   Input,
   Select,
   InputNumber,
-  Upload,
+  DatePicker,
   Button,
   Row,
   Col,
-  Checkbox,
-  Space,
   Card,
-  DatePicker,
-  Radio,
+  Space,
 } from "antd";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useFormContext } from "../../../contexts/FormContext";
+import { useDispatch, useSelector } from "react-redux";
 import {
-  UploadOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
-import { useFormContext } from "../../contexts/FormContext";
-import countries from "country-json/src/country-by-name.json";
-import {
-  fetchCertificateOptions,
   fetchExperienceOptions,
   fetchNumEmployeeOptions,
   fetchProductOptions,
   selectExperienceOptions,
-  selectCertificateOptions,
   selectNumEmployeeOptions,
   selectProductOptions,
-} from "../../store/slices/utilsSlice";
-import { useDispatch, useSelector } from "react-redux";
-import dayjs from "dayjs";
+} from "../../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
+import dayjs from "dayjs";
 
-const ExporterForm = ({ isExisting }) => {
+const TraderForm = ({ isExisting }) => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { updateFormData, formData } = useFormContext();
@@ -45,7 +35,6 @@ const ExporterForm = ({ isExisting }) => {
   ]);
 
   const load = async () => {
-    await dispatch(fetchCertificateOptions());
     await dispatch(fetchNumEmployeeOptions());
     await dispatch(fetchExperienceOptions());
     await dispatch(fetchProductOptions());
@@ -56,7 +45,6 @@ const ExporterForm = ({ isExisting }) => {
   }, [dispatch]);
 
   const experienceOptions = useSelector(selectExperienceOptions) || [];
-  const certificateOptions = useSelector(selectCertificateOptions) || [];
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
   const productOptions = useSelector(selectProductOptions) || [];
 
@@ -90,21 +78,25 @@ const ExporterForm = ({ isExisting }) => {
     // Format the data according to API requirements
     const formattedData = {
       businessName: allValues.businessName || null,
-      businessRegNo: allValues.businessRegNumber || null,
-      numberOfEmployeeId: allValues.numberOfEmployees ? parseInt(allValues.numberOfEmployees) : null,
-      businessExperienceId: allValues.yearsExporting ? parseInt(allValues.yearsExporting) : null,
-      productRange: allValues.productRange || null,
-      businessDescription: allValues.businessDescription || null,
-      exportingCountries: allValues.exportCountries || null,
-      exportStartMonth: allValues.exportStartDate ? dayjs(allValues.exportStartDate).format('MMMM') : null,
-      exportStartYear: allValues.exportStartDate ? dayjs(allValues.exportStartDate).format('YYYY') : null,
-      certificateId: allValues.exportCertifications ? parseInt(allValues.exportCertifications) : null,
-      startDate: allValues.exportStartDate ? dayjs(allValues.exportStartDate).toISOString() : null,
-      products: exportProducts.filter(product => product.productId && product.value).map(product => ({
-        productId: parseInt(product.productId),
-        value: parseFloat(product.value)
-      })),
+      businessRegNo: allValues.businessRegistrationNumber || null,
+      businessAddress: allValues.businessAddress || null,
+      numberOfEmployeeId: allValues.numberOfEmployees
+        ? parseInt(allValues.numberOfEmployees)
+        : null,
+      businessExperienceId: allValues.yearsTrading
+        ? parseInt(allValues.yearsTrading)
+        : null,
+      registrationDate: allValues.registrationDate
+        ? dayjs(allValues.registrationDate).toISOString()
+        : null,
+      additionalInfo: allValues.additionalInfo || null,
       userId: location?.state?.result,
+      products: exportProducts
+        .filter((product) => product.productId && product.value)
+        .map((product) => ({
+          productId: parseInt(product.productId),
+          value: parseFloat(product.value),
+        })),
     };
 
     updateFormData(formattedData);
@@ -113,12 +105,12 @@ const ExporterForm = ({ isExisting }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h3 className="text-xl font-medium text-earth-700 mb-6">
-        Export Operation Information
+        Trading Business Information
       </h3>
 
-      <Form 
+      <Form
         form={form}
-        layout="vertical" 
+        layout="vertical"
         onValuesChange={handleChange}
         initialValues={formData}
       >
@@ -131,32 +123,67 @@ const ExporterForm = ({ isExisting }) => {
                 { required: true, message: "Please enter business name" },
               ]}
             >
-              <Input placeholder="Global Spice Exports Ltd." />
+              <Input placeholder="Spice Trading Enterprises" />
             </Form.Item>
           </Col>
-          {isExisting && (
-
           <Col xs={24} sm={12}>
             <Form.Item
               label="Business Registration Number"
-              name="businessRegNumber"
+              name="businessRegistrationNumber"
               rules={[
                 {
                   required: true,
-                  message: "Please enter business registration number",
+                  message: "Please enter registration number",
                 },
               ]}
             >
-              <Input placeholder="EXP12345" />
+              <Input placeholder="TRD12345" />
             </Form.Item>
           </Col>
-          )}
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item
+              label="Business Address"
+              name="businessAddress"
+              rules={[
+                { required: true, message: "Please enter business address" },
+              ]}
+            >
+              <Input.TextArea
+                rows={3}
+                placeholder="123 Trading Street, Commercial Zone, Colombo"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Registration Date"
+                name="registrationDate"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please select registration date",
+                  },
+                ]}
+              >
+                <DatePicker
+                  format="YYYY-MM-DD"
+                  style={{ width: "100%" }}
+                  placeholder="Select date"
+                />
+              </Form.Item>
+            </Col>
           <Col xs={24} sm={12}>
             <Form.Item
-              label="Years in Export Business"
-              name="yearsExporting"
+              label="Years in Trading Business"
+              name="yearsTrading"
               rules={[
-                { required: true, message: "Please enter years in exports" },
+                { required: true, message: "Please select years in trading" },
               ]}
             >
               <Select
@@ -165,19 +192,9 @@ const ExporterForm = ({ isExisting }) => {
               />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Started Date of Export Business"
-              name="exportStartDate"
-              rules={[{ required: true, message: "Please enter started date" }]}
-            >
-              <DatePicker
-                format="YYYY-MM-DD"
-                style={{ width: "100%" }}
-                placeholder="Select date"
-              />
-            </Form.Item>
-          </Col>
+        </Row>
+
+        <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
               label="Number of Employees"
@@ -192,51 +209,12 @@ const ExporterForm = ({ isExisting }) => {
               />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Name of Country / Countries of Export"
-              name="exportCountries"
-              rules={[
-                { required: true, message: "Please select at least one" },
-              ]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="Select target markets"
-                options={countries.map((country) => ({
-                  label: country.country,
-                  value: country.country,
-                }))}
-                className="w-full"
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Product Range"
-              name="productRange"
-            >
-              <Input placeholder="Describe your product range" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Business Description"
-              name="businessDescription"
-            >
-              <Input.TextArea 
-                placeholder="Describe your business"
-                rows={3}
-              />
-            </Form.Item>
-          </Col>
         </Row>
 
-{isExisting && (
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
-              label="Export Spice Products & Values"
+              label="Trading Spice Products & Values"
               rules={[
                 {
                   validator: () => {
@@ -285,7 +263,7 @@ const ExporterForm = ({ isExisting }) => {
                           min={0.01}
                           step={0.01}
                           className="w-full"
-                          parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
                         />
                       </Col>
                       <Col xs={24} sm={6}>
@@ -318,27 +296,14 @@ const ExporterForm = ({ isExisting }) => {
             </Form.Item>
           </Col>
         </Row>
-)}
 
         <Row gutter={16}>
-          <Col xs={24}>
-            <Form.Item
-              label="Export Certifications"
-              name="exportCertifications"
-              rules={[
-                {
-                  required: true,
-                  message: "Please select a certification",
-                },
-              ]}
-            >
-              <Radio.Group>
-                {formatSelects(certificateOptions).map((opt) => (
-                  <Radio key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </Radio>
-                ))}
-              </Radio.Group>
+          <Col span={24}>
+            <Form.Item label="Additional Information" name="additionalInfo">
+              <Input.TextArea
+                rows={4}
+                placeholder="Any additional information about your trading business..."
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -347,4 +312,4 @@ const ExporterForm = ({ isExisting }) => {
   );
 };
 
-export default ExporterForm;
+export default TraderForm;

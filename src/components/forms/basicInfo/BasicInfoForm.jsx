@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, Input, Select, Col, Row } from "antd";
-import { useFormContext } from "../../contexts/FormContext";
-import { provinces, districts } from "../../constants/locations";
-import { updateBasicInfo, saveBasicInfo, fetchBasicInfo } from "../../store/slices/basicInfoSlice";
-import { useDispatch } from "react-redux";
+import { useFormContext } from "../../../contexts/FormContext";
+import { selectProvinceOptions, fetchProvince } from "../../../store/slices/utilsSlice";
+import { updateBasicInfo, saveBasicInfo, fetchBasicInfo } from "../../../store/slices/basicInfoSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const { Option } = Select;
 
@@ -12,32 +12,44 @@ const BasicInfoForm = () => {
   const { updateFormData } = useFormContext();
   const [selectedProvince, setSelectedProvince] = useState(null);
 
+  useEffect(() => {
+    // Fetch provinces when the component mounts
+    dispatch(fetchProvince());
+  }, [dispatch]);
+  
+  const provinces = useSelector(selectProvinceOptions);
+
   const handleProvinceChange = (value) => {
     setSelectedProvince(value);
   };
 
-  const filteredDistricts = districts.filter(
-    (d) => d.province_id === selectedProvince
+  // Find the selected province object
+  const selectedProvinceObj = provinces.find(
+    (province) => province.id === selectedProvince
   );
+
+  // Get districts for the selected province, or empty array if none selected
+  const districts = selectedProvinceObj ? selectedProvinceObj.districts : [];
 
   const handleChange = (_, allValues) => {
     updateFormData(allValues);
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
-      <h3 className="text-xl font-medium text-earth-700 mb-6">
+    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+      <h3 className="text-lg sm:text-xl font-medium text-earth-700 mb-4 sm:mb-6">
         Basic Information
       </h3>
       <Form layout="vertical" onValuesChange={handleChange}>
-        <Row gutter={16}>
+        {/* Title and Initials Row */}
+        <Row gutter={[12, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item
               label="Title"
               name="title"
               rules={[{ required: true, message: "Please select your title" }]}
             >
-              <Select placeholder="Select title">
+              <Select placeholder="Select title" size="large">
                 <Option value="Mr.">Mr.</Option>
                 <Option value="Ms.">Ms.</Option>
                 <Option value="Mrs.">Mrs.</Option>
@@ -52,12 +64,13 @@ const BasicInfoForm = () => {
                 { required: false, message: "Please enter your initials" },
               ]}
             >
-              <Input placeholder="T. N." />
+              <Input placeholder="T. N." size="large" />
             </Form.Item>
           </Col>
         </Row>
 
-        <Row gutter={16}>
+        {/* Full Name and NIC Row */}
+        <Row gutter={[12, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item
               label="Full Name"
@@ -66,7 +79,7 @@ const BasicInfoForm = () => {
                 { required: true, message: "Please enter your full name" },
               ]}
             >
-              <Input placeholder="John Doe" />
+              <Input placeholder="John Doe" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -81,24 +94,30 @@ const BasicInfoForm = () => {
                 },
               ]}
             >
-              <Input placeholder="123456789V or 123456789012" />
+              <Input placeholder="123456789V or 123456789012" size="large" />
             </Form.Item>
           </Col>
         </Row>
 
-        <Row gutter={16}>
+        {/* Address Row - Full width */}
+        <Row gutter={[12, 16]}>
           <Col span={24}>
             <Form.Item
               label="Address"
               name="address"
               rules={[{ required: true, message: "Please enter your address" }]}
             >
-              <Input.TextArea rows={2} placeholder="123 Spice Road, Colombo" />
+              <Input.TextArea 
+                rows={3} 
+                placeholder="123 Spice Road, Colombo"
+                className="resize-none"
+              />
             </Form.Item>
           </Col>
         </Row>
 
-        <Row gutter={16}>
+        {/* Email and Mobile Number Row */}
+        <Row gutter={[12, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item
               label="Email"
@@ -108,7 +127,7 @@ const BasicInfoForm = () => {
                 { type: "email", message: "Please enter a valid email" },
               ]}
             >
-              <Input placeholder="john.doe@example.com" />
+              <Input placeholder="john.doe@example.com" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -123,12 +142,13 @@ const BasicInfoForm = () => {
                 },
               ]}
             >
-              <Input placeholder="0712345678" />
+              <Input placeholder="0712345678" size="large" />
             </Form.Item>
           </Col>
         </Row>
         
-        <Row gutter={16}>
+        {/* Province and District Row */}
+        <Row gutter={[12, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item
               label="Province"
@@ -141,6 +161,11 @@ const BasicInfoForm = () => {
                 placeholder="Select province"
                 onChange={handleProvinceChange}
                 allowClear
+                size="large"
+                showSearch
+                filterOption={(input, option) =>
+                  option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
               >
                 {provinces.map((province) => (
                   <Option key={province.id} value={province.id}>
@@ -162,8 +187,13 @@ const BasicInfoForm = () => {
               <Select
                 placeholder="Select district"
                 disabled={!selectedProvince}
+                size="large"
+                showSearch
+                filterOption={(input, option) =>
+                  option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
               >
-                {filteredDistricts.map((district) => (
+                {districts.map((district) => (
                   <Option key={district.id} value={district.id}>
                     {district.name}
                   </Option>
@@ -172,8 +202,9 @@ const BasicInfoForm = () => {
             </Form.Item>
           </Col>
         </Row>
-        
-        <Row gutter={16}>
+                
+        {/* DS Division and GN Division Row */}
+        <Row gutter={[12, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item 
               label="DS Division" 
@@ -182,7 +213,7 @@ const BasicInfoForm = () => {
                 { required: false, message: "Please enter your DS Division" },
               ]}
             >
-              <Input placeholder="Gampaha" />
+              <Input placeholder="Gampaha" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -193,7 +224,7 @@ const BasicInfoForm = () => {
                 { required: false, message: "Please enter your GN Division" },
               ]}
             >
-              <Input placeholder="Ethgala" />
+              <Input placeholder="Ethgala" size="large" />
             </Form.Item>
           </Col>
         </Row>

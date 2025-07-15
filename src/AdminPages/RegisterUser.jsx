@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Form,
   Input,
@@ -14,6 +15,9 @@ import {
   Popconfirm,
   Card,
   Tabs,
+  Spin,
+  Alert,
+  Tooltip,
 } from "antd";
 import {
   UserAddOutlined,
@@ -22,34 +26,84 @@ import {
   EditOutlined,
   DeleteOutlined,
   UserSwitchOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  UserOutlined,
+  MailOutlined,
+  LockOutlined,
+  IdcardOutlined,
 } from "@ant-design/icons";
+import {
+  fetchUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  changeUserStatus,
+  setSelectedUser,
+  clearSelectedUser,
+  clearUsersError,
+  clearCreateUserError,
+  clearUpdateUserError,
+  clearDeleteUserError,
+  setPagination,
+  setFilters,
+  resetFilters,
+  updateUserLocally,
+  removeUserLocally,
+} from "../store/slices/authSlice";
 
 const { Option } = Select;
-const { TabPane } = Tabs;
+const { Search } = Input;
 
-// Mock data for demonstration
-const mockUsers = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "admin@gmail.com",
-    role: 1,
-    status: "active",
-    createdAt: "2025-01-15",
-  },
-];
+const UserManagement = () => {
+  const dispatch = useDispatch();
+  const {
+    users,
+    usersLoading,
+    usersError,
+    updateUserLoading,
+    updateUserError,
+    deleteUserLoading,
+    deleteUserError,
+    pagination,
+    filters,
+  } = useSelector((state) => state.auth);
 
-const UserManagement = ({ onUserCreated }) => {
-  const [users, setUsers] = useState(mockUsers);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
 
   const userRoles = [
     { value: 1, label: "Administrator" },
     { value: 2, label: "User" },
   ];
+
+  // Fetch users on component mount
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
+
+  // Clear errors when they change
+  useEffect(() => {
+    if (updateUserError) {
+      message.error(updateUserError);
+      dispatch(clearUpdateUserError());
+    }
+  }, [updateUserError, dispatch]);
+
+  useEffect(() => {
+    if (deleteUserError) {
+      message.error(deleteUserError);
+      dispatch(clearDeleteUserError());
+    }
+  }, [deleteUserError, dispatch]);
+
+  useEffect(() => {
+    if (usersError) {
+      message.error(usersError);
+      dispatch(clearUsersError());
+    }
+  }, [usersError, dispatch]);
 
   const getRoleName = (roleId) => {
     const role = userRoles.find((r) => r.value === roleId);
@@ -74,36 +128,50 @@ const UserManagement = ({ onUserCreated }) => {
     form.setFieldsValue({
       name: user.name,
       email: user.email,
+      password: user.password,
       role: user.role,
-      // status: user.status,
     });
     setEditModalVisible(true);
   };
 
   const handleDelete = async (userId) => {
     try {
-      setUsers(users.filter((user) => user.id !== userId));
+      // Optimistic update
+      dispatch(removeUserLocally(userId));
+      await dispatch(deleteUser(userId)).unwrap();
       message.success("User deleted successfully!");
     } catch (error) {
+      // Revert optimistic update on error
+      dispatch(fetchUsers());
       message.error("Failed to delete user.");
     }
   };
 
   const handleEditSubmit = async (values) => {
-    setLoading(true);
     try {
-      const updatedUsers = users.map((user) =>
-        user.id === editingUser.id ? { ...user, ...values } : user
-      );
-      setUsers(updatedUsers);
+      // Optimistic update
+      dispatch(updateUserLocally({ userId: editingUser.id, userData: values }));
+
+      await dispatch(
+        updateUser({ userId: editingUser.id, userData: values })
+      ).unwrap();
       setEditModalVisible(false);
       setEditingUser(null);
       form.resetFields();
       message.success("User updated successfully!");
     } catch (error) {
+      // Revert optimistic update on error
+      dispatch(fetchUsers());
       message.error("Failed to update user.");
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (userId, newStatus) => {
+    try {
+      await dispatch(changeUserStatus({ userId, status: newStatus })).unwrap();
+      message.success("User status updated successfully!");
+    } catch (error) {
+      message.error("Failed to update user status.");
     }
   };
 
@@ -113,23 +181,81 @@ const UserManagement = ({ onUserCreated }) => {
     form.resetFields();
   };
 
+  const handleRefresh = () => {
+    dispatch(fetchUsers());
+    message.success("Users refreshed!");
+  };
+
+  const handleSearch = (value) => {
+    dispatch(setFilters({ search: value }));
+  };
+
+  const handleTableChange = (pagination, filters, sorter) => {
+    dispatch(
+      setPagination({
+        current: pagination.current,
+        pageSize: pagination.pageSize,
+      })
+    );
+
+    dispatch(
+      setFilters({
+        role: filters.role?.[0] || null,
+        status: filters.status?.[0] || null,
+      })
+    );
+  };
+
+  const clearAllFilters = () => {
+    dispatch(resetFilters());
+    dispatch(setPagination({ current: 1 }));
+  };
+
+  // Filter users based on current filters
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch = filters.search
+      ? user.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        user.email.toLowerCase().includes(filters.search.toLowerCase())
+      : true;
+
+    const matchesRole = filters.role ? user.role === filters.role : true;
+    const matchesStatus = filters.status
+      ? user.status === filters.status
+      : true;
+
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
   const columns = [
     {
       title: "Name",
       dataIndex: "name",
       key: "name",
       sorter: (a, b) => a.name.localeCompare(b.name),
+      render: (text, record) => (
+        <div>
+          <div className="font-medium">{text}</div>
+          <div className="text-xs text-gray-500">ID: {record.id}</div>
+        </div>
+      ),
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
+      render: (email) => (
+        <Tooltip title={email}>
+          <span className="text-blue-600">{email}</span>
+        </Tooltip>
+      ),
     },
     {
       title: "Role",
       dataIndex: "role",
       key: "role",
-      render: (role) => getRoleName(role),
+      render: (role) => (
+        <Tag color={role === 1 ? "gold" : "blue"}>{getRoleName(role)}</Tag>
+      ),
       filters: userRoles.map((role) => ({
         text: role.label,
         value: role.value,
@@ -137,54 +263,40 @@ const UserManagement = ({ onUserCreated }) => {
       onFilter: (value, record) => record.role === value,
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => (
-        <Tag color={getStatusColor(status)}>{status.toUpperCase()}</Tag>
-      ),
-      filters: [
-        { text: "Active", value: "active" },
-        { text: "Inactive", value: "inactive" },
-        { text: "Pending", value: "pending" },
-      ],
-      onFilter: (value, record) => record.status === value,
-    },
-    {
-      title: "Created Date",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-    },
-    {
       title: "Actions",
       key: "actions",
+      fixed: "right",
+      width: 150,
       render: (_, record) => (
-        <Space size="middle">
-          <Button
-            type="primary"
-            ghost
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            Edit
-          </Button>
-          <Popconfirm
-            title="Are you sure you want to delete this user?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
+        <Space size="small">
+          <Tooltip title="Edit User">
             <Button
               type="primary"
-              danger
               ghost
               size="small"
-              icon={<DeleteOutlined />}
-            >
-              Delete
-            </Button>
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+              loading={updateUserLoading}
+            />
+          </Tooltip>
+          <Popconfirm
+            title="Delete User"
+            description="Are you sure you want to delete this user? This action cannot be undone."
+            onConfirm={() => handleDelete(record.id)}
+            okText="Yes, Delete"
+            cancelText="Cancel"
+            okButtonProps={{ danger: true }}
+          >
+            <Tooltip title="Delete User">
+              <Button
+                type="primary"
+                danger
+                ghost
+                size="small"
+                icon={<DeleteOutlined />}
+                loading={deleteUserLoading}
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -195,51 +307,107 @@ const UserManagement = ({ onUserCreated }) => {
     <>
       <Card
         title={
-          <div className="flex items-center">
-            <UserSwitchOutlined className="text-xl text-blue-600 mr-2" />
-            <span>User Management</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <UserSwitchOutlined className="text-xl text-blue-600 mr-2" />
+              <span>System Users</span>
+              <Tag color="blue" className="ml-2">
+                {filteredUsers.length} users
+              </Tag>
+            </div>
+            <Space>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={handleRefresh}
+                loading={usersLoading}
+                size="small"
+              >
+                Refresh
+              </Button>
+            </Space>
           </div>
         }
         className="h-full"
+        extra={
+          <Space>
+            <Search
+              placeholder="Search users..."
+              allowClear
+              onSearch={handleSearch}
+              style={{ width: 200 }}
+              size="small"
+            />
+            {(filters.search || filters.role || filters.status) && (
+              <Button size="small" onClick={clearAllFilters}>
+                Clear Filters
+              </Button>
+            )}
+          </Space>
+        }
       >
-        <Table
-          columns={columns}
-          dataSource={users}
-          rowKey="id"
-          size="middle"
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} users`,
-            size: "small",
-          }}
-          scroll={{ x: 800 }}
-          style={{ fontSize: 13 }}
-        />
+        {usersError && (
+          <Alert
+            message="Error loading users"
+            description={usersError}
+            type="error"
+            showIcon
+            closable
+            className="mb-4"
+            onClose={() => dispatch(clearUsersError())}
+          />
+        )}
+
+        <Spin spinning={usersLoading}>
+          <Table
+            columns={columns}
+            dataSource={filteredUsers}
+            rowKey="id"
+            size="small"
+            onChange={handleTableChange}
+            style={{ fontSize: 14 }}
+            loading={usersLoading}
+          />
+        </Spin>
       </Card>
 
       <Modal
-        title="Edit User"
+        title={
+          <div className="flex items-center">
+            <EditOutlined className="text-blue-600 mr-2" />
+            Edit User
+          </div>
+        }
         open={editModalVisible}
         onCancel={handleModalCancel}
         footer={null}
-        width={600}
+        width={400}
+        destroyOnHidden
       >
+        {updateUserError && (
+          <Alert
+            message="Update Error"
+            description={updateUserError}
+            type="error"
+            showIcon
+            closable
+            className="mb-4"
+            onClose={() => dispatch(clearUpdateUserError())}
+          />
+        )}
+
         <Form
           form={form}
           layout="vertical"
           onFinish={handleEditSubmit}
-          requiredMark={false}
+          requiredMark={true}
         >
           <Row gutter={16}>
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={24}>
               <Form.Item
                 label="Full Name"
                 name="name"
                 rules={[
-                  { required: true, message: "Please enter the full name" },
+                  { required: false, message: "Please enter the full name" },
                   {
                     min: 2,
                     message: "Name must be at least 2 characters long",
@@ -247,35 +415,63 @@ const UserManagement = ({ onUserCreated }) => {
                   { max: 50, message: "Name cannot exceed 50 characters" },
                 ]}
               >
-                <Input placeholder="Enter full name" />
+                <Input
+                  prefix={<UserOutlined />}
+                  placeholder="Enter full name"
+                />
               </Form.Item>
             </Col>
 
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={24}>
               <Form.Item
                 label="Email Address"
                 name="email"
                 rules={[
-                  { required: true, message: "Please enter an email address" },
+                  { required: false, message: "Please enter an email address" },
                   {
                     type: "email",
                     message: "Please enter a valid email address",
                   },
                 ]}
               >
-                <Input placeholder="Enter email address" />
+                <Input
+                  prefix={<MailOutlined />}
+                  placeholder="Enter email address"
+                />
               </Form.Item>
             </Col>
           </Row>
 
           <Row gutter={16}>
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={24}>
+              <Form.Item
+                label="Password"
+                name="password"
+                rules={[
+                  { required: false, message: "Please enter a password" },
+                  {
+                    type: "password",
+                    message: "Please enter a valid password",
+                  },
+                ]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder="Change password"
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={24}>
               <Form.Item
                 label="Role"
                 name="role"
-                rules={[{ required: true, message: "Please select a role" }]}
+                rules={[{ required: false, message: "Please select a role" }]}
               >
-                <Select placeholder="Select user role">
+                <Select
+                  prefix={<IdcardOutlined />}
+                  placeholder="Select user role"
+                >
                   {userRoles.map((role) => (
                     <Option key={role.value} value={role.value}>
                       {role.label}
@@ -284,25 +480,23 @@ const UserManagement = ({ onUserCreated }) => {
                 </Select>
               </Form.Item>
             </Col>
-
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Status"
-                name="status"
-                rules={[{ required: true, message: "Please select a status" }]}
-              >
-                <Select>
-                  <Option value="active">Active</Option>
-                  <Option value="inactive">Inactive</Option>
-                  <Option value="pending">Pending</Option>
-                </Select>
-              </Form.Item>
-            </Col>
           </Row>
 
-          <div className="flex justify-end space-x-4 pt-4">
-            <Button onClick={handleModalCancel}>Cancel</Button>
-            <Button type="primary" htmlType="submit" loading={loading}>
+          <div className="flex justify-end space-x-4 pt-4 border-t">
+            <Button onClick={handleModalCancel} disabled={updateUserLoading}>
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={updateUserLoading}
+              icon={<EditOutlined />}
+              onClick={() => {
+                message.info(
+                  "Please double-check all details before updating the user."
+                );
+              }}
+            >
               Update User
             </Button>
           </div>
@@ -312,35 +506,36 @@ const UserManagement = ({ onUserCreated }) => {
   );
 };
 
-const RegisterUser = ({ onUserCreated }) => {
+const RegisterUser = () => {
+  const dispatch = useDispatch();
+  const { createUserLoading, createUserError } = useSelector(
+    (state) => state.auth
+  );
+
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
 
   const userRoles = [
     { value: 1, label: "Administrator" },
     { value: 2, label: "User" },
   ];
 
+  // Clear errors when they change
+  useEffect(() => {
+    if (createUserError) {
+      message.error(createUserError);
+      dispatch(clearCreateUserError());
+    }
+  }, [createUserError, dispatch]);
+
   const handleSubmit = async (values) => {
-    setLoading(true);
     try {
-      console.log("Creating user with values:", values);
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
+      await dispatch(createUser(values)).unwrap();
       message.success("User created successfully!");
       form.resetFields();
-
-      // Notify parent component if callback provided
-      if (onUserCreated) {
-        onUserCreated(values);
-      }
+      // Refresh users list
+      dispatch(fetchUsers());
     } catch (error) {
       message.error("Failed to create user. Please try again.");
-      console.error("Error creating user:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -372,11 +567,23 @@ const RegisterUser = ({ onUserCreated }) => {
       title={
         <div className="flex items-center">
           <UserAddOutlined className="text-xl text-blue-600 mr-2" />
-          <span>Create New User</span>
+          <span>Create New System User</span>
         </div>
       }
       className="h-full"
     >
+      {createUserError && (
+        <Alert
+          message="Creation Error"
+          description={createUserError}
+          type="error"
+          showIcon
+          closable
+          className="mb-4"
+          onClose={() => dispatch(clearCreateUserError())}
+        />
+      )}
+
       <Form
         form={form}
         layout="vertical"
@@ -432,10 +639,10 @@ const RegisterUser = ({ onUserCreated }) => {
                 }
               />
             </Form.Item>
-            <div className="text-sm text-gray-500 mt-1">
+            {/* <div className="text-sm text-gray-500 mt-1">
               Password must be at least 8 characters with uppercase, lowercase,
               and number
-            </div>
+            </div> */}
           </Col>
 
           <Col xs={24} sm={12}>
@@ -483,33 +690,27 @@ const RegisterUser = ({ onUserCreated }) => {
               </Select>
             </Form.Item>
           </Col>
-
-          {/* <Col xs={24} sm={12}>
-            <Form.Item
-              label="Status"
-              name="status"
-              initialValue="active"
-              rules={[{ required: true, message: "Please select a status" }]}
-            >
-              <Select size="large">
-                <Option value="active">Active</Option>
-                <Option value="inactive">Inactive</Option>
-                <Option value="pending">Pending</Option>
-              </Select>
-            </Form.Item>
-          </Col> */}
         </Row>
 
         <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-          <Button size="large" onClick={handleReset} disabled={loading}>
+          <Button
+            size="large"
+            onClick={handleReset}
+            disabled={createUserLoading}
+          >
             Reset
           </Button>
           <Button
             type="primary"
             htmlType="submit"
             size="large"
-            loading={loading}
+            loading={createUserLoading}
             icon={<UserAddOutlined />}
+            onClick={() => {
+              message.info(
+                "Please double-check all details before creating the user."
+              );
+            }}
           >
             Create User
           </Button>
@@ -520,43 +721,26 @@ const RegisterUser = ({ onUserCreated }) => {
 };
 
 const UserManagementSystem = () => {
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const handleUserCreated = (userData) => {
-    // Refresh the user management component
-    setRefreshKey((prev) => prev + 1);
-  };
+  const { users } = useSelector((state) => state.auth);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            User Management System
+            System User Management
           </h1>
-          <p className="text-gray-600">Create and manage system users</p>
+          <p className="text-gray-600">
+            Create and manage system users • Total: {users.length} users
+          </p>
         </div>
 
-        {/* <Tabs defaultActiveKey="1" size="large">
-          <TabPane tab="Create User" key="1" icon={<UserAddOutlined />}>
-            <RegisterUser onUserCreated={handleUserCreated} />
-          </TabPane>
-          <TabPane tab="Manage Users" key="2" icon={<UserSwitchOutlined />}>
-            <UserManagement key={refreshKey} onUserCreated={handleUserCreated} />
-          </TabPane>
-        </Tabs> */}
-
-        {/* Alternative Side-by-Side Layout (commented out) */}
-
         <Row gutter={24}>
-          <Col xs={24} lg={12}>
-            <RegisterUser onUserCreated={handleUserCreated} />
+          <Col xs={24} lg={12} className="mb-6 lg:mb-0">
+            <RegisterUser />
           </Col>
           <Col xs={24} lg={12}>
-            <UserManagement
-              key={refreshKey}
-              onUserCreated={handleUserCreated}
-            />
+            <UserManagement />
           </Col>
         </Row>
       </div>
