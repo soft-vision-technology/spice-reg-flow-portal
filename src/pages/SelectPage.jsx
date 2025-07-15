@@ -106,19 +106,16 @@ const SelectPage = () => {
     <div className="w-full max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
       {/* Import Data Button - Centered with responsive sizing */}
       <div className="flex justify-center mb-4 sm:mb-6">
-        <Tooltip title="Working Progress...wait for the latest update">
           <Button
             type="default"
             size="large"
             icon={<ImportOutlined />}
             onClick={handleImportData}
-            disabled
-            className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-600 px-4 sm:px-6 lg:px-8 py-2 h-10 sm:h-12 text-sm sm:text-base w-full sm:w-auto max-w-xs sm:max-w-none cursor-not-allowed"
+            className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-600 px-4 sm:px-6 lg:px-8 py-2 h-10 sm:h-12 text-sm sm:text-base w-full sm:w-auto max-w-xs sm:max-w-none"
           >
             <span className="hidden sm:inline">Import Data from Excel</span>
             <span className="sm:hidden">Import Excel</span>
           </Button>
-        </Tooltip>
       </div>
 
       {/* Main Content Row - Responsive layout */}

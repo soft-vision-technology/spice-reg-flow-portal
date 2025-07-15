@@ -28,6 +28,7 @@ import {
   setRememberMe,
   hideModal,
   clearError,
+  restoreUser,
 } from "../store/slices/authSlice";
 import bg_pattern_1 from "../assets/13683663_Spices sketches set.svg";
 import bg_pattern_2 from "../assets/2148761778.jpg";
@@ -52,10 +53,32 @@ const Landing = () => {
   // Local validation state
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Feature card state
   const [activeFeature, setActiveFeature] = useState(0);
   const [hoveredFeature, setHoveredFeature] = useState(null);
+
+  // Initialize user from localStorage on component mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const storedToken = localStorage.getItem("token");
+    
+    if (storedUser && storedToken) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        // Restore user to Redux if valid
+        dispatch(restoreUser(parsedUser));
+        // Redirect immediately if user is already logged in
+        navigate("/dashboard", { replace: true });
+        return;
+      } catch (error) {
+        // Clear invalid data
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
+    }
+  }, [dispatch, navigate]);
 
   useEffect(() => {
     setEmailError("");
@@ -71,12 +94,18 @@ const Landing = () => {
     }
   }, [error, dispatch]);
 
-  // Redirect if user is already logged in
+  // Handle successful login - redirect immediately
   useEffect(() => {
-    if (user) {
-      navigate("/dashboard", { replace: true });
+    if (user && !isRedirecting) {
+      setIsRedirecting(true);
+      message.success("Welcome to Spice Industry Data System!");
+      dispatch(hideModal());
+      // Use setTimeout to ensure state updates are processed
+      setTimeout(() => {
+        navigate("/dashboard", { replace: true });
+      }, 100);
     }
-  }, [user, navigate]);
+  }, [user, navigate, dispatch, isRedirecting]);
 
   // Auto-loop through features when not hovering
   useEffect(() => {
@@ -136,24 +165,31 @@ const Landing = () => {
   };
 
   const handleSubmit = async (values) => {
+    // Prevent double submission
+    if (loading || isRedirecting) return;
+
     const isEmailValid = validateEmail(values.email || email);
     const isPasswordValid = validatePassword(values.password || password);
 
     if (isEmailValid && isPasswordValid) {
       try {
-        await dispatch(
+        const resultAction = await dispatch(
           loginUser({
             email: (values.email || email).trim(),
             password: (values.password || password).trim(),
           })
-        ).unwrap();
+        );
 
-        dispatch(hideModal());
-        navigate("/dashboard", { replace: true });
-        message.success("Welcome to Spice Industry Data System!");
+        // Check if login was successful
+        if (loginUser.fulfilled.match(resultAction)) {
+          // Success case - user effect will handle redirect
+          console.log("Login successful");
+        } else {
+          // Handle login failure
+          console.error("Login failed:", resultAction.payload);
+        }
       } catch (err) {
-        console.error("Login failed:", err);
-        // Error is handled by useEffect above
+        console.error("Unexpected login error:", err);
       }
     }
   };
@@ -194,6 +230,18 @@ const Landing = () => {
       ? featureCards[hoveredFeature]
       : featureCards[activeFeature];
   };
+
+  // Show loading state when redirecting
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-spice-100 to-earth-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-spice-500 mx-auto mb-4"></div>
+          <p className="text-spice-600 text-lg">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-spice-100 to-earth-100 overflow-hidden">
@@ -280,7 +328,7 @@ const Landing = () => {
               <Form
                 form={loginForm}
                 name="login"
-                onClick={handleSubmit}
+                onFinish={handleSubmit}
                 layout="vertical"
                 size="large"
                 initialValues={{
@@ -305,6 +353,7 @@ const Landing = () => {
                     className="rounded-lg h-12"
                     value={email}
                     onChange={handleEmailChange}
+                    disabled={loading || isRedirecting}
                   />
                 </Form.Item>
 
@@ -327,6 +376,7 @@ const Landing = () => {
                     className="rounded-lg h-12"
                     value={password}
                     onChange={handlePasswordChange}
+                    disabled={loading || isRedirecting}
                   />
                 </Form.Item>
 
@@ -340,6 +390,7 @@ const Landing = () => {
                       className="text-earth-700"
                       checked={rememberMe}
                       onChange={handleRememberMeChange}
+                      disabled={loading || isRedirecting}
                     >
                       Remember me
                     </Checkbox>
@@ -348,6 +399,7 @@ const Landing = () => {
                     type="button"
                     onClick={handleForgotPassword}
                     className="text-spice-500 hover:text-spice-600 text-sm font-medium transition-colors duration-200 bg-transparent border-none cursor-pointer"
+                    disabled={loading || isRedirecting}
                   >
                     Forgot password?
                   </button>
@@ -358,9 +410,10 @@ const Landing = () => {
                     type="primary"
                     htmlType="submit"
                     className="w-full h-12 text-lg font-medium bg-spice-500 hover:bg-spice-600 border-0 rounded-lg transition-all duration-200"
-                    loading={loading}
+                    loading={loading || isRedirecting}
+                    disabled={loading || isRedirecting}
                   >
-                    {loading ? "Authenticating..." : "Login"}
+                    {loading ? "Authenticating..." : isRedirecting ? "Redirecting..." : "Login"}
                   </Button>
                 </Form.Item>
 
@@ -372,6 +425,7 @@ const Landing = () => {
                     type="button"
                     onClick={handleSignUp}
                     className="text-spice-500 hover:text-spice-600 font-medium transition-colors duration-200 bg-transparent border-none cursor-pointer"
+                    disabled={loading || isRedirecting}
                   >
                     Sign up here
                   </button>

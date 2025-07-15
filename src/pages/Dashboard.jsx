@@ -324,57 +324,57 @@ const RegistrationDashboard = (props) => {
 };
 
 const Mainpage = () => {
-  const features = [
-    {
-      icon: <GlobalOutlined className="text-3xl text-[#E67324]" />,
-      title: "Global Market Access",
-      description: "Connect with verified international buyers across 15+ countries",
-      metric: "15+ Countries"
-    },
-    {
-      icon: <SafetyCertificateOutlined className="text-3xl text-[#10B981]" />,
-      title: "Certification Support",
-      description: "Fast-track GMP, HACCP, and ISO 22000 accreditation process",
-      metric: "5-Day Processing"
-    },
-    {
-      icon: <BarChartOutlined className="text-3xl text-[#F59E0B]" />,
-      title: "Market Intelligence",
-      description: "Real-time industry reports and export analytics",
-      metric: "Live Analytics"
-    },
-  ];
+  // const features = [
+  //   {
+  //     icon: <GlobalOutlined className="text-3xl text-[#E67324]" />,
+  //     title: "Global Market Access",
+  //     description: "Connect with verified international buyers across 15+ countries",
+  //     metric: "15+ Countries"
+  //   },
+  //   {
+  //     icon: <SafetyCertificateOutlined className="text-3xl text-[#10B981]" />,
+  //     title: "Certification Support",
+  //     description: "Fast-track GMP, HACCP, and ISO 22000 accreditation process",
+  //     metric: "5-Day Processing"
+  //   },
+  //   {
+  //     icon: <BarChartOutlined className="text-3xl text-[#F59E0B]" />,
+  //     title: "Market Intelligence",
+  //     description: "Real-time industry reports and export analytics",
+  //     metric: "Live Analytics"
+  //   },
+  // ];
 
-  const stats = [
-    { 
-      title: "Registered Businesses", 
-      value: 534, 
-      change: "+12%",
-      positive: true,
-      icon: <UserOutlined />
-    },
-    { 
-      title: "Active Exporters", 
-      value: 128, 
-      change: "+8%",
-      positive: true,
-      icon: <ShopOutlined />
-    },
-    { 
-      title: "Export Countries", 
-      value: 15, 
-      change: "+3",
-      positive: true,
-      icon: <GlobalOutlined />
-    },
-    { 
-      title: "Success Rate", 
-      value: "94%", 
-      change: "+2%",
-      positive: true,
-      icon: <CheckCircleOutlined />
-    },
-  ];
+  // const stats = [
+  //   { 
+  //     title: "Registered Businesses", 
+  //     value: 534, 
+  //     change: "+12%",
+  //     positive: true,
+  //     icon: <UserOutlined />
+  //   },
+  //   { 
+  //     title: "Active Exporters", 
+  //     value: 128, 
+  //     change: "+8%",
+  //     positive: true,
+  //     icon: <ShopOutlined />
+  //   },
+  //   { 
+  //     title: "Export Countries", 
+  //     value: 15, 
+  //     change: "+3",
+  //     positive: true,
+  //     icon: <GlobalOutlined />
+  //   },
+  //   { 
+  //     title: "Success Rate", 
+  //     value: "94%", 
+  //     change: "+2%",
+  //     positive: true,
+  //     icon: <CheckCircleOutlined />
+  //   },
+  // ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -427,7 +427,7 @@ const Mainpage = () => {
       </div>
 
       {/* Features Section */}
-      <div className="py-16 px-6 bg-white">
+      {/* <div className="py-16 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <Title level={2} className="!text-[#E67324] !mb-4">
@@ -459,10 +459,10 @@ const Mainpage = () => {
             ))}
           </Row>
         </div>
-      </div>
+      </div> */}
 
       {/* Statistics Section */}
-      <div className="py-16 px-6 bg-gradient-to-r from-[#E67324]/5 to-[#F59E0B]/5">
+      {/* <div className="py-16 px-6 bg-gradient-to-r from-[#E67324]/5 to-[#F59E0B]/5">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <Title level={2} className="!text-gray-800 !mb-4">
@@ -494,10 +494,10 @@ const Mainpage = () => {
             ))}
           </Row>
         </div>
-      </div>
+      </div> */}
 
       {/* CTA Section */}
-      <div className="py-16 px-6">
+      {/* <div className="py-16 px-6">
         <div className="max-w-4xl mx-auto">
           <Card
             className="text-center border-0 shadow-xl"
@@ -531,7 +531,7 @@ const Mainpage = () => {
             </Space>
           </Card>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
