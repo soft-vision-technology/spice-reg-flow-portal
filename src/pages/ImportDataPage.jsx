@@ -25,6 +25,7 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
+import ProgressOverlay from "../components/common/ProgressOverlay";
 
 const { Dragger } = Upload;
 const { Title, Text } = Typography;
@@ -41,6 +42,7 @@ const ImportDataPage = () => {
   const [activeTab, setActiveTab] = useState("paste");
   const [expanded, setExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isProgress, setProgress] = useState(true);
   
   // Single cell editing state
   const [editingCell, setEditingCell] = useState(null); // {row: 0, col: 'columnKey'}
@@ -653,6 +655,7 @@ const ImportDataPage = () => {
           </div>
         </div>
       )}
+      {isProgress && <ProgressOverlay message="Please wait, working progress..." />}
     </div>
   );
 };

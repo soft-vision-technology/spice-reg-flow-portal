@@ -30,7 +30,7 @@ const { TabPane } = Tabs;
 
 const SettingsPage = () => {
   const dispatch = useDispatch();
-  
+
   // Local state for modal
   const [modalVisible, setModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -40,32 +40,46 @@ const SettingsPage = () => {
   // Categories configuration
   const categories = [
     { key: "spices", label: "Spice Products", title: "Spice Products" },
-    { key: "certificates", label: "Certificate Types", title: "Certificate Types" },
-    { key: "experience", label: "Business Experience", title: "Business Experience" },
-    { key: "employees", label: "Employee Ranges", title: "Number of Employees"},
-    { key: "settings", label: "Serial Configuration", title: "Serial Number"},
+    {
+      key: "certificates",
+      label: "Certificate Types",
+      title: "Certificate Types",
+    },
+    {
+      key: "experience",
+      label: "Business Experience",
+      title: "Business Experience",
+    },
+    {
+      key: "employees",
+      label: "Employee Ranges",
+      title: "Number of Employees",
+    },
+    { key: "settings", label: "Serial Configuration", title: "Serial Number" },
   ];
 
   // Fetch all data on component mount
   useEffect(() => {
-    categories.forEach(category => {
+    categories.forEach((category) => {
       dispatch(fetchItems(category.key));
     });
   }, [dispatch]);
 
   // Collect all category states at the top level
   const categoryStates = {};
-  categories.forEach(category => {
+  categories.forEach((category) => {
     categoryStates[category.key] = {
-      data: useSelector(state => selectCategoryData(state, category.key)),
-      loading: useSelector(state => selectCategoryLoading(state, category.key)),
-      error: useSelector(state => selectCategoryError(state, category.key)),
+      data: useSelector((state) => selectCategoryData(state, category.key)),
+      loading: useSelector((state) =>
+        selectCategoryLoading(state, category.key)
+      ),
+      error: useSelector((state) => selectCategoryError(state, category.key)),
     };
   });
 
   // Check if any category is loading
-  const isAnyLoading = categories.some(category =>
-    categoryStates[category.key].loading
+  const isAnyLoading = categories.some(
+    (category) => categoryStates[category.key].loading
   );
 
   // Handle add new item
@@ -80,7 +94,15 @@ const SettingsPage = () => {
   const handleEdit = (item, category) => {
     setCurrentCategory(category);
     setEditingItem(item);
-    form.setFieldsValue({ name: item.name });
+
+    if (category === "settings") {
+      form.setFieldValue({
+        prefix: item.prefix,
+        suffix: item.suffix,
+      });
+    } else {
+      form.setFieldsValue({ name: item.name });
+    }
     setModalVisible(true);
   };
 
@@ -98,24 +120,28 @@ const SettingsPage = () => {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      
+
       if (editingItem) {
         // Update existing item
-        await dispatch(updateItem({ 
-          category: currentCategory, 
-          id: editingItem.id, 
-          itemData: values 
-        })).unwrap();
+        await dispatch(
+          updateItem({
+            category: currentCategory,
+            id: editingItem.id,
+            itemData: values,
+          })
+        ).unwrap();
         message.success("Item updated successfully");
       } else {
         // Add new item
-        await dispatch(createItem({ 
-          category: currentCategory, 
-          itemData: values 
-        })).unwrap();
+        await dispatch(
+          createItem({
+            category: currentCategory,
+            itemData: values,
+          })
+        ).unwrap();
         message.success("Item added successfully");
       }
-      
+
       handleCloseModal();
     } catch (error) {
       message.error(error.message || "Operation failed");
@@ -180,7 +206,7 @@ const SettingsPage = () => {
   // Render table for each category
   const renderTable = (categoryConfig) => {
     const { data, loading, error } = categoryStates[categoryConfig.key];
-    
+
     return (
       <Card
         className="mb-6 shadow-sm"
@@ -213,7 +239,7 @@ const SettingsPage = () => {
             showIcon
           />
         )}
-        
+
         <Spin spinning={loading} tip="Loading...">
           <Table
             dataSource={data}
@@ -223,7 +249,7 @@ const SettingsPage = () => {
               pageSize: 10,
               showSizeChanger: true,
               showQuickJumper: true,
-              showTotal: (total, range) => 
+              showTotal: (total, range) =>
                 `${range[0]}-${range[1]} of ${total} items`,
             }}
             size="middle"
@@ -248,7 +274,7 @@ const SettingsPage = () => {
             Manage your application's configuration data
           </p>
         </div>
-        
+
         {/* Main Content */}
         <div className="bg-white rounded-lg shadow-sm">
           <Tabs
@@ -257,11 +283,8 @@ const SettingsPage = () => {
             size="large"
             tabBarStyle={{ marginBottom: "24px" }}
           >
-            {categories.map(categoryConfig => (
-              <TabPane 
-                tab={categoryConfig.label} 
-                key={categoryConfig.key}
-              >
+            {categories.map((categoryConfig) => (
+              <TabPane tab={categoryConfig.label} key={categoryConfig.key}>
                 {renderTable(categoryConfig)}
               </TabPane>
             ))}
@@ -285,39 +308,59 @@ const SettingsPage = () => {
           className="top-20"
           confirmLoading={isAnyLoading}
           okButtonProps={{
-            className: "bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700",
+            className:
+              "bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700",
           }}
           width={500}
         >
           <div className="py-4">
-            <Form 
-              form={form} 
-              layout="vertical" 
-              requiredMark={false}
-            >
-              <Form.Item
-                name="name"
-                label={
-                  <span className="text-sm font-medium text-gray-700">
-                    Item Name
-                  </span>
-                }
-                rules={[
-                  { required: true, message: "Please enter a name" },
-                  { min: 2, message: "Name must be at least 2 characters" },
-                  { max: 100, message: "Name cannot exceed 100 characters" },
-                  {
-                    pattern: /^[a-zA-Z0-9\s\-_]+$/,
-                    message: "Name can only contain letters, numbers, spaces, hyphens, and underscores",
-                  },
-                ]}
-              >
-                <Input 
-                  placeholder="Enter item name" 
-                  className="rounded-md"
-                  size="large"
-                />
-              </Form.Item>
+            <Form form={form} layout="vertical" requiredMark={false}>
+              {currentCategory === "settings" ? (
+                <>
+                  <Form.Item
+                    name="prefix"
+                    label="Prefix"
+                    rules={[
+                      {
+                        max: 10,
+                        message: "Prefix cannot exceed 10 characters",
+                      },
+                    ]}
+                  >
+                    <Input placeholder="e.g., INV" size="large" />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="suffix"
+                    label="Suffix"
+                    rules={[
+                      {
+                        max: 10,
+                        message: "Suffix cannot exceed 10 characters",
+                      },
+                    ]}
+                  >
+                    <Input placeholder="e.g., -2025" size="large" />
+                  </Form.Item>
+                </>
+              ) : (
+                <Form.Item
+                  name="name"
+                  label="Item Name"
+                  rules={[
+                    { required: true, message: "Please enter a name" },
+                    { min: 2, message: "Name must be at least 2 characters" },
+                    { max: 100, message: "Name cannot exceed 100 characters" },
+                    {
+                      pattern: /^[a-zA-Z0-9\s\-_]+$/,
+                      message:
+                        "Only letters, numbers, spaces, hyphens, and underscores allowed",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Enter item name" size="large" />
+                </Form.Item>
+              )}
             </Form>
           </div>
         </Modal>

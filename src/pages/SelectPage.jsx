@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, message, Row, Col } from "antd";
+import { Button, message, Row, Col, Tooltip } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BasicInfoForm from "../components/forms/basicInfo/BasicInfoForm";
@@ -14,7 +14,7 @@ const SelectPage = () => {
   const { registrationType, role, formData } = useFormContext();
   const { loading, error } = useSelector((state) => state.basicInfo);
   const [roleId, setRoleId] = useState(3);
-  
+
   const handleImportData = () => {
     navigate("/import-data");
   };
@@ -106,16 +106,16 @@ const SelectPage = () => {
     <div className="w-full max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
       {/* Import Data Button - Centered with responsive sizing */}
       <div className="flex justify-center mb-4 sm:mb-6">
-        <Button
-          type="default"
-          size="large"
-          icon={<ImportOutlined />}
-          onClick={handleImportData}
-          className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-600 px-4 sm:px-6 lg:px-8 py-2 h-10 sm:h-12 text-sm sm:text-base w-full sm:w-auto max-w-xs sm:max-w-none cursor-not-allowed ..." disabled
-        >
-          <span className="hidden sm:inline">Import Data from Excel</span>
-          <span className="sm:hidden">Import Excel</span>
-        </Button>
+          <Button
+            type="default"
+            size="large"
+            icon={<ImportOutlined />}
+            onClick={handleImportData}
+            className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-600 px-4 sm:px-6 lg:px-8 py-2 h-10 sm:h-12 text-sm sm:text-base w-full sm:w-auto max-w-xs sm:max-w-none"
+          >
+            <span className="hidden sm:inline">Import Data from Excel</span>
+            <span className="sm:hidden">Import Excel</span>
+          </Button>
       </div>
 
       {/* Main Content Row - Responsive layout */}
@@ -145,7 +145,9 @@ const SelectPage = () => {
           loading={loading}
           className="bg-spice-500 hover:bg-spice-600 px-6 sm:px-8 lg:px-12 py-2 h-12 sm:h-14 text-base sm:text-lg w-full sm:w-auto max-w-sm sm:max-w-none"
         >
-          {loading ? "Saving..." : (
+          {loading ? (
+            "Saving..."
+          ) : (
             <>
               <span className="hidden sm:inline">Continue to Next Step</span>
               <span className="sm:hidden">Continue</span>
