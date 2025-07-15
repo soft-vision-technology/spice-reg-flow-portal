@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
         secure: false, // Allow self-signed or insecure certificates (if HTTPS is used)
         rewrite: (path) => path.replace(/^\/api/, '') // optional: strip /api from the URL
       }
-    }
+    },
   plugins: [
     react(),
     mode === 'development'
