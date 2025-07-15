@@ -42,7 +42,8 @@ const SettingsPage = () => {
     { key: "spices", label: "Spice Products", title: "Spice Products" },
     { key: "certificates", label: "Certificate Types", title: "Certificate Types" },
     { key: "experience", label: "Business Experience", title: "Business Experience" },
-    { key: "employees", label: "Employee Ranges", title: "Number of Employees" },
+    { key: "employees", label: "Employee Ranges", title: "Number of Employees"},
+    { key: "settings", label: "Serial Configuration", title: "Serial Number"},
   ];
 
   // Fetch all data on component mount

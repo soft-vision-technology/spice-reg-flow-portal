@@ -25,8 +25,8 @@ const Landing = React.lazy(() => import('../pages/Landing.jsx'));
 
 export const routes = [
   // Public routes
-  { path: '/', exact: true, name: 'LandingPage', element: LandingPage, protected: false },
-  { path: '/l', exact: true, name: 'Landing', element: Landing, protected: false},
+  // { path: '/', exact: true, name: 'LandingPage', element: LandingPage, protected: false },
+  { path: '/', exact: true, name: 'Landing', element: Landing, protected: false},
   
   // Protected dashboard routes
   { path: '/dashboard', exact: true, name: 'Dashboard', element: Dashboard, protected: true },

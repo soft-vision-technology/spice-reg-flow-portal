@@ -35,7 +35,7 @@ import img_1 from "../../src/assets/adult-nature-coffee-harvesting.jpg";
 import img_2 from "../../src/assets/spices-near-pan.jpg";
 import img_3 from "../../src/assets/openair-market-with-traders-selling-spices-herbs-aromatic-colorful.jpg";
 import gov_log from "../assets/Emblem_of_Sri_Lanka.svg.png";
-import spice_logo from "../assets/spiceLogo.jpg";
+import spice_logo from "../assets/spiceLogo.png";
 
 const { Title, Paragraph } = Typography;
 
@@ -174,21 +174,18 @@ const Landing = () => {
       description:
         "Starting a new spice business or already running one? Register your venture to connect with buyers, exporters, and resources.",
       image: img_1,
-      gradient: "from-spice-400 to-spice-600",
     },
     {
       title: "Exporters",
       description:
         "Selling Sri Lankan spices to the world? Register your export operations to access trade resources and international connections.",
       image: img_2,
-      gradient: "from-earth-400 to-earth-600",
     },
     {
       title: "Intermediary Traders",
       description:
         "Connecting farmers with buyers? Register your trading operations to strengthen your network and increase your market reach.",
       image: img_3,
-      gradient: "from-leaf-400 to-leaf-600",
     },
   ];
 
@@ -210,25 +207,33 @@ const Landing = () => {
               className="w-full h-full object-cover object-center"
             />
           </div>
-          <div className="p-6 bg-white/10 rounded-full backdrop-blur-sm">
+          <div className="pl-6 pr-6 pt-2 pb-2 bg-black/10 rounded-2xl backdrop-blur-sm border-spice-400">
             <div className="flex items-center justify-between">
-              <img src={gov_log} alt="Spice logo" className="w-14 h-20" />
-              <div>
-                <h1 className="text-spice-100 text-lg font-semibold">
+              <img
+                src={gov_log}
+                alt="Spice logo"
+                className="w-15 h-20 justify-start items-start p-0"
+              />
+              <div className="p-4">
+                <h1 className="flex text-spice-100 text-2xl font-semibold justify-center">
+                  කුළුබඩු හා ඒ ආශ්‍රිත නිෂ්පාදන අලෙවි මණ්ඩලය
+                </h1>
+                <h1 className="flex text-spice-100 text-xl justify-center">
                   Spices and Allied Products Marketing Board
                 </h1>
-                <h3 className="text-lg font-semibold mb-1">
-                  Ready to get started?
-                </h3>
               </div>
-              <img src={spice_logo} alt="Spice logo" className="w-20 h-20" />
+              <img
+                src={spice_logo}
+                alt="Spice logo"
+                className="w-20 h-24 p-0"
+              />
             </div>
           </div>
 
           {/* Spacer to push description to bottom */}
           <div className="flex-1" />
           {/* Dynamic Feature Description - Bottom */}
-          <div className="p-4 bg-white/10 rounded-3xl backdrop-blur-sm transition-all duration-500 ease-in-out mb-10">
+          <div className="p-4 bg-black/10 rounded-3xl backdrop-blur-sm transition-all duration-500 ease-in-out mb-10">
             <Paragraph className="text-white text-xl leading-relaxed text-center mb-4">
               {getCurrentFeature().description}
             </Paragraph>
@@ -238,7 +243,7 @@ const Landing = () => {
               {featureCards.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
                     (hoveredFeature !== null
                       ? hoveredFeature
                       : activeFeature) === index
@@ -258,7 +263,7 @@ const Landing = () => {
             <img
               src={bg_pattern_1}
               alt="Spice pattern background"
-              className="w-full h-full object-cover object-center"
+              className="w-300 h-300 object-cover object-center"
             />
           </div>
           <div className="w-full max-w-md mx-auto">
@@ -380,7 +385,7 @@ const Landing = () => {
                 {featureCards.map((card, index) => (
                   <Col xs={24} sm={8} key={index}>
                     <Card
-                      className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 ${
+                      className={`cursor-pointer bg-transparent transition-all duration-300 hover:shadow-lg hover:scale-105 ${
                         (hoveredFeature !== null
                           ? hoveredFeature
                           : activeFeature) === index
@@ -392,17 +397,16 @@ const Landing = () => {
                       onMouseLeave={() => setHoveredFeature(null)}
                     >
                       <div className="text-center">
-                        <div className="mb-2">
+                        <div className="">
                           <img
                             src={card.image}
                             alt={`${card.title} illustration`}
-                            className="w-full h-20 object-cover rounded-lg mb-2"
+                            className="w-full h-20 object-cover rounded-lg"
                           />
                         </div>
-                        <div className="mb-2">{card.icon}</div>
-                        {/* <Title level={5} className="text-earth-700 mb-0">
+                        <Title level={5} className="flex justify-center text-earth-700">
                           {card.title}
-                        </Title> */}
+                        </Title>
                       </div>
                     </Card>
                   </Col>
@@ -414,10 +418,10 @@ const Landing = () => {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-0 left-0 right-0 bg-spice-500 backdrop-blur-sm border-t border-spice-400 p-4">
+      <div className="absolute bottom-0 left-0 right-0 bg-spice-500 backdrop-blur-sm border-t-2 border-white p-4">
         <div className="text-center">
           <p className="text-white text-xs">
-            © 2025 Ceylon Spice Industry. All rights reserved.
+            © 2025 . All rights reserved.
           </p>
         </div>
       </div>

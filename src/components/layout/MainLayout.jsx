@@ -20,7 +20,7 @@ const MainLayout = ({ children }) => {
   const Admin = user?.userRole === 1;
 
   // Hide sidebar on home page
-  const isHomePage = location.pathname === "/l";
+  const isHomePage = location.pathname === "/";
 
   const toggle = () => {
     setCollapsed(!collapsed);
