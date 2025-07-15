@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Layout } from "antd";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import SidebarMenu from "./SidebarMenu";
 import LogoutButton from "../auth/LogoutButton";
 import NotificationSection from "../custom/NotificationSection";
@@ -43,13 +43,15 @@ const MainLayout = ({ children }) => {
           }}
         >
           <div className="p-4 h-16 flex items-center justify-center flex-shrink-0">
-            <img
-              src={collapsed ? logoIcon : logoFull}
-              alt="SpiceConnect Logo"
-              className={`transition-all duration-300 ${
-                collapsed ? 'w-12 h-10' : 'w-32 h-12'
-              }`}
-            />
+            <Link to="/dashboard">
+              <img
+                src={collapsed ? logoIcon : logoFull}
+                alt="SpiceConnect Logo"
+                className={`transition-all duration-300 ${
+                  collapsed ? "w-12 h-10" : "w-32 h-12"
+                }`}
+              />
+            </Link>
           </div>
           <div className="flex-1 overflow-y-auto">
             <SidebarMenu />

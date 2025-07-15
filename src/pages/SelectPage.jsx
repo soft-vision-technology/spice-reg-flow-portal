@@ -111,7 +111,7 @@ const SelectPage = () => {
           size="large"
           icon={<ImportOutlined />}
           onClick={handleImportData}
-          className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-600 px-4 sm:px-6 lg:px-8 py-2 h-10 sm:h-12 text-sm sm:text-base w-full sm:w-auto max-w-xs sm:max-w-none"
+          className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-600 px-4 sm:px-6 lg:px-8 py-2 h-10 sm:h-12 text-sm sm:text-base w-full sm:w-auto max-w-xs sm:max-w-none cursor-not-allowed ..." disabled
         >
           <span className="hidden sm:inline">Import Data from Excel</span>
           <span className="sm:hidden">Import Excel</span>

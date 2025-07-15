@@ -204,6 +204,8 @@ const ReportsPage = () => {
         (new Date(item.createdAt) >= filters.dateRange[0] &&
           new Date(item.createdAt) <= filters.dateRange[1]);
 
+          
+
       return (
         matchesRole &&
         matchesBusinessStatus &&
@@ -596,7 +598,7 @@ const ReportsPage = () => {
         render: (_, record) => (
           <div>
             <div>{record.district?.name}</div>
-            <div className="text-sm text-gray-500">{record.province?.name}</div>
+            <div className="text-sm text-gray-500">{record.certificate?.id}</div>
           </div>
         ),
         width: 150,
