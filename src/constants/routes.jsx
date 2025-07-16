@@ -10,7 +10,7 @@ const IntermediaryPage = React.lazy(() => import('../pages/IntermediaryPage'));
 const ReportsPage = React.lazy(() => import('../pages/ReportsPage'));
 const UserManagement = React.lazy(() => import('../pages/UserManagement'));
 const ApprovalPage = React.lazy(() => import('../pages/ApprovalPage'));
-const ViewUser = React.lazy(()=>import('../pages/ViewUserPage'))
+const ViewUser = React.lazy(()=>import('../pages/ViewUserPage'));
 const EditPage = React.lazy(() => import('../pages/EditPage'));
 const DeletePage = React.lazy(() => import('../components/approval/ApprovalForDelete'));
 const NotificationsPage = React.lazy(() => import('../pages/NotificationsPage'));

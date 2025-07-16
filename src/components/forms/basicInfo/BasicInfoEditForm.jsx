@@ -4,10 +4,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { useFormContext } from "../../../contexts/FormContext";
 import { fetchProvince, selectProvinceOptions } from "../../../store/slices/utilsSlice";
 import axiosInstance from "../../../api/axiosInstance";
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 
 const BasicInfoEditForm = ({ user }) => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { updateFormData } = useFormContext();
   const provinces = useSelector(selectProvinceOptions);
@@ -145,6 +147,8 @@ const BasicInfoEditForm = ({ user }) => {
       console.log('Approval request submitted successfully:', response.data);
       
       // Optionally show success message or redirect
+      navigate('/user-management');
+      alert("Success!");
       
     } catch (error) {
       console.error('Failed to submit approval request:', error);
