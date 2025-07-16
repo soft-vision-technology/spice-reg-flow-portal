@@ -6,6 +6,7 @@ export const fetchExistingExporters = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.get('/api/users/existing/exporters');
+            console.log(response.data);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response.data);

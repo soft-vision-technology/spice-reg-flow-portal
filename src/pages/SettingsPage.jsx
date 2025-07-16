@@ -39,7 +39,10 @@ const SettingsPage = () => {
 
   // Categories configuration
   const categories = [
-    { key: "spices", label: "Spice Products", title: "Spice Products" },
+    { key: "spices",
+      label: "Spice Products",
+      title: "Spice Products"
+    },
     {
       key: "certificates",
       label: "Certificate Types",
@@ -55,13 +58,24 @@ const SettingsPage = () => {
       label: "Employee Ranges",
       title: "Number of Employees",
     },
-    { key: "settings", label: "Serial Configuration", title: "Serial Number" },
+    { key: "serial", 
+      label: "Serial Configuration",
+      title: "Serial Number"
+    },
+    { key: "certificate", 
+      label: "Certificate Number Configuration",
+      title: "Certificate Number",
+      disabled: true // Mark this tab as disabled
+    },
   ];
 
   // Fetch all data on component mount
   useEffect(() => {
     categories.forEach((category) => {
-      dispatch(fetchItems(category.key));
+      // Skip fetching for disabled categories
+      if (!category.disabled) {
+        dispatch(fetchItems(category.key));
+      }
     });
   }, [dispatch]);
 
@@ -95,8 +109,9 @@ const SettingsPage = () => {
     setCurrentCategory(category);
     setEditingItem(item);
 
-    if (category === "settings") {
-      form.setFieldValue({
+    if (category === "serial") {
+      // Fixed: Use setFieldsValue instead of setFieldValue
+      form.setFieldsValue({
         prefix: item.prefix,
         suffix: item.suffix,
       });
@@ -161,47 +176,98 @@ const SettingsPage = () => {
     dispatch(clearError({ category }));
   };
 
-  // Table columns
-  const getColumns = (category) => [
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      width: 120,
-      align: "center",
-      render: (_, record) => (
-        <Space size="small">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record, category)}
-            className="text-blue-600 hover:text-blue-800"
-            title="Edit"
-          />
-          <Popconfirm
-            title="Delete Item"
-            description="Are you sure you want to delete this item?"
-            onConfirm={() => handleDelete(record.id, category)}
-            okText="Yes"
-            cancelText="No"
-            okButtonProps={{ danger: true }}
-          >
+  // Table columns - Updated for serial configuration
+  const getColumns = (category) => {
+    if (category === "serial") {
+      return [
+        {
+          title: "Prefix",
+          dataIndex: "prefix",
+          key: "prefix",
+          sorter: (a, b) => (a.prefix || "").localeCompare(b.prefix || ""),
+        },
+        {
+          title: "Suffix",
+          dataIndex: "suffix",
+          key: "suffix",
+          sorter: (a, b) => (a.suffix || "").localeCompare(b.suffix || ""),
+        },
+        {
+          title: "Actions",
+          key: "actions",
+          width: 120,
+          align: "center",
+          render: (_, record) => (
+            <Space size="small">
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record, category)}
+                className="text-blue-600 hover:text-blue-800"
+                title="Edit"
+              />
+              <Popconfirm
+                title="Delete Item"
+                description="Are you sure you want to delete this item?"
+                onConfirm={() => handleDelete(record.id, category)}
+                okText="Yes"
+                cancelText="No"
+                okButtonProps={{ danger: true }}
+              >
+                <Button
+                  type="text"
+                  icon={<DeleteOutlined />}
+                  className="text-red-600 hover:text-red-800"
+                  title="Delete"
+                />
+              </Popconfirm>
+            </Space>
+          ),
+        },
+      ];
+    }
+
+    return [
+      {
+        title: "Name",
+        dataIndex: "name",
+        key: "name",
+        sorter: (a, b) => a.name.localeCompare(b.name),
+      },
+      {
+        title: "Actions",
+        key: "actions",
+        width: 120,
+        align: "center",
+        render: (_, record) => (
+          <Space size="small">
             <Button
               type="text"
-              icon={<DeleteOutlined />}
-              className="text-red-600 hover:text-red-800"
-              title="Delete"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record, category)}
+              className="text-blue-600 hover:text-blue-800"
+              title="Edit"
             />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+            <Popconfirm
+              title="Delete Item"
+              description="Are you sure you want to delete this item?"
+              onConfirm={() => handleDelete(record.id, category)}
+              okText="Yes"
+              cancelText="No"
+              okButtonProps={{ danger: true }}
+            >
+              <Button
+                type="text"
+                icon={<DeleteOutlined />}
+                className="text-red-600 hover:text-red-800"
+                title="Delete"
+              />
+            </Popconfirm>
+          </Space>
+        ),
+      },
+    ];
+  };
 
   // Render table for each category
   const renderTable = (categoryConfig) => {
@@ -284,8 +350,25 @@ const SettingsPage = () => {
             tabBarStyle={{ marginBottom: "24px" }}
           >
             {categories.map((categoryConfig) => (
-              <TabPane tab={categoryConfig.label} key={categoryConfig.key}>
-                {renderTable(categoryConfig)}
+              <TabPane 
+                tab={
+                  <span 
+                    className={categoryConfig.disabled ? 'cursor-not-allowed opacity-50' : ''}
+                    style={categoryConfig.disabled ? { pointerEvents: 'none' } : {}}
+                  >
+                    {categoryConfig.label}
+                  </span>
+                } 
+                key={categoryConfig.key}
+                disabled={categoryConfig.disabled}
+              >
+                {categoryConfig.disabled ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 text-lg">This section is currently disabled</p>
+                  </div>
+                ) : (
+                  renderTable(categoryConfig)
+                )}
               </TabPane>
             ))}
           </Tabs>
@@ -315,7 +398,7 @@ const SettingsPage = () => {
         >
           <div className="py-4">
             <Form form={form} layout="vertical" requiredMark={false}>
-              {currentCategory === "settings" ? (
+              {currentCategory === "serial" ? (
                 <>
                   <Form.Item
                     name="prefix"

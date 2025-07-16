@@ -20,6 +20,9 @@ export const fetchItems = createAsyncThunk(
         case "employees":
           endpoint = "/api/number_of_employees";
           break;
+        case "serial":
+          endpoint = "/api/serial_number";
+          break;
         default:
           endpoint = "/api/products";
       }
@@ -53,6 +56,9 @@ export const createItem = createAsyncThunk(
           break;
         case "employees":
           endpoint = "/api/number_of_employees";
+          break;
+        case "serial":
+          endpoint = "/api/serial_number";
           break;
         default:
           endpoint = "/api/products";
@@ -88,6 +94,9 @@ export const updateItem = createAsyncThunk(
         case "employees":
           endpoint = `/api/number_of_employees/${id}`;
           break;
+        case "serial":
+          endpoint = `api/serial_number/${id}`;
+          break;
         default:
           endpoint = `/api/products/${id}`;
       }
@@ -122,6 +131,9 @@ export const deleteItem = createAsyncThunk(
         case "employees":
           endpoint = `/api/number_of_employees/${id}`;
           break;
+        case "serial":
+          endpoint = `/api/serial_number/${id}`;
+          break;
         default:
           endpoint = `/api/products/${id}`;
       }
@@ -143,17 +155,21 @@ const initialState = {
   spiceProducts: [],
   businessExperiences: [],
   employeeRanges: [],
+  serialNumber: [], // Fixed: Added missing serialNumber state
   loading: {
-    certificates: false,
-    spices: false,
-    experience: false,
-    employees: false,
+    experience: null,
+    certificate: null,
+    numEmployee: null,
+    product: null,
+    province: null,
+    serial: null,
   },
   error: {
     certificates: null,
     spices: null,
     experience: null,
     employees: null,
+    serial: null,
   },
 };
 
@@ -168,6 +184,8 @@ const getCategoryStateKey = (category) => {
       return "businessExperiences";
     case "employees":
       return "employeeRanges";
+    case "serial":
+      return "serialNumber"; // Fixed: Consistent naming
     default:
       return null;
   }
@@ -190,6 +208,7 @@ const settingsSlice = createSlice({
         spices: null,
         experience: null,
         employees: null,
+        serial: null,
       };
     },
     // Reset specific category data
@@ -312,12 +331,11 @@ export const selectCategoryLoading = (state, category) =>
 export const selectCategoryError = (state, category) =>
   state.settings.error[category];
 
-export const selectAllCertificateTypes = (state) =>
-  state.settings.certificateTypes;
+export const selectAllCertificateTypes = (state) => state.settings.certificateTypes;
 export const selectAllSpiceProducts = (state) => state.settings.spiceProducts;
-export const selectAllBusinessExperiences = (state) =>
-  state.settings.businessExperiences;
+export const selectAllBusinessExperiences = (state) => state.settings.businessExperiences;
 export const selectAllEmployeeRanges = (state) => state.settings.employeeRanges;
+export const selectAllSerialTypes = (state) => state.settings.serialNumber;
 
 export const selectAllLoading = (state) => state.settings.loading;
 export const selectAllErrors = (state) => state.settings.error;

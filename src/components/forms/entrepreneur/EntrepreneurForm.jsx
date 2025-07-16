@@ -366,7 +366,7 @@ const EntrepreneurForm = (props) => {
               name="certifications"
               rules={[
                 {
-                  required: true,
+                  required: false,
                   message: "Please select at least one certification",
                   type: "array",
                 },
