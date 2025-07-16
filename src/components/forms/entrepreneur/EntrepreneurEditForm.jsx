@@ -341,6 +341,8 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       console.log("Approval request submitted successfully:", response.data);
 
       // Optionally show success message or redirect
+      navigate('/user-management');
+
     } catch (error) {
       console.error("Failed to submit approval request:", error);
       throw new Error("Failed to submit form: " + error.message);

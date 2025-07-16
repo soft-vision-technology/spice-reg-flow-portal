@@ -33,7 +33,7 @@ import {
 import bg_pattern_1 from "../assets/13683663_Spices sketches set.svg";
 import bg_pattern_2 from "../assets/2148761778.jpg";
 import img_1 from "../../src/assets/adult-nature-coffee-harvesting.jpg";
-import img_2 from "../../src/assets/spices-near-pan.jpg";
+import img_2 from "../../src/assets/images.png";
 import img_3 from "../../src/assets/openair-market-with-traders-selling-spices-herbs-aromatic-colorful.jpg";
 import gov_log from "../assets/Emblem_of_Sri_Lanka.svg.png";
 import spice_logo from "../assets/spiceLogo.png";
@@ -63,7 +63,7 @@ const Landing = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
-    
+
     if (storedUser && storedToken) {
       try {
         const parsedUser = JSON.parse(storedUser);
@@ -255,25 +255,49 @@ const Landing = () => {
               className="w-full h-full object-cover object-center"
             />
           </div>
-          <div className="pl-6 pr-6 pt-2 pb-2 bg-black/10 rounded-2xl backdrop-blur-sm border-spice-400">
+          <div className="px-6 py-2 bg-black/10 rounded-2xl backdrop-blur-sm border border-spice-400">
             <div className="flex items-center justify-between">
+              {/* Left Logo - Government Emblem */}
               <img
                 src={gov_log}
-                alt="Spice logo"
-                className="w-15 h-20 justify-start items-start p-0"
+                alt="Government logo"
+                className="w-16 h-21 flex-shrink-0"
               />
-              <div className="p-4">
-                <h1 className="flex text-spice-100 text-2xl font-semibold justify-center">
-                  කුළුබඩු හා ඒ ආශ්‍රිත නිෂ්පාදන අලෙවි මණ්ඩලය
-                </h1>
-                <h1 className="flex text-spice-100 text-xl justify-center">
-                  Spices and Allied Products Marketing Board
-                </h1>
+
+              {/* Center Content - Trilingual Text */}
+              <div className="flex-1 text-center">
+                {/* Organization Name - Trilingual */}
+                <div>
+                  <div className="text-spice-100 text-2xl font-bold">
+                    කුළුබඩු හා ඒ ආශ්‍රිත නිෂ්පාදන අලෙවි මණ්ඩලය
+                  </div>
+                  <div className="text-spice-100 text-xs font-custom">
+                    மசாலாவும் அது தொடர்பானது தயாரிப்புகள் சந்தைப்படுத்தல் வாரியம்
+                  </div>
+                  <div className="text-spice-100 text-lg font-bold">
+                    Spices and Allied Products Marketing Board
+                  </div>
+                </div>
+
+                {/* Ministry Name - Trilingual */}
+                <div>
+                  <div className="text-spice-100 text-lg">
+                    වැවිලි සහ ප්‍රජා යටිතල පහසුකම් අමාත්‍යංසය
+                  </div>
+                  <div className="text-spice-100 text-xs">
+                    பெருந்தோட்ட மற்றும் சமூக உட்கட்டமைப்பு வசதிகள் அமைச்சர்
+                  </div>
+                  <div className="text-spice-100 text-sm">
+                    Ministry of Plantation and Community Infrastructure
+                  </div>
+                </div>
               </div>
+
+              {/* Right Logo - Golden Badge */}
               <img
                 src={spice_logo}
                 alt="Spice logo"
-                className="w-20 h-24 p-0"
+                className="w-24 h-24 flex-shrink-0"
               />
             </div>
           </div>
@@ -291,13 +315,12 @@ const Landing = () => {
               {featureCards.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                    (hoveredFeature !== null
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${(hoveredFeature !== null
                       ? hoveredFeature
                       : activeFeature) === index
                       ? "bg-white"
                       : "bg-white/40"
-                  }`}
+                    }`}
                 />
               ))}
             </div>
@@ -413,7 +436,11 @@ const Landing = () => {
                     loading={loading || isRedirecting}
                     disabled={loading || isRedirecting}
                   >
-                    {loading ? "Authenticating..." : isRedirecting ? "Redirecting..." : "Login"}
+                    {loading
+                      ? "Authenticating..."
+                      : isRedirecting
+                        ? "Redirecting..."
+                        : "Login"}
                   </Button>
                 </Form.Item>
 
@@ -439,13 +466,12 @@ const Landing = () => {
                 {featureCards.map((card, index) => (
                   <Col xs={24} sm={8} key={index}>
                     <Card
-                      className={`cursor-pointer bg-transparent transition-all duration-300 hover:shadow-lg hover:scale-105 ${
-                        (hoveredFeature !== null
+                      className={`cursor-pointer bg-transparent transition-all duration-300 hover:shadow-lg hover:scale-105 ${(hoveredFeature !== null
                           ? hoveredFeature
                           : activeFeature) === index
                           ? "ring-2 ring-spice-400 shadow-lg"
                           : ""
-                      }`}
+                        }`}
                       bodyStyle={{ padding: "12px" }}
                       onMouseEnter={() => setHoveredFeature(index)}
                       onMouseLeave={() => setHoveredFeature(null)}
@@ -458,7 +484,10 @@ const Landing = () => {
                             className="w-full h-20 object-cover rounded-lg"
                           />
                         </div>
-                        <Title level={5} className="flex justify-center text-earth-700">
+                        <Title
+                          level={5}
+                          className="flex justify-center text-earth-700"
+                        >
                           {card.title}
                         </Title>
                       </div>
@@ -475,7 +504,11 @@ const Landing = () => {
       <div className="absolute bottom-0 left-0 right-0 bg-spice-500 backdrop-blur-sm border-t-2 border-white p-4">
         <div className="text-center">
           <p className="text-white text-xs">
-            <span className="font-semibold">© 2025 </span><span className="font-custom">Soft Vision Technologies Pvt Ltd</span><span className="font-semibold">. All rights reserved.</span>
+            <span className="font-semibold">© 2025 </span>
+            <span className="font-custom">
+              Soft Vision Technologies Pvt Ltd
+            </span>
+            <span className="font-semibold">. All rights reserved.</span>
           </p>
         </div>
       </div>

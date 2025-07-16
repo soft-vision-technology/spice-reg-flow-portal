@@ -333,7 +333,10 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
         "/api/approval/create",
         approvalRequest
       );
+
       navigate("/user-management");
+      alert("Success!");
+
       console.log("Approval request submitted successfully:", response.data);
     } catch (error) {
       console.error("Failed to submit approval request:", error);
