@@ -279,7 +279,7 @@ const Landing = () => {
                   </div>
                 </div>
 
-                {/* Ministry Name - Trilingual */}
+                
                 <div>
                   <div className="text-spice-100 text-lg">
                     වැවිලි සහ ප්‍රජා යටිතල පහසුකම් අමාත්‍යංසය
