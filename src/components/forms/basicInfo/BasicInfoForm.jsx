@@ -95,7 +95,7 @@ const BasicInfoForm = () => {
             <Form.Item
               label="Title"
               name="title"
-              rules={[{ required: true, message: "Please select your title" }]}
+              rules={[{ required: false, message: "Please select your title" }]}
             >
               <Select placeholder="Select title" size="large">
                 <Option value="Mr.">Mr.</Option>
@@ -124,7 +124,7 @@ const BasicInfoForm = () => {
               label="Full Name"
               name="fullName"
               rules={[
-                { required: true, message: "Please enter your full name" },
+                { required: false, message: "Please enter your full name" },
               ]}
             >
               <Input placeholder="John Doe" size="large" />
@@ -135,7 +135,7 @@ const BasicInfoForm = () => {
               label="National ID Number (NIC)"
               name="nic"
               rules={[
-                { required: true, message: "Please enter your NIC" },
+                { required: false, message: "Please enter your NIC" },
                 {
                   pattern: /^[0-9]{9}[vVxX]$|^[0-9]{12}$/,
                   message: "Please enter a valid NIC number",
@@ -153,7 +153,7 @@ const BasicInfoForm = () => {
             <Form.Item
               label="Address"
               name="address"
-              rules={[{ required: true, message: "Please enter your address" }]}
+              rules={[{ required: false, message: "Please enter your address" }]}
             >
               <Input.TextArea
                 rows={3}
@@ -171,7 +171,7 @@ const BasicInfoForm = () => {
               label="Email"
               name="email"
               rules={[
-                { required: true, message: "Please enter your email" },
+                { required: false, message: "Please enter your email" },
                 { type: "email", message: "Please enter a valid email" },
               ]}
             >
@@ -183,7 +183,7 @@ const BasicInfoForm = () => {
               label="Mobile Number"
               name="mobileNumber"
               rules={[
-                { required: true, message: "Please enter your mobile number" },
+                { required: false, message: "Please enter your mobile number" },
                 {
                   pattern: /^[0-9]{10}$/,
                   message: "Please enter a valid 10-digit mobile number",
@@ -298,7 +298,7 @@ const BasicInfoForm = () => {
               }
               rules={[
                 {
-                  required: true,
+                  required: false,
                   message: "Please Complete the Serial Number",
                 },
               ]}

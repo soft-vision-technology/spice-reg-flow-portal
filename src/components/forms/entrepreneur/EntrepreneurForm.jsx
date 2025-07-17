@@ -28,6 +28,7 @@ import {
 } from "../../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
 import axiosInstance from "../../../api/axiosInstance";
+import TextArea from "antd/es/input/TextArea";
 
 const { Option } = Select;
 
@@ -38,7 +39,7 @@ const EntrepreneurForm = (props) => {
   const { updateFormData } = useFormContext();
   const [form] = Form.useForm();
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, value: null },
+    { productId: null, value: null, isRaw: false, isProcessed: false },
   ]);
 
   const load = async () => {
@@ -135,6 +136,8 @@ const EntrepreneurForm = (props) => {
         .map((product) => ({
           productId: parseInt(product.productId),
           value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
         })),
     };
 
@@ -145,11 +148,12 @@ const EntrepreneurForm = (props) => {
     try {
       const values = await form.validateFields();
       const formattedData = formatFormData(values);
+      console.log(formatFormData);
+      // const response = await axiosInstance.post(
+      //   "/api/entrepreneur",
+      //   formattedData
+      // );
 
-      const response = await axiosInstance.post(
-        "/api/entrepreneur",
-        formattedData
-      );
     } catch (error) {
       throw new Error("Failed to submit form: " + error.message);
     }
@@ -170,7 +174,7 @@ const EntrepreneurForm = (props) => {
               label="Business Name"
               name="businessName"
               rules={[
-                { required: true, message: "Please enter business name" },
+                { required: false, message: "Please enter business name" },
               ]}
             >
               <Input placeholder="Spice Enterprises" />
@@ -182,7 +186,7 @@ const EntrepreneurForm = (props) => {
               name="businessRegistrationNumber"
               rules={[
                 {
-                  required: true,
+                  required: false,
                   message: "Please enter registration number",
                 },
               ]}
@@ -198,7 +202,7 @@ const EntrepreneurForm = (props) => {
               label="Business Address"
               name="businessAddress"
               rules={[
-                { required: true, message: "Please enter business address" },
+                { required: false, message: "Please enter business address" },
               ]}
             >
               <Input.TextArea
@@ -217,7 +221,7 @@ const EntrepreneurForm = (props) => {
                 name="registrationDate"
                 rules={[
                   {
-                    required: true,
+                    required: false,
                     message: "Please select registration date",
                   },
                 ]}
@@ -230,7 +234,7 @@ const EntrepreneurForm = (props) => {
                 label="Business Experience"
                 name="businessExperience"
                 rules={[
-                  { required: true, message: "Please select experience" },
+                  { required: false, message: "Please select experience" },
                 ]}
               >
                 <Select
@@ -281,34 +285,59 @@ const EntrepreneurForm = (props) => {
                               .toLowerCase()
                               .includes(input.toLowerCase())
                           }
-                          options={formatSelects(productOptions)}
+                          options={formatSelects(productOptions).filter(
+                            (option) =>
+                              !exportProducts.some(
+                                (p, i) =>
+                                  i !== index && p.productId === option.value
+                              )
+                          )}
                         />
+                        <div className="mt-2 flex gap-4">
+                          <Checkbox
+                            checked={product.isRaw}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "isRaw",
+                                e.target.checked
+                              )
+                            }
+                          >
+                            Raw
+                          </Checkbox>
+                          <Checkbox
+                            checked={product.isProcessed}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "isProcessed",
+                                e.target.checked
+                              )
+                            }
+                          >
+                            Value Added
+                          </Checkbox>
+                        </div>
                       </Col>
                       <Col xs={24} sm={8}>
-                        <InputNumber
-                          placeholder="Enter value"
-                          value={product.value}
-                          onChange={(value) =>
-                            updateExportProduct(index, "value", value)
+                        <TextArea
+                          placeholder="Enter details (optional)"
+                          value={product.details}
+                          onChange={(e) =>
+                            updateExportProduct(
+                              index,
+                              "details",
+                              e.target.value
+                            )
                           }
-                          min={0.01}
-                          step={0.01}
                           className="w-full"
-                          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                          style={{ height: "65px", resize: "none" }}
+                          maxLength={500}
                         />
                       </Col>
                       <Col xs={24} sm={6}>
-                        <Space>
-                          {index === exportProducts.length - 1 && (
-                            <Button
-                              type="dashed"
-                              icon={<PlusOutlined />}
-                              onClick={addExportProduct}
-                              size="small"
-                            >
-                              Add
-                            </Button>
-                          )}
+                        <div className="flex flex-col gap-2">
                           {exportProducts.length > 1 && (
                             <Button
                               type="text"
@@ -318,7 +347,15 @@ const EntrepreneurForm = (props) => {
                               size="small"
                             />
                           )}
-                        </Space>
+                          {index === exportProducts.length - 1 && (
+                            <Button
+                              type="dashed"
+                              icon={<PlusOutlined />}
+                              onClick={addExportProduct}
+                              size="small"
+                            />
+                          )}
+                        </div>
                       </Col>
                     </Row>
                   </Card>
@@ -334,7 +371,7 @@ const EntrepreneurForm = (props) => {
               label={isExisting ? "Number of Employees" : "Expected Employees"}
               name="numberOfEmployees"
               rules={[
-                { required: true, message: "Please select employee count" },
+                { required: false, message: "Please select employee count" },
               ]}
             >
               <Select
@@ -348,7 +385,7 @@ const EntrepreneurForm = (props) => {
               label="Years in Export Business"
               name="yearsExporting"
               rules={[
-                { required: true, message: "Please enter years in exports" },
+                { required: false, message: "Please enter years in exports" },
               ]}
             >
               <Select
