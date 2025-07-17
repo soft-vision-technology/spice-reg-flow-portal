@@ -17,11 +17,10 @@ const { Title, Paragraph, Text } = Typography;
 const overviewData = [
   { name: "Approved", value: 342, color: "#10B981" },
   { name: "Pending", value: 127, color: "#F59E0B" },
-  { name: "Under Review", value: 65, color: "#E67324" }
 ];
 
 const timeSeriesData = [
-  { month: "Jan", registrations: 45, approvals: 38 },
+  { month: "Jan", registrations: 45, approvals: 0},
   { month: "Feb", registrations: 52, approvals: 42 },
   { month: "Mar", registrations: 67, approvals: 55 },
   { month: "Apr", registrations: 74, approvals: 61 },

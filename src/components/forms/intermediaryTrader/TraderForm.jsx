@@ -10,6 +10,7 @@ import {
   Col,
   Card,
   Space,
+  Checkbox,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
@@ -24,6 +25,7 @@ import {
 } from "../../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
+import TextArea from "antd/es/input/TextArea";
 
 const TraderForm = ({ isExisting }) => {
   const dispatch = useDispatch();
@@ -120,7 +122,7 @@ const TraderForm = ({ isExisting }) => {
               label="Business Name"
               name="businessName"
               rules={[
-                { required: true, message: "Please enter business name" },
+                { required: false, message: "Please enter business name" },
               ]}
             >
               <Input placeholder="Spice Trading Enterprises" />
@@ -132,7 +134,7 @@ const TraderForm = ({ isExisting }) => {
               name="businessRegistrationNumber"
               rules={[
                 {
-                  required: true,
+                  required: false,
                   message: "Please enter registration number",
                 },
               ]}
@@ -148,64 +150,12 @@ const TraderForm = ({ isExisting }) => {
               label="Business Address"
               name="businessAddress"
               rules={[
-                { required: true, message: "Please enter business address" },
+                { required: false, message: "Please enter business address" },
               ]}
             >
               <Input.TextArea
                 rows={3}
                 placeholder="123 Trading Street, Commercial Zone, Colombo"
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Registration Date"
-                name="registrationDate"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select registration date",
-                  },
-                ]}
-              >
-                <DatePicker
-                  format="YYYY-MM-DD"
-                  style={{ width: "100%" }}
-                  placeholder="Select date"
-                />
-              </Form.Item>
-            </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Years in Trading Business"
-              name="yearsTrading"
-              rules={[
-                { required: true, message: "Please select years in trading" },
-              ]}
-            >
-              <Select
-                placeholder="Select years"
-                options={formatSelects(experienceOptions)}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Number of Employees"
-              name="numberOfEmployees"
-              rules={[
-                { required: true, message: "Please select employee count" },
-              ]}
-            >
-              <Select
-                placeholder="Select count"
-                options={formatSelects(numberOfEmployeeOptions)}
               />
             </Form.Item>
           </Col>
@@ -250,34 +200,59 @@ const TraderForm = ({ isExisting }) => {
                               .toLowerCase()
                               .includes(input.toLowerCase())
                           }
-                          options={formatSelects(productOptions)}
+                          options={formatSelects(productOptions).filter(
+                            (option) =>
+                              !exportProducts.some(
+                                (p, i) =>
+                                  i !== index && p.productId === option.value
+                              )
+                          )}
                         />
+                        <div className="mt-2 flex gap-4">
+                          <Checkbox
+                            checked={product.raw}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "raw",
+                                e.target.checked
+                              )
+                            }
+                          >
+                            Raw
+                          </Checkbox>
+                          <Checkbox
+                            checked={product.valueAdded}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "valueAdded",
+                                e.target.checked
+                              )
+                            }
+                          >
+                            Value Added
+                          </Checkbox>
+                        </div>
                       </Col>
                       <Col xs={24} sm={8}>
-                        <InputNumber
-                          placeholder="Enter value"
-                          value={product.value}
-                          onChange={(value) =>
-                            updateExportProduct(index, "value", value)
+                        <TextArea
+                          placeholder="Enter details (optional)"
+                          value={product.details}
+                          onChange={(e) =>
+                            updateExportProduct(
+                              index,
+                              "details",
+                              e.target.value
+                            )
                           }
-                          min={0.01}
-                          step={0.01}
                           className="w-full"
-                          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                          style={{ height: "65px", resize: "none" }}
+                          maxLength={500}
                         />
                       </Col>
                       <Col xs={24} sm={6}>
-                        <Space>
-                          {index === exportProducts.length - 1 && (
-                            <Button
-                              type="dashed"
-                              icon={<PlusOutlined />}
-                              onClick={addExportProduct}
-                              size="small"
-                            >
-                              Add
-                            </Button>
-                          )}
+                        <div className="flex flex-col gap-2">
                           {exportProducts.length > 1 && (
                             <Button
                               type="text"
@@ -287,12 +262,72 @@ const TraderForm = ({ isExisting }) => {
                               size="small"
                             />
                           )}
-                        </Space>
+                          {index === exportProducts.length - 1 && (
+                            <Button
+                              type="dashed"
+                              icon={<PlusOutlined />}
+                              onClick={addExportProduct}
+                              size="small"
+                            />
+                          )}
+                        </div>
                       </Col>
                     </Row>
                   </Card>
                 ))}
               </div>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Registration Date"
+                name="registrationDate"
+                rules={[
+                  {
+                    required: false,
+                    message: "Please select registration date",
+                  },
+                ]}
+              >
+                <DatePicker
+                  format="YYYY-MM-DD"
+                  style={{ width: "100%" }}
+                  placeholder="Select date"
+                />
+              </Form.Item>
+            </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Years in Trading Business"
+              name="yearsTrading"
+              rules={[
+                { required: false, message: "Please select years in trading" },
+              ]}
+            >
+              <Select
+                placeholder="Select years"
+                options={formatSelects(experienceOptions)}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Number of Employees"
+              name="numberOfEmployees"
+              rules={[
+                { required: false, message: "Please select employee count" },
+              ]}
+            >
+              <Select
+                placeholder="Select count"
+                options={formatSelects(numberOfEmployeeOptions)}
+              />
             </Form.Item>
           </Col>
         </Row>

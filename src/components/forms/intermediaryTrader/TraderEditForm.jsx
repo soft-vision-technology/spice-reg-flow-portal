@@ -433,34 +433,59 @@ const handleChange = (changedValues, allValues) => {
                               .toLowerCase()
                               .includes(input.toLowerCase())
                           }
-                          options={formatSelects(productOptions)}
+                          options={formatSelects(productOptions).filter(
+                            (option) =>
+                              !exportProducts.some(
+                                (p, i) =>
+                                  i !== index && p.productId === option.value
+                              )
+                          )}
                         />
+                        <div className="mt-2 flex gap-4">
+                          <Checkbox
+                            checked={product.raw}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "raw",
+                                e.target.checked
+                              )
+                            }
+                          >
+                            Raw
+                          </Checkbox>
+                          <Checkbox
+                            checked={product.valueAdded}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "valueAdded",
+                                e.target.checked
+                              )
+                            }
+                          >
+                            Value Added
+                          </Checkbox>
+                        </div>
                       </Col>
                       <Col xs={24} sm={8}>
-                        <InputNumber
-                          placeholder="Enter value"
-                          value={product.value}
-                          onChange={(value) =>
-                            updateExportProduct(index, "value", value)
+                        <TextArea
+                          placeholder="Enter details (optional)"
+                          value={product.details}
+                          onChange={(e) =>
+                            updateExportProduct(
+                              index,
+                              "details",
+                              e.target.value
+                            )
                           }
-                          min={0.01}
-                          step={0.01}
                           className="w-full"
-                          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                          style={{ height: "65px", resize: "none" }}
+                          maxLength={500}
                         />
                       </Col>
                       <Col xs={24} sm={6}>
-                        <Space>
-                          {index === exportProducts.length - 1 && (
-                            <Button
-                              type="dashed"
-                              icon={<PlusOutlined />}
-                              onClick={addExportProduct}
-                              size="small"
-                            >
-                              Add
-                            </Button>
-                          )}
+                        <div className="flex flex-col gap-2">
                           {exportProducts.length > 1 && (
                             <Button
                               type="text"
@@ -470,7 +495,15 @@ const handleChange = (changedValues, allValues) => {
                               size="small"
                             />
                           )}
-                        </Space>
+                          {index === exportProducts.length - 1 && (
+                            <Button
+                              type="dashed"
+                              icon={<PlusOutlined />}
+                              onClick={addExportProduct}
+                              size="small"
+                            />
+                          )}
+                        </div>
                       </Col>
                     </Row>
                   </Card>

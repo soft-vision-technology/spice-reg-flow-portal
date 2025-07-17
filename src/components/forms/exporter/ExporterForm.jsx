@@ -142,7 +142,7 @@ const ExporterForm = ({ isExisting }) => {
               label="Business Name"
               name="businessName"
               rules={[
-                { required: true, message: "Please enter business name" },
+                { required: false, message: "Please enter business name" },
               ]}
             >
               <Input placeholder="Global Spice Exports Ltd." />
@@ -155,7 +155,7 @@ const ExporterForm = ({ isExisting }) => {
                 name="businessRegNumber"
                 rules={[
                   {
-                    required: true,
+                    required: false,
                     message: "Please enter business registration number",
                   },
                 ]}
@@ -169,7 +169,7 @@ const ExporterForm = ({ isExisting }) => {
               label="Years in Export Business"
               name="yearsExporting"
               rules={[
-                { required: true, message: "Please enter years in exports" },
+                { required: false, message: "Please enter years in exports" },
               ]}
             >
               <Select
@@ -182,7 +182,7 @@ const ExporterForm = ({ isExisting }) => {
             <Form.Item
               label="Started Date of Export Business"
               name="exportStartDate"
-              rules={[{ required: true, message: "Please enter started date" }]}
+              rules={[{ required: false, message: "Please enter started date" }]}
             >
               <DatePicker
                 format="YYYY-MM-DD"
@@ -196,7 +196,7 @@ const ExporterForm = ({ isExisting }) => {
               label="Number of Employees"
               name="numberOfEmployees"
               rules={[
-                { required: true, message: "Please select employee count" },
+                { required: false, message: "Please select employee count" },
               ]}
             >
               <Select
@@ -210,7 +210,7 @@ const ExporterForm = ({ isExisting }) => {
               label="Name of Country / Countries of Export"
               name="exportCountries"
               rules={[
-                { required: true, message: "Please select at least one" },
+                { required: false, message: "Please select at least one" },
               ]}
             >
               <Select
@@ -231,7 +231,7 @@ const ExporterForm = ({ isExisting }) => {
           </Col>
           <Col xs={24} sm={12}>
             <Form.Item label="Business Description" name="businessDescription">
-              <Input.TextArea placeholder="Describe your business" rows={3} />
+              <Input.TextArea placeholder="Describe your business" rows={3}/>
             </Form.Item>
           </Col>
         </Row>
@@ -276,34 +276,59 @@ const ExporterForm = ({ isExisting }) => {
                                 .toLowerCase()
                                 .includes(input.toLowerCase())
                             }
-                            options={formatSelects(productOptions)}
+                            options={formatSelects(productOptions).filter(
+                              (option) =>
+                                !exportProducts.some(
+                                  (p, i) =>
+                                    i !== index && p.productId === option.value
+                                )
+                            )}
                           />
+                          <div className="mt-2 flex gap-4">
+                            <Checkbox
+                              checked={product.raw}
+                              onChange={(e) =>
+                                updateExportProduct(
+                                  index,
+                                  "raw",
+                                  e.target.checked
+                                )
+                              }
+                            >
+                              Raw
+                            </Checkbox>
+                            <Checkbox
+                              checked={product.valueAdded}
+                              onChange={(e) =>
+                                updateExportProduct(
+                                  index,
+                                  "valueAdded",
+                                  e.target.checked
+                                )
+                              }
+                            >
+                              Value Added
+                            </Checkbox>
+                          </div>
                         </Col>
                         <Col xs={24} sm={8}>
-                          <InputNumber
-                            placeholder="Enter value"
-                            value={product.value}
-                            onChange={(value) =>
-                              updateExportProduct(index, "value", value)
+                          <TextArea
+                            placeholder="Enter details (optional)"
+                            value={product.details}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "details",
+                                e.target.value
+                              )
                             }
-                            min={0.01}
-                            step={0.01}
                             className="w-full"
-                            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                            style={{ height: "65px", resize: "none" }}
+                            maxLength={500}
                           />
                         </Col>
                         <Col xs={24} sm={6}>
-                          <Space>
-                            {index === exportProducts.length - 1 && (
-                              <Button
-                                type="dashed"
-                                icon={<PlusOutlined />}
-                                onClick={addExportProduct}
-                                size="small"
-                              >
-                                Add
-                              </Button>
-                            )}
+                          <div className="flex flex-col gap-2">
                             {exportProducts.length > 1 && (
                               <Button
                                 type="text"
@@ -313,7 +338,15 @@ const ExporterForm = ({ isExisting }) => {
                                 size="small"
                               />
                             )}
-                          </Space>
+                            {index === exportProducts.length - 1 && (
+                              <Button
+                                type="dashed"
+                                icon={<PlusOutlined />}
+                                onClick={addExportProduct}
+                                size="small"
+                              />
+                            )}
+                          </div>
                         </Col>
                       </Row>
                     </Card>
