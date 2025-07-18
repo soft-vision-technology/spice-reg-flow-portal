@@ -335,7 +335,7 @@ const BasicInfoForm = () => {
               </Input.Group>
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12}>
+          {/* <Col xs={24} sm={12}>
             <div
               style={{
                 display: "flex",
@@ -361,7 +361,7 @@ const BasicInfoForm = () => {
                 <Checkbox size="large">Approved</Checkbox>
               </Form.Item>
             </div>
-          </Col>
+          </Col> */}
         </Row>
       </Form>
     </div>

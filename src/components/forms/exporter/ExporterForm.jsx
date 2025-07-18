@@ -34,6 +34,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import { useLocation } from "react-router-dom";
+import TextArea from "antd/es/input/TextArea";
 
 const ExporterForm = ({ isExisting }) => {
   const dispatch = useDispatch();
@@ -41,7 +42,7 @@ const ExporterForm = ({ isExisting }) => {
   const { updateFormData, formData } = useFormContext();
   const [form] = Form.useForm();
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, value: null },
+    { productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   const load = async () => {
@@ -70,7 +71,10 @@ const ExporterForm = ({ isExisting }) => {
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, value: null }]);
+    setExportProducts([
+      ...exportProducts,
+      { productId: null, details: "", isRaw: false, isProcessed: false },
+    ]);
   };
 
   const removeExportProduct = (index) => {
@@ -113,10 +117,15 @@ const ExporterForm = ({ isExisting }) => {
         ? dayjs(allValues.exportStartDate).toISOString()
         : null,
       products: exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter(
+          (product) =>
+            product.productId && (product.details || product.details === "")
+        )
         .map((product) => ({
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         })),
       userId: location?.state?.result,
     };
@@ -182,7 +191,9 @@ const ExporterForm = ({ isExisting }) => {
             <Form.Item
               label="Started Date of Export Business"
               name="exportStartDate"
-              rules={[{ required: false, message: "Please enter started date" }]}
+              rules={[
+                { required: false, message: "Please enter started date" },
+              ]}
             >
               <DatePicker
                 format="YYYY-MM-DD"
@@ -231,7 +242,7 @@ const ExporterForm = ({ isExisting }) => {
           </Col>
           <Col xs={24} sm={12}>
             <Form.Item label="Business Description" name="businessDescription">
-              <Input.TextArea placeholder="Describe your business" rows={3}/>
+              <Input.TextArea placeholder="Describe your business" rows={3} />
             </Form.Item>
           </Col>
         </Row>
@@ -245,7 +256,7 @@ const ExporterForm = ({ isExisting }) => {
                   {
                     validator: () => {
                       const hasValidProduct = exportProducts.some(
-                        (product) => product.productId && product.value
+                        (product) => product.productId
                       );
                       return hasValidProduct
                         ? Promise.resolve()
@@ -286,11 +297,11 @@ const ExporterForm = ({ isExisting }) => {
                           />
                           <div className="mt-2 flex gap-4">
                             <Checkbox
-                              checked={product.raw}
+                              checked={product.isRaw}
                               onChange={(e) =>
                                 updateExportProduct(
                                   index,
-                                  "raw",
+                                  "isRaw",
                                   e.target.checked
                                 )
                               }
@@ -298,11 +309,11 @@ const ExporterForm = ({ isExisting }) => {
                               Raw
                             </Checkbox>
                             <Checkbox
-                              checked={product.valueAdded}
+                              checked={product.isProcessed}
                               onChange={(e) =>
                                 updateExportProduct(
                                   index,
-                                  "valueAdded",
+                                  "isProcessed",
                                   e.target.checked
                                 )
                               }
@@ -311,7 +322,7 @@ const ExporterForm = ({ isExisting }) => {
                             </Checkbox>
                           </div>
                         </Col>
-                        <Col xs={24} sm={8}>
+                        <Col xs={24} sm={12}>
                           <TextArea
                             placeholder="Enter details (optional)"
                             value={product.details}
@@ -327,8 +338,8 @@ const ExporterForm = ({ isExisting }) => {
                             maxLength={500}
                           />
                         </Col>
-                        <Col xs={24} sm={6}>
-                          <div className="flex flex-col gap-2">
+                        <Col xs={24} sm={2}>
+                          <div className="flex flex-col gap-2 justify-center items-center">
                             {exportProducts.length > 1 && (
                               <Button
                                 type="text"
