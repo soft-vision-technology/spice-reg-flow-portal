@@ -14,7 +14,6 @@ import {
   Checkbox,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
 import { useFormContext } from "../../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
 import {

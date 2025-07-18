@@ -42,11 +42,12 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
   const [form] = Form.useForm();
   const { id } = useParams();
 
-  console.log("from the entre", id);
-  const [exportProducts, setExportProducts] = useState([
-    { productId: null, value: null },
-  ]);
+  
 
+  console.log("data:: ", roleData);
+  const [exportProducts, setExportProducts] = useState([
+    { productId: null, details: "", isRaw: false, isProcessed: false },
+  ]);
   // Store original data for comparison
   const [originalData, setOriginalData] = useState({});
   const [originalProducts, setOriginalProducts] = useState([]);
@@ -68,25 +69,15 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
     // Prepare initial form data
     const initialFormData = {
       businessName: roleData.businessName,
-      businessRegistrationNumber: roleData.businessRegNo,
+      businessRegNo: roleData.businessRegNo,
       businessAddress: roleData.businessAddress,
-      numberOfEmployees:
-        roleData.numberOfEmployee?.id?.toString() ||
-        roleData.numberOfEmployeeId?.toString(),
-      certifications: Array.isArray(roleData.certificate)
-        ? roleData.certificate.map((c) => c.id?.toString())
-        : roleData.certificateId
-        ? [roleData.certificateId.toString()]
-        : [],
-      yearsExporting:
-        roleData.businessExperience?.id?.toString() ||
-        roleData.businessExperienceId?.toString(),
+      numberOfEmployees: roleData.numberOfEmployee?.id?.toString(),
+      certifications: roleData.certificate?.map((c) => c.id.toString()) || [],
+      yearsExporting: roleData.businessExperience?.id?.toString(),
       registrationDate: roleData.registrationDate
         ? dayjs(roleData.registrationDate)
         : undefined,
-      businessExperience:
-        roleData.businessExperience?.id?.toString() ||
-        roleData.businessExperienceId?.toString(),
+      businessExperience: roleData.businessExperience?.id?.toString(),
     };
 
     // Set form fields
@@ -95,7 +86,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
     // Store original data for comparison
     setOriginalData({
       businessName: roleData.businessName,
-      businessRegistrationNumber: roleData.businessRegNo,
+      businessRegNo: roleData.businessRegNo,
       businessAddress: roleData.businessAddress,
       numberOfEmployees:
         roleData.numberOfEmployee?.id?.toString() ||
@@ -119,12 +110,19 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
     // Set export products
     const initialProducts = Array.isArray(roleData.businessProducts)
       ? roleData.businessProducts.map((bp) => ({
-          productId: bp.productId?.toString() || bp.product?.id?.toString(),
-          value: bp.value ? parseFloat(bp.value) : null,
+          productId:
+            bp.productId?.toString() || bp.product?.id?.toString() || null,
+          isRaw: bp.isRaw || false,
+          isProcessed: bp.isProcessed || false,
+          details: bp.value || "",
         }))
-      : [{ productId: null, value: null }];
+      : [];
 
-    setExportProducts(initialProducts);
+    setExportProducts(
+      initialProducts.length > 0
+        ? initialProducts
+        : [{ productId: null, details: "", isRaw: false, isProcessed: false }]
+    );
     setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
   }, [roleData, form]);
 
@@ -132,10 +130,10 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
     // Format the data according to API requirements
     const formattedData = {
       businessName: allValues.businessName || null,
-      businessRegistrationNumber: allValues.businessRegistrationNumber || null,
+      businessRegNo: allValues.businessRegNo || null,
       businessAddress: allValues.businessAddress || null,
       numberOfEmployees: allValues.numberOfEmployees || null,
-      certifications: allValues.certifications || null,
+      certifications: allValues.certifications || [],
       yearsExporting: allValues.yearsExporting || null,
       businessExperience: allValues.businessExperience || null,
       registrationDate: allValues.registrationDate
@@ -145,10 +143,12 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
         ? parseInt(location?.state?.result)
         : null,
       products: exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter((product) => product.productId)
         .map((product) => ({
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         })),
     };
 
@@ -239,7 +239,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
   // Map form field names to API field names
   const mapFieldNames = (data) => {
     const fieldMapping = {
-      businessRegistrationNumber: "businessRegNo",
+      businessRegNo: "businessRegNo",
       numberOfEmployees: "numberOfEmployeeId",
       certifications: "certificateIds",
       yearsExporting: "businessExperienceId",
@@ -256,7 +256,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       if (key === "numberOfEmployees" && value) {
         value = parseInt(value);
       } else if (key === "certifications" && Array.isArray(value)) {
-        value = value.map((id) => parseInt(id));
+        value = (value || []).map((v) => parseInt(v));
       } else if (
         (key === "yearsExporting" || key === "businessExperience") &&
         value
@@ -363,7 +363,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
               label="Business Name"
               name="businessName"
               rules={[
-                { required: true, message: "Please enter business name" },
+                { required: false, message: "Please enter business name" },
               ]}
             >
               <Input placeholder="Spice Enterprises" />
@@ -375,7 +375,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
               name="businessRegNo"
               rules={[
                 {
-                  required: true,
+                  required: false,
                   message: "Please enter registration number",
                 },
               ]}
@@ -391,7 +391,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
               label="Business Address"
               name="businessAddress"
               rules={[
-                { required: true, message: "Please enter business address" },
+                { required: false, message: "Please enter business address" },
               ]}
             >
               <Input.TextArea
@@ -410,7 +410,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
                 name="registrationDate"
                 rules={[
                   {
-                    required: true,
+                    required: false,
                     message: "Please select registration date",
                   },
                 ]}
@@ -423,7 +423,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
                 label="Business Experience"
                 name="businessExperience"
                 rules={[
-                  { required: true, message: "Please select experience" },
+                  { required: false, message: "Please select experience" },
                 ]}
               >
                 <Select
@@ -560,7 +560,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
               label={isExisting ? "Number of Employees" : "Expected Employees"}
               name="numberOfEmployees"
               rules={[
-                { required: true, message: "Please select employee count" },
+                { required: false, message: "Please select employee count" },
               ]}
             >
               <Select
@@ -574,7 +574,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
               label="Years in Export Business"
               name="yearsExporting"
               rules={[
-                { required: true, message: "Please enter years in exports" },
+                { required: false, message: "Please enter years in exports" },
               ]}
             >
               <Select
@@ -587,17 +587,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
 
         <Row gutter={16}>
           <Col xs={24}>
-            <Form.Item
-              label="Certifications"
-              name="certifications"
-              rules={[
-                {
-                  required: false,
-                  message: "Please select at least one certification",
-                  type: "array",
-                },
-              ]}
-            >
+            <Form.Item label="Certifications" name="certifications">
               <Checkbox.Group options={formatSelects(certificateOptions)} />
             </Form.Item>
           </Col>

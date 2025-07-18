@@ -56,25 +56,26 @@ const UserManagement = () => {
   const [editUserId, setEditUserId] = useState(null);
   const dispatch = useDispatch();
   const {
-    existingEntrepreneurs,
-    existingExporters,
     startingExporters,
+    existingExporters,
+    existingEntrepreneurs,
     existingTraders,
     loading,
   } = useSelector((state) => state.report);
 
   // Fetch users on mount
   useEffect(() => {
-    dispatch(fetchExistingEntrepreneurs());
+    dispatch(fetchStartingExporters()),
     dispatch(fetchExistingExporters());
-    dispatch(fetchStartingExporters()), dispatch(fetchExistingTraders());
+    dispatch(fetchExistingEntrepreneurs());
+    dispatch(fetchExistingTraders());
   }, [dispatch]);
 
   // Combine all users for statistics and certificate drawer
   const allUsers = [
-    ...(existingEntrepreneurs || []),
-    ...(existingExporters || []),
     ...(startingExporters || []),
+    ...(existingExporters || []),
+    ...(existingEntrepreneurs || []),
     ...(existingTraders || []),
   ];
 
@@ -101,17 +102,8 @@ const UserManagement = () => {
   const navigate = useNavigate();
   // Replace handleEdit to open EditPage
   const handleEdit = (user) => {
-    const userRole = user?.role.name.toLowerCase();
-    const roleIdOfUser =
-      userRole == "intermediarytrader"
-        ? user.intermediaryTrader?.id
-        : user[userRole]?.id;
-    navigate(`/user-management-edit/${user.id}`, {
-      state: { usersRoleId: roleIdOfUser, userRole: userRole.toLowerCase() },
-    });
-    console.log("userRole: ", userRole);
-    console.log("userRoleId: ", roleIdOfUser);
-  };
+   navigate(`/user-management-edit/${user.id}`);
+    };
 
   const handleEditBack = () => {
     setEditUserId(null);
