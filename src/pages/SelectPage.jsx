@@ -93,8 +93,8 @@ const SelectPage = () => {
         gnDivision: formData.gnDivision || '',
         businessStatus: registrationType === "have-business" ? "EXISTING" : "STARTING",
         roleId: roleId,
-        isActive: formData.isActive !== undefined ? formData.isActive : true,
-        isApproved: formData.isApproved !== undefined ? formData.isApproved : true,
+        isActive: false,
+        isApproved: false,
         serialNumber: completeSerialNumber,
       };
 

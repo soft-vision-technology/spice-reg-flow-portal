@@ -33,7 +33,7 @@ const TraderForm = ({ isExisting }) => {
   const { updateFormData, formData } = useFormContext();
   const [form] = Form.useForm();
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, value: null },
+    { productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   const load = async () => {
@@ -60,7 +60,10 @@ const TraderForm = ({ isExisting }) => {
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, value: null }]);
+    setExportProducts([
+      ...exportProducts,
+      { productId: null, details: "", isRaw: false, isProcessed: false },
+    ]);
   };
 
   const removeExportProduct = (index) => {
@@ -94,10 +97,15 @@ const TraderForm = ({ isExisting }) => {
       additionalInfo: allValues.additionalInfo || null,
       userId: location?.state?.result,
       products: exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter(
+          (product) =>
+            product.productId && (product.details || product.details === "")
+        )
         .map((product) => ({
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         })),
     };
 
@@ -164,12 +172,12 @@ const TraderForm = ({ isExisting }) => {
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
-              label="Trading Spice Products & Values"
+              label="Export Spice Products & Values"
               rules={[
                 {
                   validator: () => {
                     const hasValidProduct = exportProducts.some(
-                      (product) => product.productId && product.value
+                      (product) => product.productId
                     );
                     return hasValidProduct
                       ? Promise.resolve()
@@ -210,11 +218,11 @@ const TraderForm = ({ isExisting }) => {
                         />
                         <div className="mt-2 flex gap-4">
                           <Checkbox
-                            checked={product.raw}
+                            checked={product.isRaw}
                             onChange={(e) =>
                               updateExportProduct(
                                 index,
-                                "raw",
+                                "isRaw",
                                 e.target.checked
                               )
                             }
@@ -222,11 +230,11 @@ const TraderForm = ({ isExisting }) => {
                             Raw
                           </Checkbox>
                           <Checkbox
-                            checked={product.valueAdded}
+                            checked={product.isProcessed}
                             onChange={(e) =>
                               updateExportProduct(
                                 index,
-                                "valueAdded",
+                                "isProcessed",
                                 e.target.checked
                               )
                             }
@@ -235,7 +243,7 @@ const TraderForm = ({ isExisting }) => {
                           </Checkbox>
                         </div>
                       </Col>
-                      <Col xs={24} sm={8}>
+                      <Col xs={24} sm={12}>
                         <TextArea
                           placeholder="Enter details (optional)"
                           value={product.details}
@@ -251,8 +259,8 @@ const TraderForm = ({ isExisting }) => {
                           maxLength={500}
                         />
                       </Col>
-                      <Col xs={24} sm={6}>
-                        <div className="flex flex-col gap-2">
+                      <Col xs={24} sm={2}>
+                        <div className="flex flex-col gap-2 justify-center items-center">
                           {exportProducts.length > 1 && (
                             <Button
                               type="text"
@@ -281,24 +289,24 @@ const TraderForm = ({ isExisting }) => {
         </Row>
 
         <Row gutter={16}>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Registration Date"
-                name="registrationDate"
-                rules={[
-                  {
-                    required: false,
-                    message: "Please select registration date",
-                  },
-                ]}
-              >
-                <DatePicker
-                  format="YYYY-MM-DD"
-                  style={{ width: "100%" }}
-                  placeholder="Select date"
-                />
-              </Form.Item>
-            </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Registration Date"
+              name="registrationDate"
+              rules={[
+                {
+                  required: false,
+                  message: "Please select registration date",
+                },
+              ]}
+            >
+              <DatePicker
+                format="YYYY-MM-DD"
+                style={{ width: "100%" }}
+                placeholder="Select date"
+              />
+            </Form.Item>
+          </Col>
           <Col xs={24} sm={12}>
             <Form.Item
               label="Years in Trading Business"

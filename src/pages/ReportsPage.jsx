@@ -46,6 +46,7 @@ import {
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { fetchItems } from "../store/slices/settingsSlice";
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -68,6 +69,7 @@ const ReportsPage = () => {
 
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
   const experienceOptions = useSelector(selectExperienceOptions) || [];
+  const selectAllCertificateTypes = useSelector((state) => state.settings.certificateTypes);
 
   const [filters, setFilters] = useState({
     role: "all",
@@ -79,6 +81,7 @@ const ReportsPage = () => {
     product: "all",
     searchText: "",
     dateRange: null,
+    certificates: null,
   });
 
   const [activeTab, setActiveTab] = useState("overview");
@@ -89,10 +92,11 @@ const ReportsPage = () => {
       dispatch(fetchStartingEntrepreneurs()),
       dispatch(fetchExistingExporters()),
       dispatch(fetchStartingExporters()),
-      dispatch(fetchStartingTraders()),
+      // dispatch(fetchStartingTraders()),
       dispatch(fetchExistingTraders()),
       dispatch(fetchNumEmployeeOptions()),
       dispatch(fetchExperienceOptions()),
+      dispatch(fetchItems("certificates"))
     ]);
   };
 
@@ -148,12 +152,24 @@ const ReportsPage = () => {
           .filter(Boolean)
       ),
     ];
+    const certificates = [
+      ...new Set(
+        allData
+          .flatMap((item) => {
+            const certificateData = item.exporter || item.entrepreneur;
+            // console.log(certificateData?.certificateId)
+            return certificateData?.certificateId || [];
+          })
+          .filter(Boolean)
+      ),
+    ];
     return {
       provinces,
       districts,
       roles,
       businessStatuses,
       products,
+      certificates,
     };
   }, [allData]);
 
@@ -174,29 +190,29 @@ const ReportsPage = () => {
         item.exporter || item.entrepreneur || item.intermediaryTrader;
       const matchesEmployees =
         filters.numberOfEmployees === "all" ||
-        (businessData?.numberOfEmployee?.id?.toString() ===
-          filters.numberOfEmployees);
+        businessData?.numberOfEmployee?.id?.toString() ===
+          filters.numberOfEmployees;
 
       const matchesExperience =
         filters.businessExperience === "all" ||
-        (businessData?.businessExperience?.id?.toString() ===
-          filters.businessExperience);
+        businessData?.businessExperience?.id?.toString() ===
+          filters.businessExperience;
 
       // Product filter
       const matchesProduct =
         filters.product === "all" ||
-        (businessData?.businessProducts?.some(
+        businessData?.businessProducts?.some(
           (bp) => bp.product?.name === filters.product
-        ));
+        );
 
       const matchesSearch =
         filters.searchText === "" ||
         item.name?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
         item.email?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
         item.nic?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
-        (businessData?.businessName
+        businessData?.businessName
           ?.toLowerCase()
-          .includes(filters.searchText.toLowerCase()));
+          .includes(filters.searchText.toLowerCase());
 
       // Date range filter
       const matchesDateRange =
@@ -204,7 +220,11 @@ const ReportsPage = () => {
         (new Date(item.createdAt) >= filters.dateRange[0] &&
           new Date(item.createdAt) <= filters.dateRange[1]);
 
-          
+      const matchesCertificate =
+        filters.certificates === null ||
+        (Array.isArray(businessData?.certificateId)
+          ? businessData.certificateId.includes(filters.certificates)
+          : businessData?.certificateId === filters.certificates);
 
       return (
         matchesRole &&
@@ -215,7 +235,8 @@ const ReportsPage = () => {
         matchesExperience &&
         matchesProduct &&
         matchesSearch &&
-        matchesDateRange
+        matchesDateRange &&
+        matchesCertificate
       );
     });
   }, [allData, filters]);
@@ -598,7 +619,9 @@ const ReportsPage = () => {
         render: (_, record) => (
           <div>
             <div>{record.district?.name}</div>
-            <div className="text-sm text-gray-500">{record.certificate?.id}</div>
+            <div className="text-sm text-gray-500">
+              {record.certificate?.id}
+            </div>
           </div>
         ),
         width: 150,
@@ -960,6 +983,25 @@ const ReportsPage = () => {
                   {exp.name}
                 </Option>
               ))}
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Select
+              placeholder="Certificate"
+              value={filters.certificates}
+              onChange={(value) => handleFilterChange("certificates", value)}
+              className="w-full"
+              allowClear
+            >
+              <Option value={null}>All Certificates</Option>
+              {filterOptions.certificates.map((certId) => {
+  const certType = selectAllCertificateTypes?.find((item) => item.id === certId);
+  return (
+    <Option key={certId} value={certId}>
+      {certType?.name || `Certificate ${certId}`}
+    </Option>
+  );
+})}
             </Select>
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>

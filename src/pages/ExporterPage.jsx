@@ -12,22 +12,22 @@ const ExporterPage = () => {
   const { registrationType, role, formData } = useFormContext();
   const [current, setCurrent] = useState(0);
 
-  // useEffect(() => {
-  //   // Check if user has completed the registration type and role selection
-  //   if (!registrationType || !role || role !== "exporter") {
-  //     navigate("/select");
-  //     message.warning("Please complete the registration selection first");
-  //     return;
-  //   }
+  useEffect(() => {
+    // Check if user has completed the registration type and role selection
+    if (!registrationType || !role || role !== "exporter") {
+      navigate("/select");
+      message.warning("Please complete the registration selection first");
+      return;
+    }
 
-  //   // Check if basic info is available (should have been filled in SelectPage)
-  //   const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
-  //   if (!hasBasicInfo) {
-  //     navigate("/select");
-  //     message.warning("Please complete your basic information first");
-  //     return;
-  //   }
-  // }, [registrationType, role, formData, navigate]);
+    // Check if basic info is available (should have been filled in SelectPage)
+    const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
+    if (!hasBasicInfo) {
+      navigate("/select");
+      message.warning("Please complete your basic information first");
+      return;
+    }
+  }, [registrationType, role, formData, navigate]);
 
   // Determine if this is for existing business or startup
   const isExistingBusiness = registrationType === "have-business";
@@ -129,19 +129,19 @@ const ExporterPage = () => {
   const next = () => {
     //Add validation based on the current step
     if (current === 0) {
-      // Validate required export form fields
-      if (!formData.businessName) {
-        message.warning("Please enter business name");
-        return;
-      }
-      if (!formData.businessExperienceId) {
-        message.warning("Please select years of experience");
-        return;
-      }
-      if (!formData.numberOfEmployeeId) {
-        message.warning("Please select number of employees");
-        return;
-      }
+      // // Validate required export form fields
+      // if (!formData.businessName) {
+      //   message.warning("Please enter business name");
+      //   return;
+      // }
+      // if (!formData.businessExperienceId) {
+      //   message.warning("Please select years of experience");
+      //   return;
+      // }
+      // if (!formData.numberOfEmployeeId) {
+      //   message.warning("Please select number of employees");
+      //   return;
+      // }
     }
     setCurrent(current + 1);
   };
@@ -180,15 +180,15 @@ const ExporterPage = () => {
   };
 
   // Show loading or redirect message while checking prerequisites
-  // if (!registrationType || !role || role !== "exporter") {
-  //   return (
-  //     <div className="flex justify-center items-center h-64">
-  //       <div className="text-center">
-  //         <div className="text-lg text-gray-600">Redirecting...</div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (!registrationType || !role || role !== "exporter") {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="text-lg text-gray-600">Redirecting...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
