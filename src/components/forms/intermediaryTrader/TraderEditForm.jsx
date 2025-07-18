@@ -10,6 +10,7 @@ import {
   Col,
   Card,
   Space,
+  Checkbox,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
@@ -25,6 +26,7 @@ import {
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import axiosInstance from "../../../api/axiosInstance";
+import TextArea from "antd/es/input/TextArea";
 
 const TraderEditForm = ({ roleData, isExisting }) => {
   const dispatch = useDispatch();
