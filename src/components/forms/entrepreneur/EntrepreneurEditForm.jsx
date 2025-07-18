@@ -30,6 +30,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../../api/axiosInstance";
 import dayjs from "dayjs";
 import { use } from "react";
+import TextArea from "antd/es/input/TextArea";
 
 const { Option } = Select;
 
@@ -371,7 +372,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           <Col xs={24} sm={12}>
             <Form.Item
               label="Business Registration Number"
-              name="businessRegistrationNumber"
+              name="businessRegNo"
               rules={[
                 {
                   required: true,
@@ -442,7 +443,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
                 {
                   validator: () => {
                     const hasValidProduct = exportProducts.some(
-                      (product) => product.productId && product.value
+                      (product) => product.productId
                     );
                     return hasValidProduct
                       ? Promise.resolve()
@@ -483,11 +484,11 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
                         />
                         <div className="mt-2 flex gap-4">
                           <Checkbox
-                            checked={product.raw}
+                            checked={product.isRaw}
                             onChange={(e) =>
                               updateExportProduct(
                                 index,
-                                "raw",
+                                "isRaw",
                                 e.target.checked
                               )
                             }
@@ -495,11 +496,11 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
                             Raw
                           </Checkbox>
                           <Checkbox
-                            checked={product.valueAdded}
+                            checked={product.isProcessed}
                             onChange={(e) =>
                               updateExportProduct(
                                 index,
-                                "valueAdded",
+                                "isProcessed",
                                 e.target.checked
                               )
                             }
@@ -508,7 +509,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
                           </Checkbox>
                         </div>
                       </Col>
-                      <Col xs={24} sm={8}>
+                      <Col xs={24} sm={12}>
                         <TextArea
                           placeholder="Enter details (optional)"
                           value={product.details}
@@ -524,8 +525,8 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
                           maxLength={500}
                         />
                       </Col>
-                      <Col xs={24} sm={6}>
-                        <div className="flex flex-col gap-2">
+                      <Col xs={24} sm={2}>
+                        <div className="flex flex-col gap-2 justify-center items-center">
                           {exportProducts.length > 1 && (
                             <Button
                               type="text"

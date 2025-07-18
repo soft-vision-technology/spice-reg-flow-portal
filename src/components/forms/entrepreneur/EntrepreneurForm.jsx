@@ -14,6 +14,7 @@ import {
   Checkbox,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 import { useFormContext } from "../../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -27,7 +28,6 @@ import {
   selectProductOptions,
 } from "../../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
-import axiosInstance from "../../../api/axiosInstance";
 import TextArea from "antd/es/input/TextArea";
 
 const { Option } = Select;
@@ -39,7 +39,7 @@ const EntrepreneurForm = (props) => {
   const { updateFormData } = useFormContext();
   const [form] = Form.useForm();
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, value: null, isRaw: false, isProcessed: false },
+    { productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   const load = async () => {
@@ -48,56 +48,27 @@ const EntrepreneurForm = (props) => {
     await dispatch(fetchExperienceOptions());
     await dispatch(fetchProductOptions());
   };
-
+  
   useEffect(() => {
     load();
   }, [dispatch]);
-
-  const handleChange = (changedValues, allValues) => {
-    // Format the data according to API requirements
-    const formattedData = {
-      businessName: allValues.businessName || null,
-      businessRegistrationNumber: allValues.businessRegistrationNumber || null, // Keep original form field name
-      businessAddress: allValues.businessAddress || null,
-      numberOfEmployees: allValues.numberOfEmployees || null,
-      certifications: Array.isArray(allValues.certifications)
-        ? allValues.certifications.map((id) => parseInt(id))
-        : [],
-      yearsExporting: allValues.yearsExporting || null,
-      businessExperience: allValues.businessExperience || null,
-      registrationDate: allValues.registrationDate
-        ? dayjs(allValues.registrationDate).toISOString()
-        : null,
-      userId: location?.state?.result
-        ? parseInt(location?.state?.result)
-        : null,
-      products: exportProducts
-        .filter((product) => product.productId && product.value)
-        .map((product) => ({
-          productId: parseInt(product.productId),
-          value: parseFloat(product.value),
-        })),
-    };
-
-    updateFormData(formattedData);
-  };
-
+  
   const experienceOptions = useSelector(selectExperienceOptions) || [];
   const certificateOptions = useSelector(selectCertificateOptions) || [];
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
   const productOptions = useSelector(selectProductOptions) || [];
-
+  
   const formatSelects = (data) => {
     return (data || [])
-      .filter((item) => item?.id && item?.name)
-      .map((item) => ({
-        label: item.name.toString(),
-        value: item.id.toString(),
-      }));
+    .filter((item) => item?.id && item?.name)
+    .map((item) => ({
+      label: item.name.toString(),
+      value: item.id.toString(),
+    }));
   };
-
+  
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, value: null }]);
+    setExportProducts([...exportProducts, { productId: null, details: "", isRaw: false, isProcessed: false }]);
   };
 
   const removeExportProduct = (index) => {
@@ -113,50 +84,37 @@ const EntrepreneurForm = (props) => {
     updateFormData({ products: newProducts });
   };
 
-  // Format form data to match API structure
+  const handleChange = (changedValues, allValues) => {
+    const formattedData = formatFormData(allValues);
+    updateFormData(formattedData);
+  };
+
   const formatFormData = (values) => {
     const formattedData = {
       businessName: values.businessName || null,
-      businessRegNo: values.businessRegistrationNumber || null, // Map to correct field
+      businessRegistrationNumber: values.businessRegNo || null,
       businessAddress: values.businessAddress || null,
-      numberOfEmployeeId: values.numberOfEmployees
-        ? parseInt(values.numberOfEmployees)
-        : null,
-      certificateIds: Array.isArray(values.certifications)
-        ? values.certifications.map((id) => parseInt(id))
-        : [],
-      businessExperienceId: values.yearsExporting
-        ? parseInt(values.yearsExporting)
-        : null,
+      numberOfEmployees: values.numberOfEmployeeId || null,
+      certifications: Array.isArray(values.certificateId) 
+        ? values.certificateId 
+        : values.certificateId ? [values.certificateId] : [],
+      yearsExporting: values.businessExperienceId || null,
+      businessExperience: values.businessExperience || null,
+      registrationDate: values.registrationDate || null,
       userId: location?.state?.result
         ? parseInt(location?.state?.result)
         : null,
       products: exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter((product) => product.productId && (product.details || product.details === ""))
         .map((product) => ({
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
           isRaw: product.isRaw,
           isProcessed: product.isProcessed,
+          value: product.details || "",
         })),
     };
 
     return formattedData;
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      const formattedData = formatFormData(values);
-      console.log(formatFormData);
-      // const response = await axiosInstance.post(
-      //   "/api/entrepreneur",
-      //   formattedData
-      // );
-
-    } catch (error) {
-      throw new Error("Failed to submit form: " + error.message);
-    }
   };
 
   return (
@@ -183,7 +141,7 @@ const EntrepreneurForm = (props) => {
           <Col xs={24} sm={12}>
             <Form.Item
               label="Business Registration Number"
-              name="businessRegistrationNumber"
+              name="businessRegNo"
               rules={[
                 {
                   required: false,
@@ -254,7 +212,7 @@ const EntrepreneurForm = (props) => {
                 {
                   validator: () => {
                     const hasValidProduct = exportProducts.some(
-                      (product) => product.productId && product.value
+                      (product) => product.productId
                     );
                     return hasValidProduct
                       ? Promise.resolve()
@@ -320,7 +278,7 @@ const EntrepreneurForm = (props) => {
                           </Checkbox>
                         </div>
                       </Col>
-                      <Col xs={24} sm={8}>
+                      <Col xs={24} sm={12}>
                         <TextArea
                           placeholder="Enter details (optional)"
                           value={product.details}
@@ -336,8 +294,8 @@ const EntrepreneurForm = (props) => {
                           maxLength={500}
                         />
                       </Col>
-                      <Col xs={24} sm={6}>
-                        <div className="flex flex-col gap-2">
+                      <Col xs={24} sm={2}>
+                        <div className="flex flex-col gap-2 justify-center items-center">
                           {exportProducts.length > 1 && (
                             <Button
                               type="text"
@@ -369,7 +327,7 @@ const EntrepreneurForm = (props) => {
           <Col xs={24} sm={12}>
             <Form.Item
               label={isExisting ? "Number of Employees" : "Expected Employees"}
-              name="numberOfEmployees"
+              name="numberOfEmployeeId"
               rules={[
                 { required: false, message: "Please select employee count" },
               ]}
@@ -383,9 +341,9 @@ const EntrepreneurForm = (props) => {
           <Col xs={24} sm={12}>
             <Form.Item
               label="Years in Export Business"
-              name="yearsExporting"
+              name="businessExperienceId"
               rules={[
-                { required: false, message: "Please enter years in exports" },
+                { required: false, message: "Please select years in exports" },
               ]}
             >
               <Select
@@ -400,7 +358,7 @@ const EntrepreneurForm = (props) => {
           <Col xs={24}>
             <Form.Item
               label="Certifications"
-              name="certifications"
+              name="certificateId"
               rules={[
                 {
                   required: false,
@@ -413,10 +371,6 @@ const EntrepreneurForm = (props) => {
             </Form.Item>
           </Col>
         </Row>
-
-        <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
-          Submit
-        </Button>
       </Form>
     </div>
   );

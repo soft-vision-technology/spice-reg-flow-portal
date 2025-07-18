@@ -52,19 +52,19 @@ const ExistingBusinessPage = () => {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Name:</span>{" "}
-                  {formData.fullName || "N/A"}
+                  {formData.fullName || "-"}
                 </div>
                 <div>
                   <span className="font-medium">Email:</span>{" "}
-                  {formData.email || "N/A"}
+                  {formData.email || "-"}
                 </div>
                 <div>
                   <span className="font-medium">Mobile:</span>{" "}
-                  {formData.mobileNumber || "N/A"}
+                  {formData.mobileNumber || "-"}
                 </div>
                 <div>
                   <span className="font-medium">NIC:</span>{" "}
-                  {formData.nic || "N/A"}
+                  {formData.nic || "-"}
                 </div>
               </div>
             </div>
@@ -134,7 +134,9 @@ const ExistingBusinessPage = () => {
                 {formData.certifications && (
                   <div>
                     <span className="font-medium">Certifications:</span>{" "}
-                    {formData.certifications}
+                    {Array.isArray(formData.certifications) 
+                      ? formData.certifications.join(", ")
+                      : formData.certifications}
                   </div>
                 )}
                 {formData.additionalInfo && (
@@ -151,11 +153,13 @@ const ExistingBusinessPage = () => {
                   <h5 className="font-medium text-gray-600 mb-2">
                     Export Products:
                   </h5>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     {formData.products.map((product, index) => (
-                      <div key={index} className="text-sm">
-                        Product ID: {product.productId}, Value: $
-                        {product.value?.toLocaleString()}
+                      <div key={index} className="text-sm bg-gray-50 p-2 rounded">
+                        <div><strong>Product Name:</strong> {product.productId}</div>
+                        <div><strong>Particulars:</strong> ${product.value?.toLocaleString()}</div>
+                        <div><strong>Type:</strong> {product.isRaw ? "Raw" : ""} {product.isProcessed ? "Value Added" : ""}</div>
+                        {product.details && <div><strong>Details:</strong> {product.details}</div>}
                       </div>
                     ))}
                   </div>
@@ -176,43 +180,6 @@ const ExistingBusinessPage = () => {
   ];
 
   const next = () => {
-    // Add validation based on the current step
-    if (current === 0) {
-      // Validate required business form fields
-      if (!formData.businessName) {
-        message.warning("Please enter business name");
-        return;
-      }
-      if (!formData.businessRegistrationNumber) {
-        message.warning("Please enter business registration number");
-        return;
-      }
-      // if (!formData.businessAddress) {
-      //   message.warning("Please enter business address");
-      //   return;
-      // }
-      if (!formData.numberOfEmployees) {
-        message.warning("Please select number of employees");
-        return;
-      }
-      if (!formData.yearsExporting) {
-        message.warning("Please select years in export business");
-        return;
-      }
-      if (!formData.certifications) {
-        message.warning("Please select certifications");
-        return;
-      }
-      // Validate products
-      if (
-        !formData.products ||
-        formData.products.length === 0 ||
-        !formData.products.some((product) => product.productId && product.value)
-      ) {
-        message.warning("Please add at least one export product with value");
-        return;
-      }
-    }
     setCurrent(current + 1);
   };
 
@@ -221,52 +188,54 @@ const ExistingBusinessPage = () => {
   };
 
   const handleSubmit = async () => {
-  try {
-    const userId = location?.state?.result || formData.userId;
+    try {
+      const userId = location?.state?.result || formData.userId;
 
-    if (!userId) {
-      message.error(
-        "User ID is missing. Please start the registration process again."
-      );
-      return;
+      // if (!userId) {
+      //   message.error(
+      //     "User ID is missing. Please start the registration process again."
+      //   );
+      //   return;
+      // }
+
+      // Format data according to Entrepreneur Prisma model
+      const submissionData = {
+        businessName: formData.businessName || null,
+        businessRegNo: formData.businessRegistrationNumber || null,
+        businessAddress: formData.businessAddress || null,
+        numberOfEmployeeId: formData.numberOfEmployees 
+          ? parseInt(formData.numberOfEmployees) 
+          : null,
+        certificateId: Array.isArray(formData.certifications)
+          ? formData.certifications.map(cert => parseInt(cert))
+          : formData.certifications ? [parseInt(formData.certifications)] : [],
+        businessExperienceId: formData.yearsExporting 
+          ? parseInt(formData.yearsExporting) 
+          : null,
+        userId: parseInt(userId),
+        
+        // Products array for BusinessProducts relationship
+        products: (formData.products || [])
+          .filter((product) => product.productId && product.value)
+          .map((product) => ({
+            productId: parseInt(product.productId),
+            isRaw: product.isRaw || false,
+            isProcessed: product.isProcessed || false,
+            value: product.value || "",
+          })),
+      };
+
+      console.log("Submitting data:", submissionData);
+
+      const response = await axiosInstance.post("/api/entrepreneur/", submissionData);
+      message.success("Entrepreneur registration submitted successfully!");
+      navigate("/reports");
+    } catch (error) {
+      console.error("Submission error:", error);
+      console.error("Error details:", error.response?.data);
+      message.error(`Failed to submit registration: ${error.response?.data?.message || error.message}`);
     }
-
-    // Format data according to Entrepreneur Prisma model
-    const submissionData = {
-      businessName: formData.businessName || null,
-      businessRegNo: formData.businessRegistrationNumber || null, // Fixed field name
-      businessAddress: formData.businessAddress || null,
-      numberOfEmployeeId: formData.numberOfEmployees 
-        ? parseInt(formData.numberOfEmployees) 
-        : null,
-      certificateId: formData.certifications 
-        ? parseInt(formData.certifications) 
-        : null,
-      businessExperienceId: formData.yearsExporting 
-        ? parseInt(formData.yearsExporting) 
-        : null,
-      userId: parseInt(userId), // Ensure it's an integer
-      
-      // Products array for BusinessProducts relationship
-      products: (formData.products || [])
-        .filter((product) => product.productId && product.value)
-        .map((product) => ({
-          productId: parseInt(product.productId),
-          value: parseFloat(product.value),
-          isRaw: product.isRaw,
-          isProcessed: product.isProcessed,
-        })),
-    };
-
-    const response = await axiosInstance.post("/api/entrepreneur/", submissionData);
-    message.success("Entrepreneur registration submitted successfully!");
-    navigate("/reports");
-  } catch (error) {
-    console.error("Submission error:", error);
-    console.error("Error details:", error.response?.data);
-    message.error(`Failed to submit registration: ${error.response?.data?.message || error.message}`);
-  }
-};
+  };
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
