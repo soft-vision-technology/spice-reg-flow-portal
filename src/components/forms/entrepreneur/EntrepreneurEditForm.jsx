@@ -1,18 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Form,
-  Input,
-  Select,
-  InputNumber,
-  DatePicker,
-  Button,
-  Row,
-  Col,
-  Radio,
-  Card,
-  Space,
-  Checkbox,
-} from "antd";
+import { Form, Input, Select, DatePicker, Button, Row, Col, Card, Checkbox } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
@@ -29,7 +16,6 @@ import {
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../../api/axiosInstance";
 import dayjs from "dayjs";
-import { use } from "react";
 import TextArea from "antd/es/input/TextArea";
 
 const { Option } = Select;
@@ -41,8 +27,6 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
   const { updateFormData } = useFormContext();
   const [form] = Form.useForm();
   const { id } = useParams();
-
-  
 
   console.log("data:: ", roleData);
   const [exportProducts, setExportProducts] = useState([
@@ -170,7 +154,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, value: null }]);
+    setExportProducts([...exportProducts, { productId: null, details: "", isRaw: false, isProcessed: false }]);
   };
 
   const removeExportProduct = (index) => {
@@ -285,18 +269,10 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
 
       // Map field names to API format
       const mappedChanges = mapFieldNames(changedFields);
+      console.log("firstdddd", roleData);
 
-      // Prepare approval request
-      const approvalRequest = {
-        type: "editData",
-        requestName: `Entrepreneur: ${roleData?.user?.name}`,
-        requestData: mappedChanges,
-        requestedUrl: `entrepreneur/${roleData.id || location?.state?.result}`,
-      };
-
-      console.log("Submitting changes:", approvalRequest);
-
-      if (!roleData?.id) {
+  
+      if (!roleData) {
         // Use all form values, not just changed fields
         const allValues = await form.validateFields();
         const mappedAll = mapFieldNames(allValues);
@@ -316,10 +292,12 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
             : null,
           userId: id ? Number(id) : null,
           products: exportProducts
-            .filter((product) => product.productId && product.value)
+            .filter((product) => product.productId)
             .map((product) => ({
               productId: parseInt(product.productId),
-              value: parseFloat(product.value),
+              isRaw: product.isRaw,
+              isProcessed: product.isProcessed,
+              value: product.details || "",
             })),
         };
 
@@ -332,6 +310,17 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
         alert("Success!");
         return response;
       }
+
+          // Prepare approval request
+      const approvalRequest = {
+        type: "editData",
+        requestName: `Entrepreneur: ${roleData?.user?.name}`,
+        requestData: mappedChanges,
+        requestedUrl: `entrepreneur/${roleData.id}`,
+      };
+
+      console.log("Submitting changes:", approvalRequest);
+
 
       const response = await axiosInstance.post(
         "/api/approval/create",

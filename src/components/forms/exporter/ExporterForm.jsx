@@ -91,31 +91,36 @@ const ExporterForm = ({ isExisting }) => {
   };
 
   const handleChange = (changedValues, allValues) => {
-    // Format the data according to API requirements
+    const formattedData = formatFormData(allValues);
+    updateFormData(formattedData);
+  };
+
+  const formatFormData = (values) => {
     const formattedData = {
-      businessName: allValues.businessName || null,
-      businessRegNo: allValues.businessRegNumber || null,
-      numberOfEmployeeId: allValues.numberOfEmployees
-        ? parseInt(allValues.numberOfEmployees)
+      businessName: values.businessName || null,
+      businessRegNo: values.businessRegNo || null,
+      numberOfEmployeeId: values.numberOfEmployees
+        ? parseInt(values.numberOfEmployees)
         : null,
-      businessExperienceId: allValues.yearsExporting
-        ? parseInt(allValues.yearsExporting)
+      businessExperienceId: values.businessExperienceId
+        ? parseInt(values.businessExperienceId)
         : null,
-      productRange: allValues.productRange || null,
-      businessDescription: allValues.businessDescription || null,
-      exportingCountries: allValues.exportCountries || null,
-      exportStartMonth: allValues.exportStartDate
-        ? dayjs(allValues.exportStartDate).format("MMMM")
+      productRange: values.productRange || null,
+      businessDescription: values.businessDescription || null,
+      exportingCountries: values.exportingCountries || null,
+      exportStartMonth: values.exportStartDate
+        ? dayjs(values.exportStartDate).format("MMMM")
         : null,
-      exportStartYear: allValues.exportStartDate
-        ? dayjs(allValues.exportStartDate).format("YYYY")
+      exportStartYear: values.exportStartDate
+        ? dayjs(values.exportStartDate).format("YYYY")
         : null,
-      certificateId: allValues.exportCertifications
-        ? parseInt(allValues.exportCertifications)
+      certificateId: values.certificateId
+        ? parseInt(values.certificateId)
         : null,
-      startDate: allValues.exportStartDate
-        ? dayjs(allValues.exportStartDate).toISOString()
+      startDate: values.exportStartDate
+        ? dayjs(values.exportStartDate).toISOString()
         : null,
+      userId: location?.state?.result,
       products: exportProducts
         .filter(
           (product) =>
@@ -127,10 +132,8 @@ const ExporterForm = ({ isExisting }) => {
           isProcessed: product.isProcessed,
           value: product.details || "",
         })),
-      userId: location?.state?.result,
     };
-
-    updateFormData(formattedData);
+    return formattedData;
   };
 
   return (
@@ -139,12 +142,7 @@ const ExporterForm = ({ isExisting }) => {
         Export Operation Information
       </h3>
 
-      <Form
-        form={form}
-        layout="vertical"
-        onValuesChange={handleChange}
-        initialValues={formData}
-      >
+      <Form form={form} layout="vertical" onValuesChange={handleChange} initialValues={formData}>
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
@@ -161,7 +159,7 @@ const ExporterForm = ({ isExisting }) => {
             <Col xs={24} sm={12}>
               <Form.Item
                 label="Business Registration Number"
-                name="businessRegNumber"
+                name="businessRegNo"
                 rules={[
                   {
                     required: false,
@@ -176,7 +174,7 @@ const ExporterForm = ({ isExisting }) => {
           <Col xs={24} sm={12}>
             <Form.Item
               label="Years in Export Business"
-              name="yearsExporting"
+              name="businessExperienceId"
               rules={[
                 { required: false, message: "Please enter years in exports" },
               ]}
@@ -219,7 +217,7 @@ const ExporterForm = ({ isExisting }) => {
           <Col xs={24} sm={12}>
             <Form.Item
               label="Name of Country / Countries of Export"
-              name="exportCountries"
+              name="exportingCountries"
               rules={[
                 { required: false, message: "Please select at least one" },
               ]}
