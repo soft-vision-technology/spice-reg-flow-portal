@@ -18,7 +18,10 @@ import axiosInstance from "../../../api/axiosInstance";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 
+const { Option } = Select;
+
 const EntrepreneurEditForm = ({ roleData, isExisting }) => {
+  // ====== HOOKS ======
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -26,123 +29,21 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
   const [form] = Form.useForm();
   const { id } = useParams();
 
-  console.log("data:: ", roleData);
+  // ====== STATE ======
   const [exportProducts, setExportProducts] = useState([
     { productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
-
-  // Store original data for comparison
   const [originalData, setOriginalData] = useState({});
   const [originalProducts, setOriginalProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const load = async () => {
-    await dispatch(fetchCertificateOptions());
-    await dispatch(fetchNumEmployeeOptions());
-    await dispatch(fetchExperienceOptions());
-    await dispatch(fetchProductOptions());
-  };
-
-  useEffect(() => {
-    load();
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (!roleData) return;
-
-    // Prepare initial form data
-    const initialFormData = {
-      businessName: roleData.businessName,
-      businessRegNo: roleData.businessRegNo,
-      businessAddress: roleData.businessAddress,
-      numberOfEmployees: roleData.numberOfEmployee?.id?.toString(),
-      certifications: roleData.certificate?.map((c) => c.id.toString()) || [],
-      yearsExporting: roleData.businessExperience?.id?.toString(),
-      registrationDate: roleData.registrationDate
-        ? dayjs(roleData.registrationDate)
-        : undefined,
-      businessExperience: roleData.businessExperience?.id?.toString(),
-    };
-
-    // Set form fields
-    form.setFieldsValue(initialFormData);
-
-    // Store original data for comparison
-    setOriginalData({
-      businessName: roleData.businessName,
-      businessRegNo: roleData.businessRegNo,
-      businessAddress: roleData.businessAddress,
-      numberOfEmployees:
-        roleData.numberOfEmployee?.id?.toString() ||
-        roleData.numberOfEmployeeId?.toString(),
-      certifications: Array.isArray(roleData.certificate)
-        ? roleData.certificate.map((c) => c.id?.toString())
-        : roleData.certificateId
-        ? [roleData.certificateId.toString()]
-        : [],
-      yearsExporting:
-        roleData.businessExperience?.id?.toString() ||
-        roleData.businessExperienceId?.toString(),
-      registrationDate: roleData.registrationDate
-        ? dayjs(roleData.registrationDate).format("YYYY-MM-DD")
-        : undefined,
-      businessExperience:
-        roleData.businessExperience?.id?.toString() ||
-        roleData.businessExperienceId?.toString(),
-    });
-
-    // Set export products
-    const initialProducts = Array.isArray(roleData.businessProducts)
-      ? roleData.businessProducts.map((bp) => ({
-          productId:
-            bp.productId?.toString() || bp.product?.id?.toString() || null,
-          isRaw: bp.isRaw || false,
-          isProcessed: bp.isProcessed || false,
-          details: bp.value || "",
-        }))
-      : [];
-
-    setExportProducts(
-      initialProducts.length > 0
-        ? initialProducts
-        : [{ productId: null, details: "", isRaw: false, isProcessed: false }]
-    );
-    setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
-  }, [roleData, form]);
-
-  const handleChange = (changedValues, allValues) => {
-    // Format the data according to API requirements
-    const formattedData = {
-      businessName: allValues.businessName || null,
-      businessRegNo: allValues.businessRegNo || null,
-      businessAddress: allValues.businessAddress || null,
-      numberOfEmployees: allValues.numberOfEmployees || null,
-      certifications: allValues.certifications || [],
-      yearsExporting: allValues.yearsExporting || null,
-      businessExperience: allValues.businessExperience || null,
-      registrationDate: allValues.registrationDate
-        ? dayjs(allValues.registrationDate).toISOString()
-        : null,
-      userId: location?.state?.result
-        ? parseInt(location?.state?.result)
-        : null,
-      products: exportProducts
-        .filter((product) => product.productId)
-        .map((product) => ({
-          productId: parseInt(product.productId),
-          isRaw: product.isRaw,
-          isProcessed: product.isProcessed,
-          value: product.details || "",
-        })),
-    };
-
-    updateFormData(formattedData);
-  };
-
+  // ====== SELECTORS ======
   const experienceOptions = useSelector(selectExperienceOptions) || [];
   const certificateOptions = useSelector(selectCertificateOptions) || [];
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
   const productOptions = useSelector(selectProductOptions) || [];
 
+  // ====== HELPER FUNCTIONS ======
   const formatSelects = (data) => {
     return (data || [])
       .filter((item) => item?.id && item?.name)
@@ -152,26 +53,8 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       }));
   };
 
-  const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, details: "", isRaw: false, isProcessed: false }]);
-  };
-
-  const removeExportProduct = (index) => {
-    const newProducts = exportProducts.filter((_, i) => i !== index);
-    setExportProducts(newProducts);
-    updateFormData({ products: newProducts });
-  };
-
-  const updateExportProduct = (index, field, value) => {
-    const newProducts = [...exportProducts];
-    newProducts[index][field] = value;
-    setExportProducts(newProducts);
-    updateFormData({ products: newProducts });
-  };
-
-  // Helper function to deep compare arrays
   const arraysEqual = (arr1, arr2) => {
-    if (arr1.length !== arr2.length) return false;
+    if (!arr1 || !arr2 || arr1.length !== arr2.length) return false;
     return arr1.every((item, index) => {
       if (typeof item === "object" && item !== null) {
         return JSON.stringify(item) === JSON.stringify(arr2[index]);
@@ -180,46 +63,6 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
     });
   };
 
-  // Helper function to get only changed fields
-  const getChangedFields = (currentValues) => {
-    const changedData = {};
-
-    // Compare form fields
-    Object.keys(currentValues).forEach((key) => {
-      let currentValue = currentValues[key];
-      let originalValue = originalData[key];
-
-      // Handle date comparison
-      if (key === "registrationDate") {
-        currentValue = currentValue
-          ? dayjs(currentValue).format("YYYY-MM-DD")
-          : undefined;
-      }
-
-      // Handle array comparison (for certifications)
-      if (Array.isArray(currentValue) && Array.isArray(originalValue)) {
-        if (!arraysEqual(currentValue, originalValue)) {
-          changedData[key] = currentValue;
-        }
-      } else if (currentValue !== originalValue) {
-        changedData[key] = currentValue;
-      }
-    });
-
-    // Compare products
-    if (!arraysEqual(exportProducts, originalProducts)) {
-      changedData.products = exportProducts
-        .filter((product) => product.productId && product.value)
-        .map((product) => ({
-          productId: parseInt(product.productId),
-          value: parseFloat(product.value),
-        }));
-    }
-
-    return changedData;
-  };
-
-  // Map form field names to API field names
   const mapFieldNames = (data) => {
     const fieldMapping = {
       businessRegNo: "businessRegNo",
@@ -255,26 +98,194 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
     return mappedData;
   };
 
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      const changedFields = getChangedFields(values);
+  const getChangedFields = (currentValues) => {
+    const changedData = {};
 
-      // If no changes, don't submit
-      if (Object.keys(changedFields).length === 0) {
-        console.log("No changes detected");
-        return;
+    // Compare form fields
+    Object.keys(currentValues).forEach((key) => {
+      let currentValue = currentValues[key];
+      let originalValue = originalData[key];
+
+      // Handle date comparison
+      if (key === "registrationDate") {
+        currentValue = currentValue
+          ? dayjs(currentValue).format("YYYY-MM-DD")
+          : undefined;
       }
 
-      // Map field names to API format
-      const mappedChanges = mapFieldNames(changedFields);
-      console.log("firstdddd", roleData);
+      // Handle array comparison (for certifications)
+      if (Array.isArray(currentValue) && Array.isArray(originalValue)) {
+        if (!arraysEqual(currentValue, originalValue)) {
+          changedData[key] = currentValue;
+        }
+      } else if (currentValue !== originalValue) {
+        changedData[key] = currentValue;
+      }
+    });
 
-  
+    // Compare products - Fixed the comparison logic
+    if (!arraysEqual(exportProducts, originalProducts)) {
+      changedData.products = exportProducts
+        .filter((product) => product.productId)
+        .map((product) => ({
+          productId: parseInt(product.productId),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "", // Fixed: was using parseFloat(product.value) but should be details
+        }));
+    }
+
+    return changedData;
+  };
+
+  // ====== DATA LOADING ======
+  const loadOptions = async () => {
+    try {
+      await Promise.all([
+        dispatch(fetchCertificateOptions()),
+        dispatch(fetchNumEmployeeOptions()),
+        dispatch(fetchExperienceOptions()),
+        dispatch(fetchProductOptions()),
+      ]);
+    } catch (error) {
+      console.error("Failed to load options:", error);
+    }
+  };
+
+  const initializeFormData = () => {
+    if (!roleData) return;
+
+    // Get certifications - handle both array format and object format
+    let certifications = [];
+    if (roleData.entrepreneur?.certificateId && Array.isArray(roleData.entrepreneur.certificateId)) {
+      // From entrepreneur nested object (your current data structure)
+      certifications = roleData.entrepreneur.certificateId.map(id => id.toString());
+    } else if (roleData.certificateId && Array.isArray(roleData.certificateId)) {
+      // Direct certificateId array
+      certifications = roleData.certificateId.map(id => id.toString());
+    } else if (roleData.certificate && Array.isArray(roleData.certificate)) {
+      // Certificate objects with id
+      certifications = roleData.certificate.map(c => c.id.toString());
+    }
+
+    // Prepare initial form data
+    const initialFormData = {
+      businessName: roleData.entrepreneur?.businessName || roleData.businessName || "",
+      businessRegNo: roleData.entrepreneur?.businessRegNo || roleData.businessRegNo || "",
+      businessAddress: roleData.entrepreneur?.businessAddress || roleData.businessAddress || "",
+      numberOfEmployees: roleData.entrepreneur?.numberOfEmployeeId?.toString() || 
+                        roleData.numberOfEmployee?.id?.toString() || 
+                        roleData.numberOfEmployeeId?.toString() || "",
+      certifications: certifications,
+      yearsExporting: roleData.entrepreneur?.businessExperienceId?.toString() ||
+                     roleData.businessExperience?.id?.toString() || 
+                     roleData.businessExperienceId?.toString() || "",
+      registrationDate: roleData.entrepreneur?.registrationDate || roleData.registrationDate
+        ? dayjs(roleData.entrepreneur?.registrationDate || roleData.registrationDate)
+        : undefined,
+      businessExperience: roleData.entrepreneur?.businessExperienceId?.toString() ||
+                         roleData.businessExperience?.id?.toString() || 
+                         roleData.businessExperienceId?.toString() || "",
+    };
+
+    // Set form fields
+    form.setFieldsValue(initialFormData);
+
+    // Set form fields
+    form.setFieldsValue(initialFormData);
+
+    // Store original data for comparison
+    setOriginalData({
+      ...initialFormData,
+      registrationDate: (roleData.entrepreneur?.registrationDate || roleData.registrationDate)
+        ? dayjs(roleData.entrepreneur?.registrationDate || roleData.registrationDate).format("YYYY-MM-DD")
+        : undefined,
+    });
+
+    // Set export products - check both entrepreneur.businessProducts and direct businessProducts
+    const businessProducts = roleData.entrepreneur?.businessProducts || roleData.businessProducts;
+    const initialProducts = Array.isArray(businessProducts)
+      ? businessProducts.map((bp) => ({
+          productId: bp.productId?.toString() || bp.product?.id?.toString() || null,
+          isRaw: bp.isRaw || false,
+          isProcessed: bp.isProcessed || false,
+          details: bp.value || "",
+        }))
+      : [];
+
+    const productsToSet = initialProducts.length > 0
+      ? initialProducts
+      : [{ productId: null, details: "", isRaw: false, isProcessed: false }];
+
+    setExportProducts(productsToSet);
+    setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
+  };
+
+  // ====== PRODUCT HANDLERS ======
+  const addExportProduct = () => {
+    setExportProducts([
+      ...exportProducts, 
+      { productId: null, details: "", isRaw: false, isProcessed: false }
+    ]);
+  };
+
+  const removeExportProduct = (index) => {
+    if (exportProducts.length <= 1) return; // Prevent removing the last product
+    
+    const newProducts = exportProducts.filter((_, i) => i !== index);
+    setExportProducts(newProducts);
+    // Trigger form update
+    handleFormChange();
+  };
+
+  const updateExportProduct = (index, field, value) => {
+    const newProducts = [...exportProducts];
+    newProducts[index][field] = value;
+    setExportProducts(newProducts);
+    // Trigger form update
+    handleFormChange();
+  };
+
+  // ====== FORM HANDLERS ======
+  const handleFormChange = () => {
+    const currentValues = form.getFieldsValue();
+    
+    // Format the data according to API requirements
+    const formattedData = {
+      businessName: currentValues.businessName || null,
+      businessRegNo: currentValues.businessRegNo || null,
+      businessAddress: currentValues.businessAddress || null,
+      numberOfEmployees: currentValues.numberOfEmployees || null,
+      certifications: currentValues.certifications || [],
+      yearsExporting: currentValues.yearsExporting || null,
+      businessExperience: currentValues.businessExperience || null,
+      registrationDate: currentValues.registrationDate
+        ? dayjs(currentValues.registrationDate).toISOString()
+        : null,
+      userId: location?.state?.result
+        ? parseInt(location?.state?.result)
+        : null,
+      products: exportProducts
+        .filter((product) => product.productId)
+        .map((product) => ({
+          productId: parseInt(product.productId),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
+        })),
+    };
+
+    updateFormData(formattedData);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      const values = await form.validateFields();
+
       if (!roleData) {
-        // Use all form values, not just changed fields
-        const allValues = await form.validateFields();
-        const mappedAll = mapFieldNames(allValues);
+        // Creating new entrepreneur
+        const mappedAll = mapFieldNames(values);
 
         const formattedData = {
           businessName: mappedAll.businessName || null,
@@ -288,6 +299,9 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
             : [],
           businessExperienceId: mappedAll.businessExperienceId
             ? parseInt(mappedAll.businessExperienceId)
+            : null,
+          registrationDate: values.registrationDate 
+            ? dayjs(values.registrationDate).toISOString() 
             : null,
           userId: id ? Number(id) : null,
           products: exportProducts
@@ -304,38 +318,63 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           "/api/entreprenuer/",
           formattedData
         );
-        console.log(response.data);
-        navigate("/user-management");
+        
+        console.log("Created successfully:", response.data);
         alert("Success!");
-        return response;
+        navigate("/user-management");
+        return;
       }
+
+      // Updating existing entrepreneur
+      const changedFields = getChangedFields(values);
+
+      // If no changes, don't submit
+      if (Object.keys(changedFields).length === 0) {
+        console.log("No changes detected");
+        alert("No changes to save");
+        return;
+      }
+
+      // Map field names to API format
+      const mappedChanges = mapFieldNames(changedFields);
 
       // Prepare approval request
       const approvalRequest = {
         type: "editData",
-        requestName: `Entrepreneur: ${roleData?.user?.name}`,
+        requestName: `Entrepreneur: ${roleData?.user?.name || 'Unknown'}`,
         requestData: mappedChanges,
         requestedUrl: `entrepreneur/${roleData.id}`,
       };
 
       console.log("Submitting changes:", approvalRequest);
 
-
       const response = await axiosInstance.post(
         "/api/approval/create",
         approvalRequest
       );
-      navigate("/user-management");
+      
       console.log("Approval request submitted successfully:", response.data);
-
-      // Optionally show success message or redirect
+      alert("Changes submitted for approval!");
       navigate("/user-management");
+      
     } catch (error) {
-      console.error("Failed to submit approval request:", error);
-      throw new Error("Failed to submit form: " + error.message);
+      console.error("Failed to submit:", error);
+      alert("Failed to submit form: " + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
     }
   };
 
+  // ====== EFFECTS ======
+  useEffect(() => {
+    loadOptions();
+  }, [dispatch]);
+
+  useEffect(() => {
+    initializeFormData();
+  }, [roleData, form]);
+
+  // ====== RENDER ======
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h3 className="text-xl font-medium text-earth-700 mb-6">
@@ -344,7 +383,8 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           : "Business Startup Information"}
       </h3>
 
-      <Form form={form} layout="vertical" onValuesChange={handleChange}>
+      <Form form={form} layout="vertical" onValuesChange={handleFormChange}>
+        {/* Basic Information */}
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
@@ -390,6 +430,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           </Col>
         </Row>
 
+        {/* Registration and Experience (only for new businesses) */}
         {!isExisting && (
           <Row gutter={16}>
             <Col xs={24} sm={12}>
@@ -423,10 +464,11 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           </Row>
         )}
 
+        {/* Export Products */}
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
-              label="Export Spice Products & Values"
+              label="Export Spice Products & Details"
               rules={[
                 {
                   validator: () => {
@@ -437,7 +479,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
                       ? Promise.resolve()
                       : Promise.reject(
                           new Error(
-                            "Please add at least one spice product with value"
+                            "Please add at least one spice product"
                           )
                         );
                   },
@@ -542,6 +584,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           </Col>
         </Row>
 
+        {/* Employee and Export Experience */}
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
@@ -573,6 +616,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           </Col>
         </Row>
 
+        {/* Certifications */}
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item label="Certifications" name="certifications">
@@ -581,9 +625,19 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           </Col>
         </Row>
 
-        <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
-          Submit Changes
-        </Button>
+        {/* Submit Button */}
+        <Row>
+          <Col>
+            <Button 
+              type="primary" 
+              onClick={handleSubmit} 
+              className="bg-spice-500"
+              loading={loading}
+            >
+              {roleData ? "Submit Changes" : "Create Business"}
+            </Button>
+          </Col>
+        </Row>
       </Form>
     </div>
   );

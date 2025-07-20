@@ -1,17 +1,5 @@
-import React, { useEffect, useState } from "react";
-import {
-  Form,
-  Input,
-  Select,
-  InputNumber,
-  DatePicker,
-  Button,
-  Row,
-  Col,
-  Card,
-  Space,
-  Checkbox,
-} from "antd";
+import { useEffect, useState } from "react";
+import { Form, Input, Select, DatePicker, Button, Row, Col, Card, Checkbox } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,10 +23,12 @@ const TraderEditForm = ({ roleData, isExisting }) => {
   const { updateFormData, formData } = useFormContext();
   const [form] = Form.useForm();
   const { id } = useParams();
+
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, value: null },
+    { productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
+  // Store original data for comparison
   const [originalData, setOriginalData] = useState({});
   const [originalProducts, setOriginalProducts] = useState({});
 
@@ -75,14 +65,22 @@ const TraderEditForm = ({ roleData, isExisting }) => {
       additionalInfo: roleData.businessDescription || "",
     });
 
-    if (Array.isArray(roleData.businessProducts)) {
-      const initialProducts = roleData.businessProducts.map((bp) => ({
-        productId: bp.productId?.toString() || bp.product?.id?.toString(),
-        value: bp.value ? parseFloat(bp.value) : null,
-      }));
-      setExportProducts(initialProducts);
-      setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
-    }
+    const initialProducts = Array.isArray(roleData.businessProducts)
+      ? roleData.businessProducts.map((bp) => ({
+          productId:
+            bp.productId?.toString() || bp.product?.id?.toString() || null,
+          isRaw: bp.isRaw || false,
+          isProcessed: bp.isProcessed || false,
+          details: bp.value || "",
+        }))
+      : [];
+
+    setExportProducts(
+      initialProducts.length > 0
+        ? initialProducts
+        : [{ productId: null, details: "", isRaw: false, isProcessed: false }]
+    );
+    setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
   }, [roleData, form]);
 
 const handleChange = (changedValues, allValues) => {
@@ -103,10 +101,12 @@ const handleChange = (changedValues, allValues) => {
       additionalInfo: allValues.additionalInfo || null,
       userId: location?.state?.result,
       products: exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter((product) => product.productId)
         .map((product) => ({
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         })),
     };
 
@@ -127,7 +127,7 @@ const handleChange = (changedValues, allValues) => {
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, value: null }]);
+    setExportProducts([...exportProducts, { productId: null, details: "", isRaw: false, isProcessed: false }]);
   };
 
   const removeExportProduct = (index) => {
@@ -225,11 +225,13 @@ const handleChange = (changedValues, allValues) => {
       const values = await form.validateFields();
       const changedFields = getChangedFields(values);
 
+      // If no changes, don't submit
       if (Object.keys(changedFields).length === 0) {
         console.log("No changes detected");
         return;
       }
 
+      // Map field names to API format
       const mappedChanges = mapFieldNames(changedFields);
 
       const approvalRequest = {
@@ -241,7 +243,7 @@ const handleChange = (changedValues, allValues) => {
 
       console.log("Submitting changes:", approvalRequest);
 
-      if (!roleData?.id) {
+      if (!roleData) {
         // Use all form values for new trader
         const allValues = await form.validateFields();
         const mappedAll = mapFieldNames(allValues);
@@ -254,11 +256,13 @@ const handleChange = (changedValues, allValues) => {
           businessExperienceId: mappedAll.businessExperienceId || null,
           businessStartDate: mappedAll.businessStartDate || null,
           businessDescription: mappedAll.businessDescription || null,
-          businessProducts: exportProducts
-            .filter((product) => product.productId && product.value)
+          products: exportProducts
+            .filter((product) => product.productId)
             .map((product) => ({
               productId: parseInt(product.productId),
-              value: parseFloat(product.value),
+              isRaw: product.isRaw,
+              isProcessed: product.isProcessed,
+              value: product.details || "",
             })),
           userId: id? parseInt(id) : null,
         };
@@ -305,7 +309,7 @@ const handleChange = (changedValues, allValues) => {
               label="Business Name"
               name="businessName"
               rules={[
-                { required: true, message: "Please enter business name" },
+                { required: false, message: "Please enter business name" },
               ]}
             >
               <Input placeholder="Spice Trading Enterprises" />
@@ -317,7 +321,7 @@ const handleChange = (changedValues, allValues) => {
               name="businessRegistrationNumber"
               rules={[
                 {
-                  required: true,
+                  required: false,
                   message: "Please enter registration number",
                 },
               ]}
@@ -333,7 +337,7 @@ const handleChange = (changedValues, allValues) => {
               label="Business Address"
               name="businessAddress"
               rules={[
-                { required: true, message: "Please enter business address" },
+                { required: false, message: "Please enter business address" },
               ]}
             >
               <Input.TextArea
@@ -351,7 +355,7 @@ const handleChange = (changedValues, allValues) => {
                 name="registrationDate"
                 rules={[
                   {
-                    required: true,
+                    required: false,
                     message: "Please select registration date",
                   },
                 ]}
@@ -368,7 +372,7 @@ const handleChange = (changedValues, allValues) => {
               label="Years in Trading Business"
               name="yearsTrading"
               rules={[
-                { required: true, message: "Please select years in trading" },
+                { required: false, message: "Please select years in trading" },
               ]}
             >
               <Select
@@ -385,7 +389,7 @@ const handleChange = (changedValues, allValues) => {
               label="Number of Employees"
               name="numberOfEmployees"
               rules={[
-                { required: true, message: "Please select employee count" },
+                { required: false, message: "Please select employee count" },
               ]}
             >
               <Select
@@ -399,12 +403,12 @@ const handleChange = (changedValues, allValues) => {
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
-              label="Trading Spice Products & Values"
+              label="Export Spice Products & Values"
               rules={[
                 {
                   validator: () => {
                     const hasValidProduct = exportProducts.some(
-                      (product) => product.productId && product.value
+                      (product) => product.productId
                     );
                     return hasValidProduct
                       ? Promise.resolve()
@@ -445,11 +449,11 @@ const handleChange = (changedValues, allValues) => {
                         />
                         <div className="mt-2 flex gap-4">
                           <Checkbox
-                            checked={product.raw}
+                            checked={product.isRaw}
                             onChange={(e) =>
                               updateExportProduct(
                                 index,
-                                "raw",
+                                "isRaw",
                                 e.target.checked
                               )
                             }
@@ -457,11 +461,11 @@ const handleChange = (changedValues, allValues) => {
                             Raw
                           </Checkbox>
                           <Checkbox
-                            checked={product.valueAdded}
+                            checked={product.isProcessed}
                             onChange={(e) =>
                               updateExportProduct(
                                 index,
-                                "valueAdded",
+                                "isProcessed",
                                 e.target.checked
                               )
                             }
@@ -470,7 +474,7 @@ const handleChange = (changedValues, allValues) => {
                           </Checkbox>
                         </div>
                       </Col>
-                      <Col xs={24} sm={8}>
+                      <Col xs={24} sm={12}>
                         <TextArea
                           placeholder="Enter details (optional)"
                           value={product.details}
@@ -486,8 +490,8 @@ const handleChange = (changedValues, allValues) => {
                           maxLength={500}
                         />
                       </Col>
-                      <Col xs={24} sm={6}>
-                        <div className="flex flex-col gap-2">
+                      <Col xs={24} sm={2}>
+                        <div className="flex flex-col gap-2 justify-center items-center">
                           {exportProducts.length > 1 && (
                             <Button
                               type="text"

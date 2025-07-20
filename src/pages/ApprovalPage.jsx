@@ -271,7 +271,6 @@ const ApprovalPage = () => {
               name="remarks"
               rules={[
                 { required: false, message: "Remarks are required" },
-                { min: 10, message: "Remarks must be at least 10 characters" },
               ]}
             >
               <TextArea
