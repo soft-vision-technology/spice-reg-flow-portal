@@ -7,7 +7,6 @@ import {
   Space,
   Modal,
   Form,
-  Input,
   Select,
   message,
   Popconfirm,
@@ -338,7 +337,6 @@ const UserManagement = () => {
             size="small"
             onClick={() => handleView(record)}
           >
-            View
           </Button>
           <Button
             type="primary"
@@ -347,7 +345,6 @@ const UserManagement = () => {
             style={{ backgroundColor: "#e67324", borderColor: "#e67324" }}
             onClick={() => handleEdit(record)}
           >
-            Edit
           </Button>
           <Popconfirm
             title="Delete User"
@@ -359,7 +356,6 @@ const UserManagement = () => {
             okButtonProps={{ danger: true }}
           >
             <Button danger icon={<DeleteOutlined />} size="small">
-              Delete
             </Button>
           </Popconfirm>
         </Space>
