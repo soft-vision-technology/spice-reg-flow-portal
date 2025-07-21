@@ -32,7 +32,7 @@ import {
 } from "../store/slices/authSlice";
 import bg_pattern_1 from "../assets/13683663_Spices sketches set.svg";
 import bg_pattern_2 from "../assets/2148761778.jpg";
-import img_1 from "../../src/assets/spices-near-pan.jpg";
+import img_1 from "../../src/assets/16223.jpg";
 import img_2 from "../../src/assets/images.png";
 import img_3 from "../../src/assets/openair-market-with-traders-selling-spices-herbs-aromatic-colorful.jpg";
 import gov_log from "../assets/Emblem_of_Sri_Lanka.svg.png";
