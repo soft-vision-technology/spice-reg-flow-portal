@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Form,
   Input,
@@ -31,7 +31,7 @@ import {
   restoreUser,
 } from "../store/slices/authSlice";
 import bg_pattern_1 from "../assets/13683663_Spices sketches set.svg";
-import bg_pattern_2 from "../assets/2148761778.jpg";
+import bg_pattern_2 from "../assets/proxy-image-1-1080x675.jpg";
 import img_1 from "../../src/assets/16223.jpg";
 import img_2 from "../../src/assets/images.png";
 import img_3 from "../../src/assets/openair-market-with-traders-selling-spices-herbs-aromatic-colorful.jpg";
@@ -218,7 +218,7 @@ const Landing = () => {
       image: img_2,
     },
     {
-      title: "Intermediary Traders",
+      title: "Traders",
       description:
         "Connecting farmers with buyers? Register your trading operations to strengthen your network and increase your market reach.",
       image: img_3,
@@ -252,7 +252,7 @@ const Landing = () => {
             <img
               src={bg_pattern_2}
               alt="Spice pattern background"
-              className="w-full h-full object-cover object-center"
+              className="w-full h-full object-cover object-right"
             />
           </div>
           <div className="px-6 py-2 bg-black/10 rounded-2xl backdrop-blur-sm border border-spice-400">
@@ -272,14 +272,14 @@ const Landing = () => {
                     කුළුබඩු හා ඒ ආශ්‍රිත නිෂ්පාදන අලෙවි මණ්ඩලය
                   </div>
                   <div className="text-spice-100 text-xs font-custom">
-                    மசாலாவும் அது தொடர்பானது தயாரிப்புகள் சந்தைப்படுத்தல் வாரியம்
+                    மசாலாவும் அது தொடர்பானது தயாரிப்புகள் சந்தைப்படுத்தல்
+                    வாரியம்
                   </div>
                   <div className="text-spice-100 text-lg font-bold">
                     Spices and Allied Products Marketing Board
                   </div>
                 </div>
 
-                
                 <div>
                   <div className="text-spice-100 text-lg">
                     වැවිලි සහ ප්‍රජා යටිතල පහසුකම් අමාත්‍යංසය
@@ -306,7 +306,7 @@ const Landing = () => {
           <div className="flex-1" />
           {/* Dynamic Feature Description - Bottom */}
           <div className="p-4 bg-black/10 rounded-3xl backdrop-blur-sm transition-all duration-500 ease-in-out mb-10">
-            <Paragraph className="text-white text-xl leading-relaxed text-center mb-4">
+            <Paragraph className="text-white text-xl text-center font-serif mb-4">
               {getCurrentFeature().description}
             </Paragraph>
 
@@ -315,12 +315,13 @@ const Landing = () => {
               {featureCards.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${(hoveredFeature !== null
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                    (hoveredFeature !== null
                       ? hoveredFeature
                       : activeFeature) === index
                       ? "bg-white"
                       : "bg-white/40"
-                    }`}
+                  }`}
                 />
               ))}
             </div>
@@ -340,10 +341,12 @@ const Landing = () => {
           <div className="w-full max-w-md mx-auto">
             {/* Logo/Header */}
             <div className="text-center mb-4">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-spice-500 to-earth-600 bg-clip-text text-transparent mb-2">
+              <h1 className="text-3xl font-maharlika bg-gradient-to-r from-spice-500 to-earth-600 bg-clip-text mb-2">
                 Get Started
               </h1>
-              <p className="text-earth-600">Sign in to your account</p>
+              <p className="text-earth-600 font-maharlika text-lg">
+                Sign in to your account
+              </p>
             </div>
 
             {/* Login Form */}
@@ -362,18 +365,23 @@ const Landing = () => {
               >
                 <Form.Item
                   name="email"
-                  label="Email"
+                  label={
+                    <span className="font-serif text-base text-earth-700">
+                      Email
+                    </span>
+                  }
                   validateStatus={emailError ? "error" : ""}
                   help={emailError}
                   rules={[
                     { required: true, message: "Please input your email!" },
                     { type: "email", message: "Please enter a valid email!" },
                   ]}
+                  className="font-custom"
                 >
                   <Input
                     prefix={<MailOutlined className="text-gray-400" />}
                     placeholder="Enter your email"
-                    className="rounded-lg h-12"
+                    className="rounded-lg h-12 font-custom text-base text-earth-700 placeholder:text-gray-400"
                     value={email}
                     onChange={handleEmailChange}
                     disabled={loading || isRedirecting}
@@ -382,15 +390,19 @@ const Landing = () => {
 
                 <Form.Item
                   name="password"
-                  label="Password"
+                  label={
+                    <span className="font-serif text-base text-earth-700">
+                      Password
+                    </span>
+                  }
                   validateStatus={passwordError ? "error" : ""}
                   help={passwordError}
                   rules={[
                     { required: true, message: "Please input your password!" },
-                    {
-                      min: 8,
-                      message: "Password must be at least 8 characters!",
-                    },
+                    // {
+                    //   min: 8,
+                    //   message: "Password must be at least 8 characters!",
+                    // },
                   ]}
                 >
                   <Input.Password
@@ -410,7 +422,7 @@ const Landing = () => {
                     className="mb-0"
                   >
                     <Checkbox
-                      className="text-earth-700"
+                      className="text-earth-700 font-serif"
                       checked={rememberMe}
                       onChange={handleRememberMeChange}
                       disabled={loading || isRedirecting}
@@ -421,7 +433,7 @@ const Landing = () => {
                   <button
                     type="button"
                     onClick={handleForgotPassword}
-                    className="text-spice-500 hover:text-spice-600 text-sm font-medium transition-colors duration-200 bg-transparent border-none cursor-pointer"
+                    className="text-spice-500 hover:text-spice-600 text-sm font-semibold font-serif transition-colors duration-200 bg-transparent border-none cursor-pointer"
                     disabled={loading || isRedirecting}
                   >
                     Forgot password?
@@ -432,26 +444,26 @@ const Landing = () => {
                   <Button
                     type="primary"
                     htmlType="submit"
-                    className="w-full h-12 text-lg font-medium bg-spice-500 hover:bg-spice-600 border-0 rounded-lg transition-all duration-200"
+                    className="w-full h-12 text-lg font-medium font-serif bg-spice-500 hover:bg-spice-600 border-0 rounded-lg transition-all duration-200"
                     loading={loading || isRedirecting}
                     disabled={loading || isRedirecting}
                   >
                     {loading
                       ? "Authenticating..."
                       : isRedirecting
-                        ? "Redirecting..."
-                        : "Login"}
+                      ? "Redirecting..."
+                      : "Login"}
                   </Button>
                 </Form.Item>
 
                 <div className="text-center">
-                  <span className="text-earth-600">
+                  <span className="text-earth-600 font-serif">
                     Don't have an account?{" "}
                   </span>
                   <button
                     type="button"
                     onClick={handleSignUp}
-                    className="text-spice-500 hover:text-spice-600 font-medium transition-colors duration-200 bg-transparent border-none cursor-pointer"
+                    className="text-spice-500 hover:text-spice-600 font-semibold font-serif transition-colors duration-200 bg-transparent border-none cursor-pointer"
                     disabled={loading || isRedirecting}
                   >
                     Sign up here
@@ -466,12 +478,13 @@ const Landing = () => {
                 {featureCards.map((card, index) => (
                   <Col xs={24} sm={8} key={index}>
                     <Card
-                      className={`cursor-pointer bg-transparent transition-all duration-300 hover:shadow-lg hover:scale-105 ${(hoveredFeature !== null
+                      className={`cursor-pointer bg-transparent transition-all duration-300 hover:shadow-lg hover:scale-105 ${
+                        (hoveredFeature !== null
                           ? hoveredFeature
                           : activeFeature) === index
                           ? "ring-2 ring-spice-400 shadow-lg"
                           : ""
-                        }`}
+                      }`}
                       bodyStyle={{ padding: "12px" }}
                       onMouseEnter={() => setHoveredFeature(index)}
                       onMouseLeave={() => setHoveredFeature(null)}
@@ -484,12 +497,9 @@ const Landing = () => {
                             className="w-full h-20 object-cover rounded-lg"
                           />
                         </div>
-                        <Title
-                          level={5}
-                          className="flex justify-center text-earth-700"
-                        >
+                        <h5 className="flex text-sm font-semibold text-earth-700 font-serif justify-center mt-2">
                           {card.title}
-                        </Title>
+                        </h5>
                       </div>
                     </Card>
                   </Col>
@@ -505,9 +515,16 @@ const Landing = () => {
         <div className="text-center">
           <p className="text-white text-xs">
             <span className="font-semibold">© 2025 </span>
-            <span className="font-custom">
-              Soft Vision Technologies Pvt Ltd
-            </span>
+            <a
+              href="http://softvision.lk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white hover:text-white/80 transition-colors duration-200"
+            >
+              <span className="font-custom">
+                Soft Vision Technologies (Private) Limited
+              </span>
+            </a>
             <span className="font-semibold">. All rights reserved.</span>
           </p>
         </div>

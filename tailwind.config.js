@@ -20,6 +20,8 @@ export default {
     extend: {
       fontFamily: {
         custom: ["Ethernal"],
+        pepper: ["PepperHands"],
+        maharlika: ["Maharlika"],
       },
       colors: {
         border: "hsl(var(--border))",
