@@ -1,5 +1,3 @@
-
-
 const GeographicDistributionChart = ({ data, loading }) => {
   const maxCount = Math.max(...data.map((d) => d.userCount), 1);
   const chartHeight = 400;
@@ -140,47 +138,14 @@ const GeographicDistributionChart = ({ data, loading }) => {
               key={index}
               x={point.x}
               y={chartHeight - padding + 20}
-              textAnchor="middle"
+              textAnchor="start"
               className="text-xs fill-gray-600"
+              transform={`rotate(-45 ${point.x} ${chartHeight - padding + 20})`}
             >
               {point.districtName}
             </text>
           ))}
         </svg>
-      </div>
-
-      {/* Legend */}
-      <div className="flex items-center justify-center gap-4 mt-4">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-[#E67324]" />
-          <span className="text-sm text-gray-600">User Count by District</span>
-        </div>
-      </div>
-
-      {/* Summary stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-[#E67324]">
-            {data.reduce((sum, item) => sum + item.userCount, 0)}
-          </div>
-          <div className="text-sm text-gray-600">Total Users</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-[#10B981]">{data.length}</div>
-          <div className="text-sm text-gray-600">Districts</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-[#F59E0B]">{maxCount}</div>
-          <div className="text-sm text-gray-600">Highest Count</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-[#6366F1]">
-            {data.length > 0 ? (
-              data.reduce((sum, item) => sum + item.userCount, 0) / data.length
-            ).toFixed(1) : 0}
-          </div>
-          <div className="text-sm text-gray-600">Average</div>
-        </div>
       </div>
     </div>
   );

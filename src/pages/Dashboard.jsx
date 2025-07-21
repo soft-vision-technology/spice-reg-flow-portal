@@ -11,7 +11,13 @@ import {
 import { TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
-import { GeographicDistributionChart, RegistrationOverviewDonut, RegistrationsOverTimeArea, SectorWiseBar } from "../components/charts";
+import {
+  GeographicDistributionChart,
+  RegistrationOverviewDonut,
+  RegistrationsOverTimeArea,
+  SectorWiseBar,
+} from "../components/charts";
+import DashboardStatCard from "../components/cards/DashboardStatCard";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -118,7 +124,6 @@ const RegistrationDashboard = () => {
       );
 
       if (response.status === 200) {
-
         setRegistrationStatus(response.data);
       } else {
         throw new Error("Failed to fetch registration status data");
@@ -130,9 +135,6 @@ const RegistrationDashboard = () => {
       setLoading(false);
     }
   };
-
-
-
 
   useEffect(() => {
     fetchStatCardData();
@@ -215,70 +217,31 @@ const RegistrationDashboard = () => {
     <div className="space-y-6">
       {/* Key Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-  <Card className="text-center border-0 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 ease-out group cursor-pointer rounded-lg overflow-hidden relative">
-    <div className="absolute top-0 left-0 w-full h-1 bg-[#E67324] transition-all duration-300 group-hover:h-2"></div>
-    <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 bg-gradient-to-br from-[#E67324] to-transparent"></div>
-    <div className="relative z-10 pt-2">
-      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#E67324]/10 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-        <UserOutlined className="text-[#E67324] text-xl" />
+        <DashboardStatCard
+          title="Total Registrations"
+          value={statCardData.allRegisteredUsers}
+          icon={<UserOutlined />}
+          color="#E67324"
+        />
+        <DashboardStatCard
+          title="Issued Certificates"
+          value={statCardData.issuedCertificates}
+          icon={<ShopOutlined />}
+          color="#10B981"
+        />
+        <DashboardStatCard
+          title="Pending Approvals"
+          value={statCardData.pendingApprovals}
+          icon={<ClockCircleOutlined />}
+          color="#F59E0B"
+        />
+        <DashboardStatCard
+          title="Total Products"
+          value={statCardData.totalProducts}
+          icon={<GlobalOutlined />}
+          color="#6366F1"
+        />
       </div>
-      <Statistic
-        title="Total Registrations"
-        value={statCardData.allRegisteredUsers || 0}
-        valueStyle={{ color: "#E67324", fontSize: "24px", fontWeight: "bold" }}
-        formatter={(value) => value.toLocaleString()}
-      />
-    </div>
-  </Card>
-
-  <Card className="text-center border-0 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 ease-out group cursor-pointer rounded-lg overflow-hidden relative">
-    <div className="absolute top-0 left-0 w-full h-1 bg-[#10B981] transition-all duration-300 group-hover:h-2"></div>
-    <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 bg-gradient-to-br from-[#10B981] to-transparent"></div>
-    <div className="relative z-10 pt-2">
-      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#10B981]/10 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-        <ShopOutlined className="text-[#10B981] text-xl" />
-      </div>
-      <Statistic
-        title="Issued Certificates"
-        value={statCardData.issuedCertificates || 0}
-        valueStyle={{ color: "#10B981", fontSize: "24px", fontWeight: "bold" }}
-        formatter={(value) => value.toLocaleString()}
-      />
-    </div>
-  </Card>
-
-  <Card className="text-center border-0 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 ease-out group cursor-pointer rounded-lg overflow-hidden relative">
-    <div className="absolute top-0 left-0 w-full h-1 bg-[#F59E0B] transition-all duration-300 group-hover:h-2"></div>
-    <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 bg-gradient-to-br from-[#F59E0B] to-transparent"></div>
-    <div className="relative z-10 pt-2">
-      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#F59E0B]/10 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-        <ClockCircleOutlined className="text-[#F59E0B] text-xl" />
-      </div>
-      <Statistic
-        title="Pending Approvals"
-        value={statCardData.pendingApprovals || 0}
-        valueStyle={{ color: "#F59E0B", fontSize: "24px", fontWeight: "bold" }}
-        formatter={(value) => value.toLocaleString()}
-      />
-    </div>
-  </Card>
-
-  <Card className="text-center border-0 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 ease-out group cursor-pointer rounded-lg overflow-hidden relative">
-    <div className="absolute top-0 left-0 w-full h-1 bg-[#6366F1] transition-all duration-300 group-hover:h-2"></div>
-    <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 bg-gradient-to-br from-[#6366F1] to-transparent"></div>
-    <div className="relative z-10 pt-2">
-      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#6366F1]/10 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-        <GlobalOutlined className="text-[#6366F1] text-xl" />
-      </div>
-      <Statistic
-        title="Total Products"
-        value={statCardData.totalProducts || 0}
-        valueStyle={{ color: "#6366F1", fontSize: "24px", fontWeight: "bold" }}
-        formatter={(value) => value.toLocaleString()}
-      />
-    </div>
-  </Card>
-</div>
 
       {/* Main Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -363,7 +326,7 @@ const RegistrationDashboard = () => {
 
 const Mainpage = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-spice-100/10">
       {/* Dashboard Section */}
       <div className="py-6 px-6">
         <RegistrationDashboard />
