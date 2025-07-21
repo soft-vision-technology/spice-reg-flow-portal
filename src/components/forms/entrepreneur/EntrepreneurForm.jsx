@@ -67,7 +67,9 @@ const EntrepreneurForm = (props) => {
   };
   
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, details: "", isRaw: false, isProcessed: false }]);
+    setExportProducts([
+      ...exportProducts,
+      { productId: null, details: "", isRaw: false, isProcessed: false }]);
   };
 
   const removeExportProduct = (index) => {

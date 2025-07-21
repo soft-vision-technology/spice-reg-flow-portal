@@ -11,7 +11,7 @@ const NotFound = ({ pathname = "/unknown-route" }) => {
   }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
         <Card className="text-center shadow-lg border-0">
           <div className="py-8 px-4">
@@ -92,7 +92,7 @@ const NotFound = ({ pathname = "/unknown-route" }) => {
             </div>
 
             {/* Contact information */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
+            {/* <div className="mt-8 pt-6 border-t border-gray-200">
               <div className="text-sm text-gray-600">
                 <p className="mb-2">
                   <strong>Need assistance?</strong> Contact the Registry Support Team
@@ -102,10 +102,10 @@ const NotFound = ({ pathname = "/unknown-route" }) => {
                   <span>📧 support@spiceregistry.gov</span>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Footer badge */}
-            <div className="mt-6 flex justify-center">
+            {/* <div className="mt-6 flex justify-center">
               <div className="inline-flex items-center px-4 py-2 bg-white border-2 border-gray-200 rounded-full">
                 <div 
                   className="w-3 h-3 rounded-full mr-2"
@@ -115,7 +115,7 @@ const NotFound = ({ pathname = "/unknown-route" }) => {
                   Official Government Portal
                 </span>
               </div>
-            </div>
+            </div> */}
           </div>
         </Card>
       </div>

@@ -42,11 +42,13 @@ const ImportDataPage = () => {
   const [activeTab, setActiveTab] = useState("paste");
   const [expanded, setExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isProgress, setProgress] = useState(true);
-  
+
+  const [isProcessing, setIsProcessing] = useState(true);
+  const [processStartTime, setProcessStartTime] = useState();
+
   // Single cell editing state
   const [editingCell, setEditingCell] = useState(null); // {row: 0, col: 'columnKey'}
-  const [editValue, setEditValue] = useState('');
+  const [editValue, setEditValue] = useState("");
   const inputRef = useRef(null);
 
   console.log("Check", excelData, columns);
@@ -302,9 +304,9 @@ const ImportDataPage = () => {
   // Single cell editing functions
   const handleCellClick = (record, column, rowIndex) => {
     if (!isEditing) return;
-    
+
     setEditingCell({ row: rowIndex, col: column.dataIndex });
-    setEditValue(record[column.dataIndex] || '');
+    setEditValue(record[column.dataIndex] || "");
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
@@ -314,13 +316,13 @@ const ImportDataPage = () => {
       newData[editingCell.row][editingCell.col] = editValue;
       setExcelData(newData);
       setEditingCell(null);
-      setEditValue('');
+      setEditValue("");
     }
   };
 
   const handleCellCancel = () => {
     setEditingCell(null);
-    setEditValue('');
+    setEditValue("");
   };
 
   // Start editing mode
@@ -334,7 +336,7 @@ const ImportDataPage = () => {
     setExpanded(false);
     setIsEditing(false);
     setEditingCell(null);
-    setEditValue('');
+    setEditValue("");
   };
 
   // Exit editing mode (keep changes)
@@ -347,11 +349,12 @@ const ImportDataPage = () => {
   };
 
   // Create editable columns
-  const editableColumns = columns.map(col => ({
+  const editableColumns = columns.map((col) => ({
     ...col,
     render: (text, record, index) => {
-      const isCurrentCell = editingCell?.row === index && editingCell?.col === col.dataIndex;
-      
+      const isCurrentCell =
+        editingCell?.row === index && editingCell?.col === col.dataIndex;
+
       if (isCurrentCell && isEditing) {
         return (
           <Input
@@ -361,7 +364,7 @@ const ImportDataPage = () => {
             onPressEnter={handleCellSave}
             onBlur={handleCellSave}
             onKeyDown={(e) => {
-              if (e.key === 'Escape') {
+              if (e.key === "Escape") {
                 handleCellCancel();
               }
             }}
@@ -370,24 +373,24 @@ const ImportDataPage = () => {
           />
         );
       }
-      
+
       return (
         <div
           onClick={() => handleCellClick(record, col, index)}
-          style={{ 
-            cursor: isEditing ? 'pointer' : 'default',
-            minHeight: '22px', 
-            padding: '4px 8px',
-            backgroundColor: isEditing ? '#f0f0f0' : 'transparent',
-            borderRadius: '4px',
-            transition: 'background-color 0.2s'
+          style={{
+            cursor: isEditing ? "pointer" : "default",
+            minHeight: "22px",
+            padding: "4px 8px",
+            backgroundColor: isEditing ? "#f0f0f0" : "transparent",
+            borderRadius: "4px",
+            transition: "background-color 0.2s",
           }}
-          title={isEditing ? 'Click to edit' : ''}
+          title={isEditing ? "Click to edit" : ""}
         >
-          {text || (isEditing ? 'Click to edit' : '')}
+          {text || (isEditing ? "Click to edit" : "")}
         </div>
       );
-    }
+    },
   }));
 
   return (
@@ -551,10 +554,7 @@ const ImportDataPage = () => {
                 >
                   Edit Data
                 </Button>
-                <Button 
-                  onClick={() => setExpanded(false)} 
-                  type="default"
-                >
+                <Button onClick={() => setExpanded(false)} type="default">
                   Collapse
                 </Button>
               </Space>
@@ -655,7 +655,13 @@ const ImportDataPage = () => {
           </div>
         </div>
       )}
-      {isProgress && <ProgressOverlay message="Please wait, working progress..." />}
+      {isProcessing && (
+        <ProgressOverlay
+          message="Processing your data..."
+          durationHours={3.0} // 1.2 minutes (0.02 hours)
+          startTime={processStartTime}
+        />
+      )}
     </div>
   );
 };

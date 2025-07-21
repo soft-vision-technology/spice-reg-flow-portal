@@ -1,24 +1,6 @@
-import React, { useEffect, useState } from "react";
-import {
-  Form,
-  Input,
-  Select,
-  InputNumber,
-  Upload,
-  Button,
-  Row,
-  Col,
-  Checkbox,
-  Space,
-  Card,
-  DatePicker,
-  Radio,
-} from "antd";
-import {
-  UploadOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import { Form, Input, Select, Button, Row, Col, Checkbox, Card, DatePicker } from "antd";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
 import countries from "country-json/src/country-by-name.json";
 import {
@@ -45,7 +27,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
   const [form] = Form.useForm();
   const { id } = useParams();
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, value: null },
+    { productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   const [originalData, setOriginalData] = useState({});
@@ -116,14 +98,22 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
     });
 
     // Set export products
-    if (Array.isArray(roleData.businessProducts)) {
-      const initialProducts = roleData.businessProducts.map((bp) => ({
-        productId: bp.productId?.toString() || bp.product?.id?.toString(),
-        value: bp.value ? parseFloat(bp.value) : null,
-      }));
-      setExportProducts(initialProducts);
-      setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
-    }
+    const initialProducts = Array.isArray(roleData.businessProducts)
+      ? roleData.businessProducts.map((bp) => ({
+          productId:
+            bp.productId?.toString() || bp.product?.id?.toString() || null,
+          isRaw: bp.isRaw || false,
+          isProcessed: bp.isProcessed || false,
+          details: bp.value || "",
+        }))
+      : [];
+
+    setExportProducts(
+      initialProducts.length > 0
+        ? initialProducts
+        : [{ productId: null, details: "", isRaw: false, isProcessed: false }]
+    );
+    setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
   }, [roleData, form]);
 
   const handleChange = (changedValues, allValues) => {
@@ -153,10 +143,12 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
         ? dayjs(allValues.exportStartDate).toISOString()
         : null,
       products: exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter((product) => product.productId)
         .map((product) => ({
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         })),
       userId: location?.state?.result,
     };
@@ -179,7 +171,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, value: null }]);
+    setExportProducts([...exportProducts, { productId: null, details: "", isRaw: false, isProcessed: false  }]);
   };
 
   const removeExportProduct = (index) => {
@@ -291,16 +283,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
 
       const mappedChanges = mapFieldNames(changedFields);
 
-      const approvalRequest = {
-        type: "editData",
-        requestName: `Exporter: ${roleData?.user?.name}`,
-        requestData: mappedChanges,
-        requestedUrl: `exporter/${roleData.id || location?.state?.result}`,
-      };
-
-      console.log("Submitting changes:", approvalRequest);
-
-      if (!roleData?.id) {
+      if (!roleData) {
         // Use all form values for new exporter
         const allValues = await form.validateFields();
         const mappedAll = mapFieldNames(allValues);
@@ -314,11 +297,13 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
           exportingCountries: mappedAll.exportingCountries || null,
           productRange: mappedAll.productRange || null,
           businessDescription: mappedAll.businessDescription || null,
-          businessProducts: exportProducts
-            .filter((product) => product.productId && product.value)
+          products: exportProducts
+            .filter((product) => product.productId)
             .map((product) => ({
               productId: parseInt(product.productId),
-              value: parseFloat(product.value),
+              isRaw: product.isRaw,
+              isProcessed: product.isProcessed,
+              value: product.details || "",
             })),
           certificateId: mappedAll.certificateId || [],
           userId: id ? parseInt(id) : null,
@@ -333,6 +318,15 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
         alert("Success!");
         return response;
       }
+
+      const approvalRequest = {
+        type: "editData",
+        requestName: `Exporter: ${roleData?.user?.name}`,
+        requestData: mappedChanges,
+        requestedUrl: `exporter/${roleData.id}`,
+      };
+
+      console.log("Submitting changes:", approvalRequest);
 
       const response = await axiosInstance.post(
         "/api/approval/create",
@@ -367,7 +361,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
               label="Business Name"
               name="businessName"
               rules={[
-                { required: true, message: "Please enter business name" },
+                { required: false, message: "Please enter business name" },
               ]}
             >
               <Input placeholder="Global Spice Exports Ltd." />
@@ -380,7 +374,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
                 name="businessRegNumber"
                 rules={[
                   {
-                    required: true,
+                    required: false,
                     message: "Please enter business registration number",
                   },
                 ]}
@@ -394,7 +388,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
               label="Years in Export Business"
               name="yearsExporting"
               rules={[
-                { required: true, message: "Please enter years in exports" },
+                { required: false, message: "Please enter years in exports" },
               ]}
             >
               <Select
@@ -407,7 +401,9 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
             <Form.Item
               label="Started Date of Export Business"
               name="exportStartDate"
-              rules={[{ required: true, message: "Please enter started date" }]}
+              rules={[
+                { required: false, message: "Please enter started date" },
+              ]}
             >
               <DatePicker
                 format="YYYY-MM-DD"
@@ -421,7 +417,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
               label="Number of Employees"
               name="numberOfEmployeeId"
               rules={[
-                { required: true, message: "Please select employee count" },
+                { required: false, message: "Please select employee count" },
               ]}
             >
               <Select
@@ -435,7 +431,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
               label="Name of Country / Countries of Export"
               name="exportingCountries"
               rules={[
-                { required: true, message: "Please select at least one" },
+                { required: false, message: "Please select at least one" },
               ]}
             >
               <Select
@@ -511,11 +507,11 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
                           />
                           <div className="mt-2 flex gap-4">
                             <Checkbox
-                              checked={product.raw}
+                              checked={product.isRaw}
                               onChange={(e) =>
                                 updateExportProduct(
                                   index,
-                                  "raw",
+                                  "isRaw",
                                   e.target.checked
                                 )
                               }
@@ -523,11 +519,11 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
                               Raw
                             </Checkbox>
                             <Checkbox
-                              checked={product.valueAdded}
+                              checked={product.isProcessed}
                               onChange={(e) =>
                                 updateExportProduct(
                                   index,
-                                  "valueAdded",
+                                  "isProcessed",
                                   e.target.checked
                                 )
                               }
@@ -584,17 +580,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
 
         <Row gutter={16}>
           <Col xs={24}>
-            <Form.Item
-              label="Certifications"
-              name="certifications"
-              rules={[
-                {
-                  required: false,
-                  message: "Please select at least one certification",
-                  type: "array",
-                },
-              ]}
-            >
+            <Form.Item label="Certifications" name="certifications">
               <Checkbox.Group options={formatSelects(certificateOptions)} />
             </Form.Item>
           </Col>
