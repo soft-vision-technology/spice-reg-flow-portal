@@ -209,19 +209,19 @@ const EditPage = ({ userId, onUserUpdate }) => {
             <Col xs={24} sm={12} md={8}>
               <div>
                 <Text strong className="text-gray-500">
-                  Name:
+                  Serial Number:
                 </Text>
                 <br />
-                <Text className="text-gray-900">{user.name}</Text>
+                <Text className="text-gray-900">{user.serialNumber}</Text>
               </div>
             </Col>
             <Col xs={24} sm={12} md={8}>
               <div>
                 <Text strong className="text-gray-500">
-                  NIC:
+                  Name:
                 </Text>
                 <br />
-                <Text className="text-gray-900">{user.nic}</Text>
+                <Text className="text-gray-900">{user.name}</Text>
               </div>
             </Col>
             <Col xs={24} sm={12} md={8}>
@@ -257,7 +257,7 @@ const EditPage = ({ userId, onUserUpdate }) => {
                   Business:
                 </Text>
                 <br />
-                <Text className="text-gray-900">{user.businessName}</Text>
+                <Text className="text-gray-900">{user.serialNumber}</Text>
               </div>
             </Col>
           </Row>

@@ -7,14 +7,15 @@ import {
   NotificationOutlined,
   HomeOutlined,
   SettingOutlined,
+  CodeFilled,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useFormContext } from "../../contexts/FormContext";
-import { 
-  selectAuthUser, 
-  selectAuthInitialized, 
+import {
+  selectAuthUser,
+  selectAuthInitialized,
   selectIsAdmin,
-  initializeAuth 
+  initializeAuth,
 } from "../../store/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
@@ -23,7 +24,7 @@ const SidebarMenu = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { role, status } = useFormContext();
-  
+
   // Use optimized selectors
   const user = useSelector(selectAuthUser);
   const isInitialized = useSelector(selectAuthInitialized);
@@ -87,11 +88,21 @@ const SidebarMenu = () => {
       )}
 
       <Menu.Item key="/notifications" icon={<NotificationOutlined />}>
-        <Link to="/notifications">
-          Notifications
-        </Link>
+        <Link to="/notifications">Notifications</Link>
       </Menu.Item>
-      
+
+      <Menu.Item
+        key="/dev-env/page_"
+        icon={<CodeFilled />}
+        style={{
+          marginBottom: 50,
+          position: "absolute",
+          bottom: 1,
+        }}
+      >
+        <Link to="/dev-env/page_">dev_look</Link>
+      </Menu.Item>
+
       {isAdmin && (
         <Menu.Item
           key="/settings"
