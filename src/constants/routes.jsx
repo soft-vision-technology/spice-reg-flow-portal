@@ -18,7 +18,7 @@ const RegisterUser = React.lazy(() => import('../AdminPages/RegisterUser'));
 const ImportDataPage = React.lazy(() => import('../pages/ImportDataPage'));
 const SettingsPage = React.lazy(() => import('../pages/SettingsPage'));
 const NotFound = React.lazy(() => import('../pages/NotFound'));
-// const DevEnvPage = React.lazy(() => import('../pages/test_page.jsx'));
+const DevEnvPage = React.lazy(() => import('../pages/test_page.jsx'));
 
 // Auth pages
 const LandingPage = React.lazy(() => import('../pages/LandingPage'));
@@ -52,7 +52,7 @@ export const routes = [
   
   // 404 route - should be last
   { path: '*', exact: false, name: 'NotFound', element: NotFound, protected: false },
-  // { path: '/dev-env/page_', exact: true, name: 'DevEnvPage', element: DevEnvPage, protected: true },
+  { path: '/dev-env/page_', exact: true, name: 'DevEnvPage', element: DevEnvPage, protected: true },
 ];
 
 // Helper function to create route elements with protection
