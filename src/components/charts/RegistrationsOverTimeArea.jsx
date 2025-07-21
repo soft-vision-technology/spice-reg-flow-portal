@@ -14,7 +14,7 @@ const RegistrationsOverTimeArea = ({ data, weeklyData }) => {
         <div className="flex bg-gray-100 rounded-lg p-1">
           <button
             onClick={() => setViewMode('monthly')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+            className={`px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ${
               viewMode === 'monthly'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
@@ -24,7 +24,7 @@ const RegistrationsOverTimeArea = ({ data, weeklyData }) => {
           </button>
           <button
             onClick={() => setViewMode('weekly')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+            className={`px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 ${
               viewMode === 'weekly'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'

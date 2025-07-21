@@ -218,7 +218,7 @@ const Landing = () => {
       image: img_2,
     },
     {
-      title: "Traders",
+      title: "Intermediary Traders",
       description:
         "Connecting farmers with buyers? Register your trading operations to strengthen your network and increase your market reach.",
       image: img_3,
@@ -230,31 +230,24 @@ const Landing = () => {
       ? featureCards[hoveredFeature]
       : featureCards[activeFeature];
   };
-
-  // Show loading state when redirecting
-  if (isRedirecting) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-spice-100 to-earth-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-spice-500 mx-auto mb-4"></div>
-          <p className="text-spice-600 text-lg">Redirecting to dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-spice-100 to-earth-100 overflow-hidden">
       <div className="flex min-h-screen">
         {/* Left Side - Features Section */}
         <div className="flex-1 text-white flex flex-col justify-center p-8 relative">
           <div className="absolute inset-0 opacity-100 pointer-events-none">
+            {/* Background image */}
             <img
               src={bg_pattern_2}
               alt="Spice pattern background"
               className="w-full h-full object-cover object-right"
             />
+
+            {/* Overlay on top of image */}
+            <div className="absolute inset-0 bg-black/50 opacity-25"></div>
           </div>
+
           <div className="px-6 py-2 bg-black/10 rounded-2xl backdrop-blur-sm border border-spice-400">
             <div className="flex items-center justify-between">
               {/* Left Logo - Government Emblem */}

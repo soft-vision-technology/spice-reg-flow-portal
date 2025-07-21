@@ -72,9 +72,6 @@ const MainLayout = ({ children }) => {
               )}
             </div>
             <div className="flex-1 px-4">
-              <h2 className="text-lg font-semibold text-earth-700">
-                Registration Portal
-              </h2>
             </div>
             <div className="text-xs text-gray-500 font-medium">
               Welcome back! {user.userId === 1 ? "Admin" : ""}✨

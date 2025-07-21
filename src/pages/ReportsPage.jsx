@@ -69,7 +69,9 @@ const ReportsPage = () => {
 
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
   const experienceOptions = useSelector(selectExperienceOptions) || [];
-  const selectAllCertificateTypes = useSelector((state) => state.settings.certificateTypes);
+  const selectAllCertificateTypes = useSelector(
+    (state) => state.settings.certificateTypes
+  );
 
   const [filters, setFilters] = useState({
     role: "all",
@@ -96,7 +98,7 @@ const ReportsPage = () => {
       dispatch(fetchExistingTraders()),
       dispatch(fetchNumEmployeeOptions()),
       dispatch(fetchExperienceOptions()),
-      dispatch(fetchItems("certificates"))
+      dispatch(fetchItems("certificates")),
     ]);
   };
 
@@ -558,7 +560,7 @@ const ReportsPage = () => {
         return {
           data: getDataByStatus("STARTING"),
           name: "Starting Businesses",
-        };
+        };  
       case "existing":
         return {
           data: getDataByStatus("EXISTING"),
@@ -797,58 +799,6 @@ const ReportsPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Business Reports</h1>
-        <p className="text-gray-600 mt-1">
-          Comprehensive overview of registered businesses
-        </p>
-      </div>
-
-      {/* Statistics Cards */}
-      <Row gutter={16} className="mb-6">
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Total Users"
-              value={stats.total}
-              prefix={<UserOutlined />}
-              valueStyle={{ color: "#1890ff" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Entrepreneurs"
-              value={stats.entrepreneurs}
-              prefix={<ShopOutlined />}
-              valueStyle={{ color: "#52c41a" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Exporters"
-              value={stats.exporters}
-              prefix={<GlobalOutlined />}
-              valueStyle={{ color: "#722ed1" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Traders"
-              value={stats.traders}
-              prefix={<MoneyCollectOutlined />}
-              valueStyle={{ color: "#fa8c16" }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
       {/* Filters */}
       <Card className="mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -995,13 +945,15 @@ const ReportsPage = () => {
             >
               <Option value={null}>All Certificates</Option>
               {filterOptions.certificates.map((certId) => {
-  const certType = selectAllCertificateTypes?.find((item) => item.id === certId);
-  return (
-    <Option key={certId} value={certId}>
-      {certType?.name || `Certificate ${certId}`}
-    </Option>
-  );
-})}
+                const certType = selectAllCertificateTypes?.find(
+                  (item) => item.id === certId
+                );
+                return (
+                  <Option key={certId} value={certId}>
+                    {certType?.name || `Certificate ${certId}`}
+                  </Option>
+                );
+              })}
             </Select>
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
