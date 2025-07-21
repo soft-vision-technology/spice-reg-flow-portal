@@ -626,7 +626,7 @@ const ViewUserPage = () => {
       </div>
       {isProcessing && (
         <ProgressOverlay
-          message="This page is under maintenance..."
+          message="Page under maintenance..."
           durationHours={3.0} // 1.2 minutes (0.02 hours)
           startTime={processStartTime}
         />
