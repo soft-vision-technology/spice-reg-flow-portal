@@ -2,7 +2,7 @@ import React from "react";
 import { Typography, Card, Row, Col } from "antd";
 import LoginModal from "../components/layout/LoginModal";
 import img_1 from "../../src/assets/spices-near-pan.jpg";
-import img_2 from "../../src/assets/spices-near-pan.jpgimages.png"
+import img_2 from "../../src/assets/spices-near-pan.jpg";
 import img_3 from "../../src/assets/openair-market-with-traders-selling-spices-herbs-aromatic-colorful.jpg";
 
 const { Title, Paragraph } = Typography;
