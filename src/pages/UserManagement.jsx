@@ -26,6 +26,8 @@ import {
   EyeOutlined,
   PrinterOutlined,
   PlusSquareOutlined,
+  ShopOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import CertificatePrintDrawer from "../components/custom/CertificatePrintDrawer";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,6 +40,7 @@ import {
 import EditPage from "./EditPage";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
+import DashboardStatCard from "../components/cards/DashboardStatCard";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -64,8 +67,7 @@ const UserManagement = () => {
 
   // Fetch users on mount
   useEffect(() => {
-    dispatch(fetchStartingExporters()),
-    dispatch(fetchExistingExporters());
+    dispatch(fetchStartingExporters()), dispatch(fetchExistingExporters());
     dispatch(fetchExistingEntrepreneurs());
     dispatch(fetchExistingTraders());
   }, [dispatch]);
@@ -101,8 +103,8 @@ const UserManagement = () => {
   const navigate = useNavigate();
   // Replace handleEdit to open EditPage
   const handleEdit = (user) => {
-   navigate(`/user-management-edit/${user.id}`);
-    };
+    navigate(`/user-management-edit/${user.id}`);
+  };
 
   const handleEditBack = () => {
     setEditUserId(null);
@@ -336,16 +338,14 @@ const UserManagement = () => {
             icon={<EyeOutlined />}
             size="small"
             onClick={() => handleView(record)}
-          >
-          </Button>
+          ></Button>
           <Button
             type="primary"
             icon={<EditOutlined />}
             size="small"
             style={{ backgroundColor: "#e67324", borderColor: "#e67324" }}
             onClick={() => handleEdit(record)}
-          >
-          </Button>
+          ></Button>
           <Popconfirm
             title="Delete User"
             description="Are you sure you want to delete this user? This action requires approval."
@@ -355,8 +355,7 @@ const UserManagement = () => {
             cancelText="Cancel"
             okButtonProps={{ danger: true }}
           >
-            <Button danger icon={<DeleteOutlined />} size="small">
-            </Button>
+            <Button danger icon={<DeleteOutlined />} size="small"></Button>
           </Popconfirm>
         </Space>
       ),
@@ -408,40 +407,32 @@ const UserManagement = () => {
         </div>
 
         {/* Statistics Cards */}
-        <Row gutter={[16, 16]} className="mb-6">
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {getDataByRole("Entrepreneur").length}
-              </div>
-              <div className="text-gray-500">Entrepreneurs</div>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {getDataByRole("Exporter").length}
-              </div>
-              <div className="text-gray-500">Exporters</div>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {getDataByRole("IntermediaryTrader").length}
-              </div>
-              <div className="text-gray-500">Traders</div>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="text-2xl font-bold" style={{ color: "#e67324" }}>
-                {pendingActionsCount}
-              </div>
-              <div className="text-gray-500">Pending Actions</div>
-            </Card>
-          </Col>
-        </Row>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <DashboardStatCard
+            title="Entrepreneurs"
+            value={getDataByRole("Entrepreneur").length}
+            icon={<UserOutlined />}
+            color="#E67324"
+          />
+          <DashboardStatCard
+            title="Exporters"
+            value={getDataByRole("Exporter").length}
+            icon={<ShopOutlined />}
+            color="#10B981"
+          />
+          <DashboardStatCard
+            title="Traders"
+            value={getDataByRole("IntermediaryTrader").length}
+            icon={<ClockCircleOutlined />}
+            color="#F59E0B"
+          />
+          <DashboardStatCard
+            title="Pending Actions"
+            value={pendingActionsCount}
+            icon={<GlobalOutlined />}
+            color="#6366F1"
+          />
+        </div>
 
         {/* Tabbed Tables */}
         <Card className="shadow-sm">

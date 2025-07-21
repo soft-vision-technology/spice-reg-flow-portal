@@ -7,6 +7,7 @@ import {
   ShopOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
+  FileDoneOutlined,
 } from "@ant-design/icons";
 import { TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -226,7 +227,7 @@ const RegistrationDashboard = () => {
         <DashboardStatCard
           title="Issued Certificates"
           value={statCardData.issuedCertificates}
-          icon={<ShopOutlined />}
+          icon={<FileDoneOutlined />}
           color="#10B981"
         />
         <DashboardStatCard
@@ -247,10 +248,10 @@ const RegistrationDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Registration Overview */}
         <Card className="shadow-lg border-0">
-          <div className="flex items-center justify-between mb-4">
-            <Title level={4} className="!mb-0 text-gray-800">
+          <div className="flex items-center justify-between">
+            <h5 className="flex text-lg font-semibold text-earth-700 justify-center mt-2 mb-2">
               Registration Status
-            </Title>
+            </h5>
             <CheckCircleOutlined className="text-[#10B981] text-lg" />
           </div>
           <RegistrationOverviewDonut data={registrationStatusData} />
@@ -258,10 +259,10 @@ const RegistrationDashboard = () => {
 
         {/* Trends */}
         <Card className="shadow-lg border-0">
-          <div className="flex items-center justify-between mb-4">
-            <Title level={4} className="!mb-0 text-gray-800">
+          <div className="flex items-center justify-between">
+            <h5 className="flex text-lg font-semibold text-earth-700 justify-center mt-2 mb-2">
               Registration Trends
-            </Title>
+            </h5>
             <TrendingUp className="text-[#E67324] text-lg" />
           </div>
           <RegistrationsOverTimeArea data={timeSeriesData} />
@@ -269,10 +270,10 @@ const RegistrationDashboard = () => {
 
         {/* Sector Performance */}
         <Card className="shadow-lg border-0">
-          <div className="flex items-center justify-between mb-4">
-            <Title level={4} className="!mb-0 text-gray-800">
+          <div className="flex items-center justify-between">
+            <h5 className="flex text-lg font-semibold text-earth-700 justify-center mt-2 mb-2">
               Sector Performance
-            </Title>
+            </h5>
             <BarChartOutlined className="text-[#F59E0B] text-lg" />
           </div>
           <SectorWiseBar data={sectorData} />
@@ -282,9 +283,9 @@ const RegistrationDashboard = () => {
       {/* Geographic Distribution - Full Width */}
       <Card className="shadow-lg border-0">
         <div className="flex items-center justify-between mb-6">
-          <Title level={4} className="!mb-0 text-gray-800">
+          <h5 className="flex text-lg font-semibold text-earth-700 justify-center mt-2 mb-2">
             Geographic Distribution
-          </Title>
+          </h5>
           <GlobalOutlined className="text-[#6366F1] text-lg" />
         </div>
         <GeographicDistributionChart
