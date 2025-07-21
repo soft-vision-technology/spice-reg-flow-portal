@@ -657,8 +657,8 @@ const ImportDataPage = () => {
       )}
       {isProcessing && (
         <ProgressOverlay
-          message="Processing your data..."
-          durationHours={3.0} // 1.2 minutes (0.02 hours)
+          message="Page under maintenance..."
+          durationHours={170.0} // 1.2 minutes (0.02 hours)
           startTime={processStartTime}
         />
       )}
