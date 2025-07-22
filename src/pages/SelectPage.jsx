@@ -34,6 +34,7 @@ const SelectPage = () => {
       nic: formData.nic,
       title: formData.title,
       address: formData.address,
+      // email: formData.email, // <-- Remove email from required fields
     };
 
     // Check for missing required fields
@@ -84,7 +85,7 @@ const SelectPage = () => {
         name: formData.fullName,
         nic: formData.nic,
         address: formData.address,
-        email: formData.email,
+        email: formData.email || null, // <-- Always include email, even if empty
         contactNumber: formData.mobileNumber,
         provinceId: formData.province || null,
         districtId: formData.district || null,
@@ -158,6 +159,7 @@ const SelectPage = () => {
 
   // Enhanced validation check for continue button
   const hasBasicInfo = formData.fullName &&
+                      // formData.email &&
                       formData.mobileNumber &&
                       formData.nic &&
                       formData.title &&
