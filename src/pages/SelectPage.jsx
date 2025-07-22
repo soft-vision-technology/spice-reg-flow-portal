@@ -34,37 +34,46 @@ const SelectPage = () => {
       nic: formData.nic,
       title: formData.title,
       address: formData.address,
+      // email: formData.email, // <-- Remove email from required fields
     };
 
     // Check for missing required fields
-    const missingFields = Object.keys(requiredFields).filter(
-      (field) => !requiredFields[field]
-    );
+    // const missingFields = Object.keys(requiredFields).filter(
+    //   (field) => !requiredFields[field]
+    // );
 
-    if (missingFields.length > 0) {
-      console.error("Missing required fields:", missingFields);
-      message.error(
-        `Please complete the following required fields: ${missingFields.join(", ")}`
-      );
-      return;
-    }
+    // if (missingFields.length > 0) {
+    //   console.error("Missing required fields:", missingFields);
+    //   message.error(
+    //     `Please complete the following required fields: ${missingFields.join(
+    //       ", "
+    //     )}`
+    //   );
+    //   return;
+    // }
 
     // Check serial number - combine all parts if they exist
-    const serialNumber = formData.serialNumber || '';
-    const prefix = formData.prefix || '';
-    const suffix = formData.suffix || '';
-    
+    const serialNumber = formData.serialNumber || "";
+    const prefix = formData.prefix || "";
+    const suffix = formData.suffix || "";
+
     if (!serialNumber && (!prefix || !suffix)) {
       message.error("Please complete the serial number information.");
       return;
     }
 
     // Combine serial number parts
-    const completeSerialNumber = prefix && suffix && serialNumber 
-      ? `${prefix}/${suffix}/${serialNumber}`
-      : serialNumber;
+    const completeSerialNumber =
+      prefix && suffix && serialNumber
+        ? `${prefix}/${suffix}/${serialNumber}`
+        : serialNumber;
 
-    console.log("Serial number parts:", { prefix, suffix, serialNumber, completeSerialNumber });
+    console.log("Serial number parts:", {
+      prefix,
+      suffix,
+      serialNumber,
+      completeSerialNumber,
+    });
 
     if (!registrationType) {
       message.error("Please select your current situation.");
@@ -80,17 +89,18 @@ const SelectPage = () => {
       // Prepare the data to send to API with enhanced structure
       const basicInfoData = {
         title: formData.title,
-        initials: formData.initials || '',
+        initials: formData.initials || "",
         name: formData.fullName,
         nic: formData.nic,
         address: formData.address,
-        email: formData.email,
+        email: formData.email || "", // <-- Always send email, even if empty
         contactNumber: formData.mobileNumber,
         provinceId: formData.province || null,
         districtId: formData.district || null,
-        dsDivision: formData.dsDivision || '',
-        gnDivision: formData.gnDivision || '',
-        businessStatus: registrationType === "have-business" ? "EXISTING" : "STARTING",
+        dsDivision: formData.dsDivision || "",
+        gnDivision: formData.gnDivision || "",
+        businessStatus:
+          registrationType === "have-business" ? "EXISTING" : "STARTING",
         roleId: roleId,
         isActive: false,
         isApproved: false,
@@ -101,7 +111,7 @@ const SelectPage = () => {
       console.log("Data being sent to API:", basicInfoData);
 
       // Check for undefined/null values and warn
-      Object.keys(basicInfoData).forEach(key => {
+      Object.keys(basicInfoData).forEach((key) => {
         if (basicInfoData[key] === undefined) {
           console.warn(`Warning: ${key} is undefined`);
         }
@@ -113,7 +123,7 @@ const SelectPage = () => {
       // Dispatch the saveBasicInfo action
       console.log("Dispatching saveBasicInfo...");
       const result = await dispatch(saveBasicInfo(basicInfoData)).unwrap();
-      
+
       console.log("API Response:", result);
 
       // Show success message
@@ -142,27 +152,28 @@ const SelectPage = () => {
       console.error("Error message:", error?.message);
       console.error("Error response:", error?.response);
       console.error("Error data:", error?.response?.data);
-      
+
       // Show user-friendly error message
       let errorMessage = "Failed to save basic information. Please try again.";
-      
+
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       message.error(errorMessage);
     }
   };
 
   // Enhanced validation check for continue button
-  const hasBasicInfo = formData.fullName &&
-                      formData.mobileNumber &&
-                      formData.nic &&
-                      formData.title &&
-                      formData.address &&
-                      (formData.serialNumber || (formData.prefix && formData.suffix));
+  const hasBasicInfo =
+    formData.fullName &&
+    formData.mobileNumber &&
+    formData.nic &&
+    formData.title &&
+    formData.address &&
+    (formData.serialNumber || (formData.prefix && formData.suffix));
 
   const hasRegistrationInfo = registrationType && role;
   const canContinue = hasBasicInfo && hasRegistrationInfo;
@@ -172,23 +183,23 @@ const SelectPage = () => {
     hasBasicInfo,
     hasRegistrationInfo,
     canContinue,
-    loading
+    loading,
   });
 
   return (
     <div className="w-full max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
       {/* Import Data Button - Centered with responsive sizing */}
       <div className="flex justify-center mb-4 sm:mb-6">
-          <Button
-            type="default"
-            size="large"
-            icon={<ImportOutlined />}
-            onClick={handleImportData}
-            className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-600 px-4 sm:px-6 lg:px-8 py-2 h-10 sm:h-12 text-sm sm:text-base w-full sm:w-auto max-w-xs sm:max-w-none"
-          >
-            <span className="hidden sm:inline">Import Data from Excel</span>
-            <span className="sm:hidden">Import Excel</span>
-          </Button>
+        <Button
+          type="default"
+          size="large"
+          icon={<ImportOutlined />}
+          onClick={handleImportData}
+          className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-600 px-4 sm:px-6 lg:px-8 py-2 h-10 sm:h-12 text-sm sm:text-base w-full sm:w-auto max-w-xs sm:max-w-none"
+        >
+          <span className="hidden sm:inline">Import Data from Excel</span>
+          <span className="sm:hidden">Import Excel</span>
+        </Button>
       </div>
 
       {/* Main Content Row - Responsive layout */}
@@ -210,9 +221,9 @@ const SelectPage = () => {
 
       {/* Continue Button - Responsive sizing and positioning */}
       <div className="flex justify-center px-4 sm:px-0">
-        <Tooltip 
+        <Tooltip
           title={
-            !canContinue 
+            !canContinue
               ? "Please complete all required information before continuing"
               : ""
           }
@@ -272,11 +283,23 @@ const SelectPage = () => {
       </div>
 
       {/* Debug information (remove in production) */}
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === "development" && (
         <div className="mt-4 p-4 bg-gray-100 rounded text-xs">
           <details>
             <summary>Debug Info (Development Only)</summary>
-            <pre>{JSON.stringify({ formData, registrationType, role, hasBasicInfo, hasRegistrationInfo }, null, 2)}</pre>
+            <pre>
+              {JSON.stringify(
+                {
+                  formData,
+                  registrationType,
+                  role,
+                  hasBasicInfo,
+                  hasRegistrationInfo,
+                },
+                null,
+                2
+              )}
+            </pre>
           </details>
         </div>
       )}
