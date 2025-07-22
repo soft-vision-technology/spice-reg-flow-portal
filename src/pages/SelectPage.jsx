@@ -30,7 +30,6 @@ const SelectPage = () => {
     // Enhanced validation - check all required fields
     const requiredFields = {
       fullName: formData.fullName,
-      email: formData.email,
       mobileNumber: formData.mobileNumber,
       nic: formData.nic,
       title: formData.title,
