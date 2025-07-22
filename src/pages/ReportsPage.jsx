@@ -366,54 +366,54 @@ const ReportsPage = () => {
       const dataToExport = tabData || filteredData;
       const doc = new jsPDF("l", "mm", "a4"); // Landscape orientation for better table fit
 
-      doc.addImage(gov_logo, "PNG", 15, 10, 20, 25);
-      doc.addImage(spice_logo, "PNG", 265, 10, 30, 30);
+      // doc.addImage(gov_logo, "PNG", 15, 10, 20, 25);
+      // doc.addImage(spice_logo, "PNG", 265, 10, 30, 30);
 
-      // Add title
-      doc.setFontSize(14);
-      doc.setTextColor(41, 128, 185);
-      doc.text(
-        "කුළුබඩු හා ඒ ආශ්‍රිත නිෂ්පාදන අලෙවි මණ්ඩලය",
-        doc.internal.pageSize.getWidth() / 2,
-        18,
-        { align: "center" }
-      );
-      doc.setFontSize(10);
-      doc.text(
-        "மசாலாவும் அது தொடர்பானது தயாரிப்புகள் சந்தைப்படுத்தல் வாரியம்",
-        doc.internal.pageSize.getWidth() / 2,
-        24,
-        { align: "center" }
-      );
-      doc.setFontSize(12);
-      doc.text(
-        "Spices and Allied Products Marketing Board",
-        doc.internal.pageSize.getWidth() / 2,
-        30,
-        { align: "center" }
-      );
+      // // Add title
+      // doc.setFontSize(14);
+      // doc.setTextColor(41, 128, 185);
+      // doc.text(
+      //   "කුළුබඩු හා ඒ ආශ්‍රිත නිෂ්පාදන අලෙවි මණ්ඩලය",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   18,
+      //   { align: "center" }
+      // );
+      // doc.setFontSize(10);
+      // doc.text(
+      //   "மசாலாவும் அது தொடர்பானது தயாரிப்புகள் சந்தைப்படுத்தல் வாரியம்",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   24,
+      //   { align: "center" }
+      // );
+      // doc.setFontSize(12);
+      // doc.text(
+      //   "Spices and Allied Products Marketing Board",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   30,
+      //   { align: "center" }
+      // );
 
-      doc.setFontSize(11);
-      doc.text(
-        "වැවිලි සහ ප්‍රජා යටිතල පහසුකම් අමාත්‍යංසය",
-        doc.internal.pageSize.getWidth() / 2,
-        36,
-        { align: "center" }
-      );
-      doc.setFontSize(9);
-      doc.text(
-        "பெருந்தோட்ட மற்றும் சமூக உட்கட்டமைப்பு வசதிகள் அமைச்சர்",
-        doc.internal.pageSize.getWidth() / 2,
-        41,
-        { align: "center" }
-      );
-      doc.setFontSize(10);
-      doc.text(
-        "Ministry of Plantation and Community Infrastructure",
-        doc.internal.pageSize.getWidth() / 2,
-        46,
-        { align: "center" }
-      );
+      // doc.setFontSize(11);
+      // doc.text(
+      //   "වැවිලි සහ ප්‍රජා යටිතල පහසුකම් අමාත්‍යංසය",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   36,
+      //   { align: "center" }
+      // );
+      // doc.setFontSize(9);
+      // doc.text(
+      //   "பெருந்தோட்ட மற்றும் சமூக உட்கட்டமைப்பு வசதிகள் அமைச்சர்",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   41,
+      //   { align: "center" }
+      // );
+      // doc.setFontSize(10);
+      // doc.text(
+      //   "Ministry of Plantation and Community Infrastructure",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   46,
+      //   { align: "center" }
+      // );
 
       // Add summary stats for the current tab
       const tabStats = {
