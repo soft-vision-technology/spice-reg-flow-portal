@@ -21,7 +21,7 @@ const ExporterPage = () => {
     }
 
     // Check if basic info is available (should have been filled in SelectPage)
-    const hasBasicInfo = formData.fullName && formData.email && formData.mobileNumber && formData.nic;
+    const hasBasicInfo = formData.fullName && formData.mobileNumber && formData.nic;
     if (!hasBasicInfo) {
       navigate("/select");
       message.warning("Please complete your basic information first");

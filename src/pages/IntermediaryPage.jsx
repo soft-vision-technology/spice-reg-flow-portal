@@ -25,7 +25,6 @@ const IntermediaryPage = () => {
     // Check if basic info is available (should have been filled in SelectPage)
     const hasBasicInfo =
       formData.fullName &&
-      formData.email &&
       formData.mobileNumber &&
       formData.nic;
     if (!hasBasicInfo) {
