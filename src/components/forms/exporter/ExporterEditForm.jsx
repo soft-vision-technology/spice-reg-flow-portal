@@ -459,123 +459,123 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
 
         {isExisting && (
           <Row gutter={16}>
-            <Col xs={24}>
-              <Form.Item
-                label="Export Spice Products & Values"
-                rules={[
-                  {
-                    validator: () => {
-                      const hasValidProduct = exportProducts.some(
-                        (product) => product.productId && product.value
-                      );
-                      return hasValidProduct
-                        ? Promise.resolve()
-                        : Promise.reject(
-                            new Error(
-                              "Please add at least one spice product with value"
-                            )
-                          );
-                    },
+          <Col xs={24}>
+            <Form.Item
+              label="Export Spice Products & Values"
+              rules={[
+                {
+                  validator: () => {
+                    const hasValidProduct = exportProducts.some(
+                      (product) => product.productId
+                    );
+                    return hasValidProduct
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error(
+                            "Please add at least one spice product with value"
+                          )
+                        );
                   },
-                ]}
-              >
-                <div className="space-y-4">
-                  {exportProducts.map((product, index) => (
-                    <Card key={index} size="small" className="bg-gray-50">
-                      <Row gutter={12} align="middle">
-                        <Col xs={24} sm={10}>
-                          <Select
-                            placeholder="Select spice product"
-                            value={product.productId}
-                            onChange={(value) =>
-                              updateExportProduct(index, "productId", value)
-                            }
-                            className="w-full"
-                            showSearch
-                            filterOption={(input, option) =>
-                              option.label
-                                .toLowerCase()
-                                .includes(input.toLowerCase())
-                            }
-                            options={formatSelects(productOptions).filter(
-                              (option) =>
-                                !exportProducts.some(
-                                  (p, i) =>
-                                    i !== index && p.productId === option.value
-                                )
-                            )}
-                          />
-                          <div className="mt-2 flex gap-4">
-                            <Checkbox
-                              checked={product.isRaw}
-                              onChange={(e) =>
-                                updateExportProduct(
-                                  index,
-                                  "isRaw",
-                                  e.target.checked
-                                )
-                              }
-                            >
-                              Raw
-                            </Checkbox>
-                            <Checkbox
-                              checked={product.isProcessed}
-                              onChange={(e) =>
-                                updateExportProduct(
-                                  index,
-                                  "isProcessed",
-                                  e.target.checked
-                                )
-                              }
-                            >
-                              Value Added
-                            </Checkbox>
-                          </div>
-                        </Col>
-                        <Col xs={24} sm={8}>
-                          <TextArea
-                            placeholder="Enter details (optional)"
-                            value={product.details}
+                },
+              ]}
+            >
+              <div className="space-y-4">
+                {exportProducts.map((product, index) => (
+                  <Card key={index} size="small" className="bg-gray-50">
+                    <Row gutter={12} align="middle">
+                      <Col xs={24} sm={10}>
+                        <Select
+                          placeholder="Select spice product"
+                          value={product.productId}
+                          onChange={(value) =>
+                            updateExportProduct(index, "productId", value)
+                          }
+                          className="w-full"
+                          showSearch
+                          filterOption={(input, option) =>
+                            option.label
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          options={formatSelects(productOptions).filter(
+                            (option) =>
+                              !exportProducts.some(
+                                (p, i) =>
+                                  i !== index && p.productId === option.value
+                              )
+                          )}
+                        />
+                        <div className="mt-2 flex gap-4">
+                          <Checkbox
+                            checked={product.isRaw}
                             onChange={(e) =>
                               updateExportProduct(
                                 index,
-                                "details",
-                                e.target.value
+                                "isRaw",
+                                e.target.checked
                               )
                             }
-                            className="w-full"
-                            style={{ height: "65px", resize: "none" }}
-                            maxLength={500}
-                          />
-                        </Col>
-                        <Col xs={24} sm={6}>
-                          <div className="flex flex-col gap-2">
-                            {exportProducts.length > 1 && (
-                              <Button
-                                type="text"
-                                danger
-                                icon={<DeleteOutlined />}
-                                onClick={() => removeExportProduct(index)}
-                                size="small"
-                              />
-                            )}
-                            {index === exportProducts.length - 1 && (
-                              <Button
-                                type="dashed"
-                                icon={<PlusOutlined />}
-                                onClick={addExportProduct}
-                                size="small"
-                              />
-                            )}
-                          </div>
-                        </Col>
-                      </Row>
-                    </Card>
-                  ))}
-                </div>
-              </Form.Item>
-            </Col>
-          </Row>
+                          >
+                            Raw
+                          </Checkbox>
+                          <Checkbox
+                            checked={product.isProcessed}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "isProcessed",
+                                e.target.checked
+                              )
+                            }
+                          >
+                            Value Added
+                          </Checkbox>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={12}>
+                        <TextArea
+                          placeholder="Enter details (optional)"
+                          value={product.details}
+                          onChange={(e) =>
+                            updateExportProduct(
+                              index,
+                              "details",
+                              e.target.value
+                            )
+                          }
+                          className="w-full"
+                          style={{ height: "65px", resize: "none" }}
+                          maxLength={500}
+                        />
+                      </Col>
+                      <Col xs={24} sm={2}>
+                        <div className="flex flex-col gap-2 justify-center items-center">
+                          {exportProducts.length > 1 && (
+                            <Button
+                              type="text"
+                              danger
+                              icon={<DeleteOutlined />}
+                              onClick={() => removeExportProduct(index)}
+                              size="small"
+                            />
+                          )}
+                          {index === exportProducts.length - 1 && (
+                            <Button
+                              type="dashed"
+                              icon={<PlusOutlined />}
+                              onClick={addExportProduct}
+                              size="small"
+                            />
+                          )}
+                        </div>
+                      </Col>
+                    </Row>
+                  </Card>
+                ))}
+              </div>
+            </Form.Item>
+          </Col>
+        </Row>
         )}
 
         <Row gutter={16}>

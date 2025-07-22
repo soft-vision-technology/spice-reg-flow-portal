@@ -55,7 +55,13 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       businessRegNo: roleData.businessRegNo,
       businessAddress: roleData.businessAddress,
       numberOfEmployees: roleData.numberOfEmployee?.id?.toString(),
-      certifications: roleData.certificate?.map((c) => c.id.toString()) || [],
+      certifications: Array.isArray(roleData.certificate)
+        ? roleData.certificate.map((c) => c.id?.toString())
+        : roleData.certificateId
+        ? [roleData.certificateId.toString()]
+        : roleData.certificate?.id
+        ? [roleData.certificate.id.toString()]
+        : [],
       yearsExporting: roleData.businessExperience?.id?.toString(),
       registrationDate: roleData.registrationDate
         ? dayjs(roleData.registrationDate)
@@ -78,6 +84,8 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
         ? roleData.certificate.map((c) => c.id?.toString())
         : roleData.certificateId
         ? [roleData.certificateId.toString()]
+        : roleData.certificate?.id
+        ? [roleData.certificate.id.toString()]
         : [],
       yearsExporting:
         roleData.businessExperience?.id?.toString() ||
@@ -580,10 +588,18 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
             </Form.Item>
           </Col>
         </Row>
-
-        <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
-          Submit Changes
-        </Button>
+        
+        <Row>
+          <Col>
+            <Button
+              type="primary"
+              onClick={handleSubmit}
+              className="bg-spice-500"
+            >
+              {isExisting ? "Update Entrepreneur" : "Create Entrepreneur"}
+            </Button>
+          </Col>
+        </Row>
       </Form>
     </div>
   );
