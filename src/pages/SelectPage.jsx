@@ -159,7 +159,6 @@ const SelectPage = () => {
 
   // Enhanced validation check for continue button
   const hasBasicInfo = formData.fullName &&
-                      formData.email &&
                       formData.mobileNumber &&
                       formData.nic &&
                       formData.title &&
