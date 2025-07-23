@@ -17,6 +17,7 @@ import {
   message,
   Modal,
   Descriptions,
+  List,
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -46,7 +47,10 @@ const ApprovalPage = () => {
     setLoading(true);
     axiosInstance
       .get(`/api/approval/get/${id}`)
-      .then((res) => setApproval(res.data?.newRequest))
+      .then((res) => {
+        setApproval(res.data?.newRequest);
+        setRemarks(res.data?.newRequest?.remarks || "");
+      })
       .catch(() => {
         setApproval(null);
         message.error("Failed to load approval request");
@@ -67,6 +71,15 @@ const ApprovalPage = () => {
         .finally(() => setCurrentLoading(false));
     }
   }, [approval]);
+
+  useEffect(() => {
+    if (approval?.status === "approved") {
+      form.setFieldsValue({ remarks: approval.remarks });
+    } else {
+      form.setFieldsValue({ remarks });
+    }
+    // eslint-disable-next-line
+  }, [approval, remarks]);
 
   const getStatusTag = (status) => {
     const statusConfig = {
@@ -162,27 +175,88 @@ const ApprovalPage = () => {
       title: "Current Value",
       dataIndex: "currentValue",
       key: "currentValue",
-      render: (value) => (
-        <Text type={value === "N/A" ? "secondary" : undefined}>{value}</Text>
-      ),
+      render: (value, record) =>
+        record.key === "products" && Array.isArray(record.currentValue) ? (
+          <List
+            size="small"
+            bordered
+            dataSource={record.currentValue}
+            renderItem={(item, idx) => (
+              <List.Item>
+                <div>
+                  <b>Product ID:</b> {item.productId} &nbsp;
+                  <b>Raw:</b> {item.isRaw ? "Yes" : "No"} &nbsp;
+                  <b>Value Added:</b> {item.isProcessed ? "Yes" : "No"} &nbsp;
+                  <b>Details:</b> {item.value}
+                </div>
+              </List.Item>
+            )}
+          />
+        ) : (
+          <Text type={value === "N/A" ? "secondary" : undefined}>{value}</Text>
+        ),
     },
     {
       title: "Requested Value",
       dataIndex: "requestedValue",
       key: "requestedValue",
-      render: (value) => <Text mark>{value}</Text>,
+      render: (value, record) =>
+        record.key === "products" && Array.isArray(record.requestedValue) ? (
+          <List
+            size="small"
+            bordered
+            dataSource={record.requestedValue}
+            renderItem={(item, idx) => (
+              <List.Item>
+                <div>
+                  <b>Product ID:</b> {item.productId} &nbsp;
+                  <b>Raw:</b> {item.isRaw ? "Yes" : "No"} &nbsp;
+                  <b>Value Added:</b> {item.isProcessed ? "Yes" : "No"} &nbsp;
+                  <b>Details:</b> {item.value}
+                </div>
+              </List.Item>
+            )}
+          />
+        ) : (
+          <Text mark>{value}</Text>
+        ),
     },
   ];
 
+  // Update createComparisonData to pass arrays for products
   const createComparisonData = () => {
     const requestData = approval?.requestData || {};
-    return Object.entries(requestData).map(([key, value]) => ({
-      key,
-      field: key,
-      currentValue:
-        currentData?.[key] !== undefined ? String(currentData[key]) : "N/A",
-      requestedValue: String(value),
-    }));
+    const data = [];
+
+    Object.entries(requestData).forEach(([key, value]) => {
+      if (key === "products" && Array.isArray(value)) {
+        // Current products (from currentData.businessProducts)
+        const currentProducts = Array.isArray(currentData?.businessProducts)
+          ? currentData.businessProducts
+          : [];
+
+        data.push({
+          key,
+          field: "Export Products",
+          currentValue: currentProducts,
+          requestedValue: value,
+        });
+      } else {
+        data.push({
+          key,
+          field: key,
+          currentValue:
+            currentData?.[key] !== undefined
+              ? Array.isArray(currentData[key])
+                ? currentData[key].join(", ")
+                : String(currentData[key])
+              : "N/A",
+          requestedValue: Array.isArray(value) ? value.join(", ") : String(value),
+        });
+      }
+    });
+
+    return data;
   };
 
   if (loading) {
@@ -269,20 +343,21 @@ const ApprovalPage = () => {
             <Form.Item
               label="Remarks"
               name="remarks"
-              rules={[
-                { required: false, message: "Remarks are required" },
-              ]}
+              rules={[{ required: false, message: "Remarks are required" }]}
             >
               <TextArea
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
                 placeholder="Please provide your remarks for this approval decision..."
                 rows={4}
-                disabled={submitting}
+                disabled={
+                  submitting ||
+                  approval.status !== "pending" 
+                }
               />
             </Form.Item>
 
-            {approval.status !== "approved" && (
+            {approval.status !== "approved" && approval.status !== "denied" && (
               <Form.Item>
                 <Space>
                   <Button

@@ -329,7 +329,7 @@ const EditPage = ({ userId, onUserUpdate }) => {
                 {editRoleData === 3 && (
                   <ExporterEditForm roleData={roleData} isExisting={true} userId={id}/>
                 )}
-                {editRoleData ===1 && (
+                {editRoleData === 1 && (
                   <EntrepreneurEditForm roleData={roleData} isExisting={true}/>
                 )}
                 {editRoleData === 2 && (
