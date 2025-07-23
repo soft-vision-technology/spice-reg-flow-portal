@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { Form, Input, Select, DatePicker, Button, Row, Col, Card, Checkbox } from "antd";
+import {
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  Button,
+  Row,
+  Col,
+  Card,
+  Checkbox,
+} from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
@@ -49,9 +59,15 @@ const TraderEditForm = ({ roleData, isExisting }) => {
       businessName: roleData.businessName,
       businessRegistrationNumber: roleData.businessRegNo,
       businessAddress: roleData.businessAddress,
-      numberOfEmployees: roleData.numberOfEmployee?.id?.toString() || roleData.numberOfEmployeeId?.toString(),
-      yearsTrading: roleData.businessExperience?.id?.toString() || roleData.businessExperienceId?.toString(),
-      registrationDate: roleData.businessStartDate ? dayjs(roleData.businessStartDate) : undefined,
+      numberOfEmployees:
+        roleData.numberOfEmployee?.id?.toString() ||
+        roleData.numberOfEmployeeId?.toString(),
+      yearsTrading:
+        roleData.businessExperience?.id?.toString() ||
+        roleData.businessExperienceId?.toString(),
+      registrationDate: roleData.businessStartDate
+        ? dayjs(roleData.businessStartDate)
+        : undefined,
       additionalInfo: roleData.businessDescription || "",
     });
 
@@ -59,9 +75,15 @@ const TraderEditForm = ({ roleData, isExisting }) => {
       businessName: roleData.businessName,
       businessRegistrationNumber: roleData.businessRegNo,
       businessAddress: roleData.businessAddress,
-      numberOfEmployees: roleData.numberOfEmployee?.id?.toString() || roleData.numberOfEmployeeId?.toString(),
-      yearsTrading: roleData.businessExperience?.id?.toString() || roleData.businessExperienceId?.toString(),
-      registrationDate: roleData.businessStartDate ? dayjs(roleData.businessStartDate).format("YYYY-MM-DD") : undefined,
+      numberOfEmployees:
+        roleData.numberOfEmployee?.id?.toString() ||
+        roleData.numberOfEmployeeId?.toString(),
+      yearsTrading:
+        roleData.businessExperience?.id?.toString() ||
+        roleData.businessExperienceId?.toString(),
+      registrationDate: roleData.businessStartDate
+        ? dayjs(roleData.businessStartDate).format("YYYY-MM-DD")
+        : undefined,
       additionalInfo: roleData.businessDescription || "",
     });
 
@@ -83,7 +105,7 @@ const TraderEditForm = ({ roleData, isExisting }) => {
     setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
   }, [roleData, form]);
 
-const handleChange = (changedValues, allValues) => {
+  const handleChange = (changedValues, allValues) => {
     // Format the data according to API requirements
     const formattedData = {
       businessName: allValues.businessName || null,
@@ -127,7 +149,10 @@ const handleChange = (changedValues, allValues) => {
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, details: "", isRaw: false, isProcessed: false }]);
+    setExportProducts([
+      ...exportProducts,
+      { productId: null, details: "", isRaw: false, isProcessed: false },
+    ]);
   };
 
   const removeExportProduct = (index) => {
@@ -162,8 +187,12 @@ const handleChange = (changedValues, allValues) => {
 
       // Handle date comparison
       if (key === "registrationDate") {
-        currentValue = currentValue ? dayjs(currentValue).format("YYYY-MM-DD") : undefined;
-        originalValue = originalValue ? dayjs(originalValue).format("YYYY-MM-DD") : undefined;
+        currentValue = currentValue
+          ? dayjs(currentValue).format("YYYY-MM-DD")
+          : undefined;
+        originalValue = originalValue
+          ? dayjs(originalValue).format("YYYY-MM-DD")
+          : undefined;
       }
 
       // Handle array comparison
@@ -179,10 +208,12 @@ const handleChange = (changedValues, allValues) => {
     // Compare products
     if (!arraysEqual(exportProducts, originalProducts)) {
       changedData.businessProducts = exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter((product) => product.productId && product.details)
         .map((product) => ({
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details, // keep as string, or parse if needed
         }));
     }
 
@@ -264,7 +295,7 @@ const handleChange = (changedValues, allValues) => {
               isProcessed: product.isProcessed,
               value: product.details || "",
             })),
-          userId: id? parseInt(id) : null,
+          userId: id ? parseInt(id) : null,
         };
 
         const response = await axiosInstance.post(
@@ -283,7 +314,7 @@ const handleChange = (changedValues, allValues) => {
       );
       navigate("/user-management");
       alert("Success!");
-      
+
       console.log("Approval request submitted successfully:", response.data);
     } catch (error) {
       console.error("Failed to submit approval request:", error);
@@ -349,24 +380,24 @@ const handleChange = (changedValues, allValues) => {
         </Row>
 
         <Row gutter={16}>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Registration Date"
-                name="registrationDate"
-                rules={[
-                  {
-                    required: false,
-                    message: "Please select registration date",
-                  },
-                ]}
-              >
-                <DatePicker
-                  format="YYYY-MM-DD"
-                  style={{ width: "100%" }}
-                  placeholder="Select date"
-                />
-              </Form.Item>
-            </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Registration Date"
+              name="registrationDate"
+              rules={[
+                {
+                  required: false,
+                  message: "Please select registration date",
+                },
+              ]}
+            >
+              <DatePicker
+                format="YYYY-MM-DD"
+                style={{ width: "100%" }}
+                placeholder="Select date"
+              />
+            </Form.Item>
+          </Col>
           <Col xs={24} sm={12}>
             <Form.Item
               label="Years in Trading Business"
@@ -528,9 +559,13 @@ const handleChange = (changedValues, allValues) => {
               />
             </Form.Item>
           </Col>
-          <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
-          Submit Changes
-        </Button>
+          <Button
+            type="primary"
+            onClick={handleSubmit}
+            className="bg-spice-500"
+          >
+            Submit Changes
+          </Button>
         </Row>
       </Form>
     </div>

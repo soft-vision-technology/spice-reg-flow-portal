@@ -126,7 +126,9 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       businessRegNo: allValues.businessRegNo || null,
       businessAddress: allValues.businessAddress || null,
       numberOfEmployees: allValues.numberOfEmployees || null,
-      certifications: allValues.certifications || [],
+      certificateId: allValues.exportCertifications
+        ? parseInt(allValues.exportCertifications)
+        : null,
       yearsExporting: allValues.yearsExporting || null,
       businessExperience: allValues.businessExperience || null,
       registrationDate: allValues.registrationDate

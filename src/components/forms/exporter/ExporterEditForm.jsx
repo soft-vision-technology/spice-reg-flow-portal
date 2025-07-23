@@ -63,13 +63,9 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
         ? dayjs(roleData.startDate)
         : undefined,
       businessDescription: roleData.businessDescription,
-      certifications: Array.isArray(roleData.certificate)
-        ? roleData.certificate.map((c) => c.id?.toString())
-        : roleData.certificateId
-        ? [roleData.certificateId.toString()]
-        : roleData.certificate?.id
-        ? [roleData.certificate.id.toString()]
-        : [],
+      certifications: Array.isArray(roleData.certificateId)
+        ? roleData?.certificateId?.map((c) => c?.toString())
+        : roleData.certificateId,
     });
 
     // Store original data for comparison
@@ -88,13 +84,9 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
         ? dayjs(roleData.startDate).format("YYYY-MM-DD")
         : undefined,
       businessDescription: roleData.businessDescription,
-      certifications: Array.isArray(roleData.certificate)
-        ? roleData.certificate.map((c) => c.id?.toString())
-        : roleData.certificateId
-        ? [roleData.certificateId.toString()]
-        : roleData.certificate?.id
-        ? [roleData.certificate.id.toString()]
-        : [],
+      certifications: Array.isArray(roleData.certificateId)
+        ? roleData?.certificateId?.map((c) => c?.toString())
+        : roleData.certificateId || [],
     });
 
     // Set export products
@@ -226,11 +218,13 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
 
     // Compare products
     if (!arraysEqual(exportProducts, originalProducts)) {
-      changedData.businessProducts = exportProducts
-        .filter((product) => product.productId && product.value)
+      changedData.products = exportProducts
+        .filter((product) => product.productId)
         .map((product) => ({
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         }));
     }
 
