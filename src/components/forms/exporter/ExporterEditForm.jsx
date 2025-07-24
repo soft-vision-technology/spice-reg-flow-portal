@@ -27,7 +27,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
   const [form] = Form.useForm();
   const { id } = useParams();
   const [exportProducts, setExportProducts] = useState([
-    {id: null, productId: null, details: "", isRaw: false, isProcessed: false },
+    { id: null, productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   const [originalData, setOriginalData] = useState({});
