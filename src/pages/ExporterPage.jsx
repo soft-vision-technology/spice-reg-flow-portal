@@ -227,7 +227,6 @@ const ExporterPage = () => {
         submissionData
       );
       message.success("Exporter registration submitted successfully!");
-
       navigate("/reports");
     } catch (error) {
       console.error("Submission error:", error);
