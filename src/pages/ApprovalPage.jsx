@@ -26,6 +26,13 @@ import {
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "../api/axiosInstance";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchCertificateOptions,
+  fetchExperienceOptions,
+  fetchNumEmployeeOptions,
+  fetchProductOptions,
+} from "../store/slices/utilsSlice";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -34,6 +41,7 @@ const { confirm } = Modal;
 const ApprovalPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [approval, setApproval] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentData, setCurrentData] = useState(null);
@@ -80,6 +88,13 @@ const ApprovalPage = () => {
     }
     // eslint-disable-next-line
   }, [approval, remarks]);
+
+  useEffect(() => {
+    dispatch(fetchNumEmployeeOptions());
+    dispatch(fetchExperienceOptions());
+    dispatch(fetchCertificateOptions());
+    dispatch(fetchProductOptions());
+  }, [dispatch]);
 
   const getStatusTag = (status) => {
     const statusConfig = {
@@ -164,6 +179,104 @@ const ApprovalPage = () => {
     });
   };
 
+  // Get lookup options from utilsSlice
+  const numberOfEmployeeOptions = useSelector(
+    (state) => state.utils.numEmployeeOptions
+  );
+  const experienceOptions = useSelector(
+    (state) => state.utils.experienceOptions
+  );
+  const certificateOptions = useSelector(
+    (state) => state.utils.certificateOptions
+  );
+  const productOptions = useSelector((state) => state.utils.productOptions);
+
+  // Helper functions to map IDs to names
+  const getOptionName = (options, id) => {
+    const found = options.find((opt) => String(opt.id) === String(id));
+    return found ? found.name : id;
+  };
+
+  const getProductName = (id) => {
+    const found = productOptions.find((opt) => String(opt.id) === String(id));
+    return found ? found.name : id;
+  };
+
+  const getCertificateNames = (ids) => {
+    if (!Array.isArray(ids)) return "";
+    return ids
+      .map((id) => getOptionName(certificateOptions, id))
+      .join(", ");
+  };
+
+  // Update createComparisonData to map IDs to names
+  const createComparisonData = () => {
+    const requestData = approval?.requestData || {};
+    const data = [];
+
+    Object.entries(requestData).forEach(([key, value]) => {
+      if (key === "products" && Array.isArray(value)) {
+        const currentProducts = Array.isArray(currentData?.businessProducts)
+          ? currentData.businessProducts
+          : [];
+        data.push({
+          key,
+          field: "Export Products",
+          currentValue: currentProducts.map((p) => ({
+            ...p,
+            productName: getProductName(p.productId),
+          })),
+          requestedValue: value.map((p) => ({
+            ...p,
+            productName: getProductName(p.productId),
+          })),
+        });
+      } else if (key === "numberOfEmployeeId") {
+        data.push({
+          key,
+          field: "Number of Employees",
+          currentValue: getOptionName(
+            numberOfEmployeeOptions,
+            currentData?.numberOfEmployeeId
+          ),
+          requestedValue: getOptionName(numberOfEmployeeOptions, value),
+        });
+      } else if (key === "businessExperienceId") {
+        data.push({
+          key,
+          field: "Business Experience",
+          currentValue: getOptionName(
+            experienceOptions,
+            currentData?.businessExperienceId
+          ),
+          requestedValue: getOptionName(experienceOptions, value),
+        });
+      } else if (key === "certificateId") {
+        data.push({
+          key,
+          field: "Certifications",
+          currentValue: getCertificateNames(currentData?.certificateId),
+          requestedValue: getCertificateNames(value),
+        });
+      } else {
+        data.push({
+          key,
+          field: key,
+          currentValue:
+            currentData?.[key] !== undefined
+              ? Array.isArray(currentData[key])
+                ? currentData[key].join(", ")
+                : String(currentData[key])
+              : "N/A",
+          requestedValue: Array.isArray(value) ? value.join(", ") : String(value),
+        });
+      }
+    });
+
+    return data;
+  };
+
+  // Update createComparisonColumns to show productName
   const createComparisonColumns = () => [
     {
       title: "Field",
@@ -184,7 +297,7 @@ const ApprovalPage = () => {
             renderItem={(item, idx) => (
               <List.Item>
                 <div>
-                  <b>Product ID:</b> {item.productId} &nbsp;
+                  <b>Product:</b> {item.productName} &nbsp;
                   <b>Raw:</b> {item.isRaw ? "Yes" : "No"} &nbsp;
                   <b>Value Added:</b> {item.isProcessed ? "Yes" : "No"} &nbsp;
                   <b>Details:</b> {item.value}
@@ -209,7 +322,7 @@ const ApprovalPage = () => {
             renderItem={(item, idx) => (
               <List.Item>
                 <div>
-                  <b>Product ID:</b> {item.productId} &nbsp;
+                  <b>Product:</b> {item.productName} &nbsp;
                   <b>Raw:</b> {item.isRaw ? "Yes" : "No"} &nbsp;
                   <b>Value Added:</b> {item.isProcessed ? "Yes" : "No"} &nbsp;
                   <b>Details:</b> {item.value}
@@ -222,42 +335,6 @@ const ApprovalPage = () => {
         ),
     },
   ];
-
-  // Update createComparisonData to pass arrays for products
-  const createComparisonData = () => {
-    const requestData = approval?.requestData || {};
-    const data = [];
-
-    Object.entries(requestData).forEach(([key, value]) => {
-      if (key === "products" && Array.isArray(value)) {
-        // Current products (from currentData.businessProducts)
-        const currentProducts = Array.isArray(currentData?.businessProducts)
-          ? currentData.businessProducts
-          : [];
-
-        data.push({
-          key,
-          field: "Export Products",
-          currentValue: currentProducts,
-          requestedValue: value,
-        });
-      } else {
-        data.push({
-          key,
-          field: key,
-          currentValue:
-            currentData?.[key] !== undefined
-              ? Array.isArray(currentData[key])
-                ? currentData[key].join(", ")
-                : String(currentData[key])
-              : "N/A",
-          requestedValue: Array.isArray(value) ? value.join(", ") : String(value),
-        });
-      }
-    });
-
-    return data;
-  };
 
   if (loading) {
     return (
