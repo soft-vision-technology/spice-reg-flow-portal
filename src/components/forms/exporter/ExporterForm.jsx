@@ -128,7 +128,7 @@ const ExporterForm = ({ isExisting }) => {
             product.productId && (product.details || product.details === "")
         )
         .map((product) => ({
-          productId: parseInt(product.productId),
+          productId: Number(product.productId),
           isRaw: product.isRaw,
           isProcessed: product.isProcessed,
           value: product.details || "",
