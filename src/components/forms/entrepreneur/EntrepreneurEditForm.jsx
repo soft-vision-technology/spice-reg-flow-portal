@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { Form, Input, Select, DatePicker, Button, Row, Col, Card, Checkbox } from "antd";
+import {
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  Button,
+  Row,
+  Col,
+  Card,
+  Checkbox,
+} from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
 import { useDispatch, useSelector } from "react-redux";
@@ -55,13 +65,9 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       businessRegNo: roleData.businessRegNo,
       businessAddress: roleData.businessAddress,
       numberOfEmployees: roleData.numberOfEmployee?.id?.toString(),
-      certifications: Array.isArray(roleData.certificate)
-        ? roleData.certificate.map((c) => c.id?.toString())
-        : roleData.certificateId
-        ? [roleData.certificateId.toString()]
-        : roleData.certificate?.id
-        ? [roleData.certificate.id.toString()]
-        : [],
+      certifications: Array.isArray(roleData.certificateId)
+        ? roleData?.certificateId?.map((c) => c?.toString())
+        : roleData.certificateId,
       yearsExporting: roleData.businessExperience?.id?.toString(),
       registrationDate: roleData.registrationDate
         ? dayjs(roleData.registrationDate)
@@ -80,13 +86,9 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       numberOfEmployees:
         roleData.numberOfEmployee?.id?.toString() ||
         roleData.numberOfEmployeeId?.toString(),
-      certifications: Array.isArray(roleData.certificate)
-        ? roleData.certificate.map((c) => c.id?.toString())
-        : roleData.certificateId
-        ? [roleData.certificateId.toString()]
-        : roleData.certificate?.id
-        ? [roleData.certificate.id.toString()]
-        : [],
+      certifications: Array.isArray(roleData.certificateId)
+        ? roleData?.certificateId?.map((c) => c?.toString())
+        : roleData.certificateId || [],
       yearsExporting:
         roleData.businessExperience?.id?.toString() ||
         roleData.businessExperienceId?.toString(),
@@ -124,7 +126,9 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       businessRegNo: allValues.businessRegNo || null,
       businessAddress: allValues.businessAddress || null,
       numberOfEmployees: allValues.numberOfEmployees || null,
-      certifications: allValues.certifications || [],
+      certificateId: allValues.exportCertifications
+        ? parseInt(allValues.exportCertifications)
+        : null,
       yearsExporting: allValues.yearsExporting || null,
       businessExperience: allValues.businessExperience || null,
       registrationDate: allValues.registrationDate
@@ -161,7 +165,10 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, details: "", isRaw: false, isProcessed: false }]);
+    setExportProducts([
+      ...exportProducts,
+      { productId: null, details: "", isRaw: false, isProcessed: false },
+    ]);
   };
 
   const removeExportProduct = (index) => {
@@ -217,10 +224,12 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
     // Compare products
     if (!arraysEqual(exportProducts, originalProducts)) {
       changedData.products = exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter((product) => product.productId)
         .map((product) => ({
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         }));
     }
 
@@ -232,7 +241,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
     const fieldMapping = {
       businessRegNo: "businessRegNo",
       numberOfEmployees: "numberOfEmployeeId",
-      certifications: "certificateIds",
+      certifications: "certificateId",
       yearsExporting: "businessExperienceId",
       businessExperience: "businessExperienceId",
     };
@@ -278,7 +287,6 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       const mappedChanges = mapFieldNames(changedFields);
       console.log("firstdddd", roleData);
 
-  
       if (!roleData) {
         // Use all form values, not just changed fields
         const allValues = await form.validateFields();
@@ -291,8 +299,8 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           numberOfEmployeeId: mappedAll.numberOfEmployeeId
             ? parseInt(mappedAll.numberOfEmployeeId)
             : null,
-          certificateId: Array.isArray(mappedAll.certificateIds)
-            ? mappedAll.certificateIds.map((id) => parseInt(id))
+          certificateId: Array.isArray(mappedAll.certificateId)
+            ? mappedAll.certificateId.map((id) => parseInt(id))
             : [],
           businessExperienceId: mappedAll.businessExperienceId
             ? parseInt(mappedAll.businessExperienceId)
@@ -327,7 +335,6 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       };
 
       console.log("Submitting changes:", approvalRequest);
-
 
       const response = await axiosInstance.post(
         "/api/approval/create",
@@ -588,7 +595,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
             </Form.Item>
           </Col>
         </Row>
-        
+
         <Row>
           <Col>
             <Button

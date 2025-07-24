@@ -117,20 +117,7 @@ const EntrepreneurForm = (props) => {
 
     return formattedData;
   };
-
-  useEffect(() => {
-    form.setFieldsValue({
-      products: exportProducts
-        .filter((product) => product.productId && (product.details || product.details === ""))
-        .map((product) => ({
-          productId: parseInt(product.productId),
-          isRaw: product.isRaw,
-          isProcessed: product.isProcessed,
-          value: product.details || "",
-        })),
-    });
-  }, [exportProducts, form]);
-
+  
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h3 className="text-xl font-medium text-earth-700 mb-6">
@@ -354,7 +341,7 @@ const EntrepreneurForm = (props) => {
           </Col>
           <Col xs={24} sm={12}>
             <Form.Item
-              label="Years in Export Business"
+              label="Business Experience"
               name="businessExperienceId"
               rules={[
                 { required: false, message: "Please select years in exports" },
@@ -385,10 +372,6 @@ const EntrepreneurForm = (props) => {
             </Form.Item>
           </Col>
         </Row>
-
-        <Form.Item name="products" style={{ display: "none" }}>
-          <Input type="hidden" />
-        </Form.Item>
       </Form>
     </div>
   );

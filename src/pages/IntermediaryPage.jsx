@@ -16,17 +16,13 @@ const IntermediaryPage = () => {
     // Check if user has completed the registration type and role selection
     if (!registrationType || !role || role !== "intermediary") {
       navigate("/select");
-      message.warning(
-        "Please complete the registration selection first"
-      );
+      message.warning("Please complete the registration selection first");
       return;
     }
 
     // Check if basic info is available (should have been filled in SelectPage)
     const hasBasicInfo =
-      formData.fullName &&
-      formData.mobileNumber &&
-      formData.nic;
+      formData.fullName && formData.mobileNumber && formData.nic;
     if (!hasBasicInfo) {
       navigate("/select");
       message.warning("Please complete your basic information first");
@@ -78,7 +74,9 @@ const IntermediaryPage = () => {
 
             {/* Registration Type Summary */}
             <div className="border-b pb-4">
-              <h4 className="font-medium text-gray-700 mb-3">Registration Details</h4>
+              <h4 className="font-medium text-gray-700 mb-3">
+                Registration Details
+              </h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Registration Type:</span>{" "}
@@ -145,11 +143,14 @@ const IntermediaryPage = () => {
               {/* Products Summary */}
               {formData.products && formData.products.length > 0 && (
                 <div className="mt-4">
-                  <h5 className="font-medium text-gray-600 mb-2">Trading Products:</h5>
+                  <h5 className="font-medium text-gray-600 mb-2">
+                    Trading Products:
+                  </h5>
                   <div className="space-y-1">
                     {formData.products.map((product, index) => (
                       <div key={index} className="text-sm">
-                        Product ID: {product.productId}, Value: Rs.{product.value?.toLocaleString()}
+                        Product ID: {product.productId}, Value: Rs.
+                        {product.value?.toLocaleString()}
                       </div>
                     ))}
                   </div>
@@ -160,8 +161,8 @@ const IntermediaryPage = () => {
 
           <div className="mt-6 p-4 bg-blue-50 rounded-md">
             <p className="text-sm text-blue-700">
-              Please review all information carefully before submitting. 
-              You can go back to make changes if needed.
+              Please review all information carefully before submitting. You can
+              go back to make changes if needed.
             </p>
           </div>
         </div>
@@ -198,40 +199,53 @@ const IntermediaryPage = () => {
   };
 
   const handleSubmit = async () => {
-  try {
-    // Format the final submission data according to Prisma model requirements
-    const submissionData = {
-      // IntermediaryTrader fields
-      businessName: formData.businessName || null,
-      businessRegNo: formData.businessRegNo || null,
-      businessAddress: formData.businessAddress || null,
-      numberOfEmployeeId: formData.numberOfEmployeeId ? parseInt(formData.numberOfEmployeeId) : null,
-      businessExperienceId: formData.businessExperienceId ? parseInt(formData.businessExperienceId) : null,
-      businessStartDate: formData.registrationDate ? new Date(formData.registrationDate) : new Date(),
-      businessDescription: formData.additionalInfo || null,
-      userId: parseInt(formData.userId), // This should be the created User ID
-      
-      // BusinessProducts array - needs to be handled separately or as nested create
-      products: (formData.products || [])
-        .filter(product => product.productId && product.value)
-        .map(product => ({
-          productId: parseInt(product.productId),
-          value: parseFloat(product.value)
-        }))
-    };
+    try {
+      // Format the final submission data according to Prisma model requirements
+      const submissionData = {
+        // IntermediaryTrader fields
+        businessName: formData.businessName || null,
+        businessRegNo: formData.businessRegNo || null,
+        businessAddress: formData.businessAddress || null,
+        numberOfEmployeeId: formData.numberOfEmployeeId
+          ? parseInt(formData.numberOfEmployeeId)
+          : null,
+        businessExperienceId: formData.businessExperienceId
+          ? parseInt(formData.businessExperienceId)
+          : null,
+        businessStartDate: formData.registrationDate
+          ? new Date(formData.registrationDate)
+          : new Date(),
+        businessDescription: formData.additionalInfo || null,
+        userId: parseInt(formData.userId), // This should be the created User ID
 
+        // BusinessProducts array - needs to be handled separately or as nested create
+        products: (formData.products || [])
+          .filter((product) => product.productId && product.value)
+          .map((product) => ({
+            productId: parseInt(product.productId),
+            isRaw: product.isRaw || false,
+            isProcessed: product.isProcessed || false,
+            value: product.value || "",
+          })),
+      };
 
-    // Send to intermediary trader endpoint
-    const response = await axiosInstance.post("/api/trader", submissionData);
-    
-    message.success("Intermediary trader registration submitted successfully!");
-    navigate("/reports");
-  } catch (error) {
-    console.error("Submission error:", error);
-    console.error("Error details:", error.response?.data);
-    message.error(`Failed to submit registration: ${error.response?.data?.message || error.message}`);
-  }
-};
+      // Send to intermediary trader endpoint
+      const response = await axiosInstance.post("/api/trader", submissionData);
+
+      message.success(
+        "Intermediary trader registration submitted successfully!"
+      );
+      navigate("/reports");
+    } catch (error) {
+      console.error("Submission error:", error);
+      console.error("Error details:", error.response?.data);
+      message.error(
+        `Failed to submit registration: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
+  };
 
   // Show loading or redirect message while checking prerequisites
   if (!registrationType || !role || role !== "intermediary") {
@@ -250,10 +264,14 @@ const IntermediaryPage = () => {
         <h1 className="text-2xl font-bold text-earth-700">
           Intermediary Trader Registration
           {registrationType === "like-to-start" && (
-            <span className="text-lg font-normal text-gray-600 ml-2">(Startup)</span>
+            <span className="text-lg font-normal text-gray-600 ml-2">
+              (Startup)
+            </span>
           )}
           {registrationType === "have-business" && (
-            <span className="text-lg font-normal text-gray-600 ml-2">(Existing Business)</span>
+            <span className="text-lg font-normal text-gray-600 ml-2">
+              (Existing Business)
+            </span>
           )}
         </h1>
         <p className="text-gray-500">
@@ -270,9 +288,7 @@ const IntermediaryPage = () => {
       <div className="mb-8">{steps[current].content}</div>
 
       <div className="flex justify-between mt-8">
-        {current > 0 && (
-          <Button onClick={prev}>Previous</Button>
-        )}
+        {current > 0 && <Button onClick={prev}>Previous</Button>}
 
         <div className="flex-1"></div>
 
@@ -283,7 +299,11 @@ const IntermediaryPage = () => {
         )}
 
         {current === steps.length - 1 && (
-          <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
+          <Button
+            type="primary"
+            onClick={handleSubmit}
+            className="bg-spice-500"
+          >
             Submit Registration
           </Button>
         )}

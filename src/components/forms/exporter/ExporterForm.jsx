@@ -114,9 +114,9 @@ const ExporterForm = ({ isExisting }) => {
       exportStartYear: values.exportStartDate
         ? dayjs(values.exportStartDate).format("YYYY")
         : null,
-      certificateId: values.certificateId
-        ? parseInt(values.certificateId)
-        : null,
+      certifications: Array.isArray(values.certificateId)
+        ? values.certificateId
+        : values.certificateId ? [values.certificateId] : [],
       startDate: values.exportStartDate
         ? dayjs(values.exportStartDate).toISOString()
         : null,
@@ -142,7 +142,12 @@ const ExporterForm = ({ isExisting }) => {
         Export Operation Information
       </h3>
 
-      <Form form={form} layout="vertical" onValuesChange={handleChange} initialValues={formData}>
+      <Form
+        form={form}
+        layout="vertical"
+        onValuesChange={handleChange}
+        initialValues={formData}
+      >
         <Row gutter={16}>
           <Col xs={24} sm={12}>
             <Form.Item
@@ -370,7 +375,7 @@ const ExporterForm = ({ isExisting }) => {
           <Col xs={24}>
             <Form.Item
               label="Certifications"
-              name="certifications"
+              name="certificateId"
               rules={[
                 {
                   required: false,

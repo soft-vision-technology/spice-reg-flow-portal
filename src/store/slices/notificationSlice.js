@@ -23,6 +23,27 @@ export const fetchNotifications = createAsyncThunk(
   }
 );
 
+export const fetchReadNotifications = createAsyncThunk(
+  "notifications/fetchReadNotifications",
+  async () => {
+    const res = await axiosInstance.get("/api/notification/get/read");
+    return res.data.map((n) => ({
+      id: n.id,
+      title: n.type,
+      message: n.details,
+      time: formatTime(n.createdAt),
+      timestamp: new Date(n.createdAt),
+      read: n.isRead,
+      priority: n.requestApprovalId ? "high" : "low",
+      type: n.requestApprovalId ? "approval" : "information",
+      sendUrl: n.sendUrl,
+      requestApprovalId: n.requestApprovalId,
+      adminId: n.adminId,
+      readTime: n.readTime,
+    }));
+  }
+);
+
 export const markNotificationAsRead = createAsyncThunk(
   "notifications/markNotificationAsRead",
   async (notificationId) => {
@@ -46,14 +67,6 @@ function formatTime(dateString) {
   if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
   return `${Math.floor(diff / 86400)} days ago`;
-}
-function getNotificationType(type) {
-  if (!type) return "info";
-  const t = type.toLowerCase();
-  if (t.includes("error")) return "error";
-  if (t.includes("success") || t.includes("approved")) return "success";
-  if (t.includes("warning")) return "warning";
-  return "info";
 }
 
 const notificationSlice = createSlice({
@@ -95,6 +108,18 @@ const notificationSlice = createSlice({
         state.loading = false;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(fetchReadNotifications.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchReadNotifications.fulfilled, (state, action) => {
+        state.items = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchReadNotifications.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });
