@@ -92,6 +92,7 @@ const ExporterForm = ({ isExisting }) => {
 
   const handleChange = (changedValues, allValues) => {
     const formattedData = formatFormData(allValues);
+    console.log(formattedData.products)
     updateFormData(formattedData);
   };
 
