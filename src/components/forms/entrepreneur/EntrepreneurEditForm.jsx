@@ -38,7 +38,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
 
   console.log("data:: ", roleData);
   const [exportProducts, setExportProducts] = useState([
-    {id: null, productId: null, details: "", isRaw: false, isProcessed: false },
+    { id: null, productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   // Store original data for comparison
@@ -103,7 +103,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
     // Set export products
     const initialProducts = Array.isArray(roleData.businessProducts)
       ? roleData.businessProducts.map((bp) => ({
-        id: bp.id || null,
+         id: bp.id || null,
           productId:
             bp.productId?.toString() || bp.product?.id?.toString() || null,
           isRaw: bp.isRaw || false,
