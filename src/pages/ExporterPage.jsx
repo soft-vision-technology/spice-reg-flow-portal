@@ -222,6 +222,8 @@ const ExporterPage = () => {
         startDate: formData.startDate || null,
       };
 
+      console.log(formData);
+
       const response = await axiosInstance.post(
         "/api/exporter/",
         submissionData
