@@ -639,10 +639,10 @@ const RegisterUser = () => {
                 }
               />
             </Form.Item>
-            <div className="text-sm text-gray-500 mt-1">
+            {/* <div className="text-sm text-gray-500 mt-1">
               Password must be at least 8 characters with uppercase, lowercase,
               and number
-            </div>
+            </div> */}
           </Col>
 
           <Col xs={24} sm={12}>
