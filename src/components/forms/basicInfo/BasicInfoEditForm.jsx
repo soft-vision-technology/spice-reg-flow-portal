@@ -247,10 +247,10 @@ const BasicInfoEditForm = ({ user }) => {
               name="mobileNumber"
               rules={[
                 { required: false, message: "Please enter your mobile number" },
-                {
-                  pattern: /^[0-9]{10}$/,
-                  message: "Please enter a valid 10‑digit mobile number",
-                },
+                // {
+                //   pattern: /^[0-9]{10}$/,
+                //   message: "Please enter a valid 10‑digit mobile number",
+                // },
               ]}
             >
               <Input placeholder="0712345678" />
