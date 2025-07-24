@@ -74,7 +74,7 @@ const EditPage = ({ userId, onUserUpdate }) => {
 
 
 
-  console.log(roleData);
+  console.log(editRoleData);
 
   useEffect(() => {
     if (id ) {

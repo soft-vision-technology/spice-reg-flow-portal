@@ -27,7 +27,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
   const [form] = Form.useForm();
   const { id } = useParams();
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, details: "", isRaw: false, isProcessed: false },
+    {id: null, productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   const [originalData, setOriginalData] = useState({});
@@ -92,6 +92,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
     // Set export products
     const initialProducts = Array.isArray(roleData.businessProducts)
       ? roleData.businessProducts.map((bp) => ({
+        id: bp.id || null,
           productId:
             bp.productId?.toString() || bp.product?.id?.toString() || null,
           isRaw: bp.isRaw || false,
@@ -103,7 +104,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
     setExportProducts(
       initialProducts.length > 0
         ? initialProducts
-        : [{ productId: null, details: "", isRaw: false, isProcessed: false }]
+        : [{id:null, productId: null, details: "", isRaw: false, isProcessed: false }]
     );
     setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
   }, [roleData, form]);
@@ -137,6 +138,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
       products: exportProducts
         .filter((product) => product.productId)
         .map((product) => ({
+          id: product.id,
           productId: parseInt(product.productId),
           isRaw: product.isRaw,
           isProcessed: product.isProcessed,
@@ -221,6 +223,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
       changedData.products = exportProducts
         .filter((product) => product.productId)
         .map((product) => ({
+          id: product.id || null,
           productId: parseInt(product.productId),
           isRaw: product.isRaw,
           isProcessed: product.isProcessed,
@@ -294,6 +297,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
           products: exportProducts
             .filter((product) => product.productId)
             .map((product) => ({
+              id: product.id || null,
               productId: parseInt(product.productId),
               isRaw: product.isRaw,
               isProcessed: product.isProcessed,
