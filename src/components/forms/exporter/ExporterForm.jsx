@@ -34,6 +34,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import { useLocation } from "react-router-dom";
+import TextArea from "antd/es/input/TextArea";
 
 const ExporterForm = ({ isExisting }) => {
   const dispatch = useDispatch();
@@ -41,7 +42,7 @@ const ExporterForm = ({ isExisting }) => {
   const { updateFormData, formData } = useFormContext();
   const [form] = Form.useForm();
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, value: null },
+    { productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   const load = async () => {
@@ -70,7 +71,10 @@ const ExporterForm = ({ isExisting }) => {
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, value: null }]);
+    setExportProducts([
+      ...exportProducts,
+      { productId: null, details: "", isRaw: false, isProcessed: false },
+    ]);
   };
 
   const removeExportProduct = (index) => {
@@ -87,41 +91,49 @@ const ExporterForm = ({ isExisting }) => {
   };
 
   const handleChange = (changedValues, allValues) => {
-    // Format the data according to API requirements
+    const formattedData = formatFormData(allValues);
+    updateFormData(formattedData);
+  };
+
+  const formatFormData = (values) => {
     const formattedData = {
-      businessName: allValues.businessName || null,
-      businessRegNo: allValues.businessRegNumber || null,
-      numberOfEmployeeId: allValues.numberOfEmployees
-        ? parseInt(allValues.numberOfEmployees)
+      businessName: values.businessName || null,
+      businessRegNo: values.businessRegNo || null,
+      numberOfEmployeeId: values.numberOfEmployees
+        ? parseInt(values.numberOfEmployees)
         : null,
-      businessExperienceId: allValues.yearsExporting
-        ? parseInt(allValues.yearsExporting)
+      businessExperienceId: values.businessExperienceId
+        ? parseInt(values.businessExperienceId)
         : null,
-      productRange: allValues.productRange || null,
-      businessDescription: allValues.businessDescription || null,
-      exportingCountries: allValues.exportCountries || null,
-      exportStartMonth: allValues.exportStartDate
-        ? dayjs(allValues.exportStartDate).format("MMMM")
+      productRange: values.productRange || null,
+      businessDescription: values.businessDescription || null,
+      exportingCountries: values.exportingCountries || null,
+      exportStartMonth: values.exportStartDate
+        ? dayjs(values.exportStartDate).format("MMMM")
         : null,
-      exportStartYear: allValues.exportStartDate
-        ? dayjs(allValues.exportStartDate).format("YYYY")
+      exportStartYear: values.exportStartDate
+        ? dayjs(values.exportStartDate).format("YYYY")
         : null,
-      certificateId: allValues.exportCertifications
-        ? parseInt(allValues.exportCertifications)
+      certifications: Array.isArray(values.certificateId)
+        ? values.certificateId
+        : values.certificateId ? [values.certificateId] : [],
+      startDate: values.exportStartDate
+        ? dayjs(values.exportStartDate).toISOString()
         : null,
-      startDate: allValues.exportStartDate
-        ? dayjs(allValues.exportStartDate).toISOString()
-        : null,
+      userId: location?.state?.result,
       products: exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter(
+          (product) =>
+            product.productId && (product.details || product.details === "")
+        )
         .map((product) => ({
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         })),
-      userId: location?.state?.result,
     };
-
-    updateFormData(formattedData);
+    return formattedData;
   };
 
   return (
@@ -142,7 +154,7 @@ const ExporterForm = ({ isExisting }) => {
               label="Business Name"
               name="businessName"
               rules={[
-                { required: true, message: "Please enter business name" },
+                { required: false, message: "Please enter business name" },
               ]}
             >
               <Input placeholder="Global Spice Exports Ltd." />
@@ -152,10 +164,10 @@ const ExporterForm = ({ isExisting }) => {
             <Col xs={24} sm={12}>
               <Form.Item
                 label="Business Registration Number"
-                name="businessRegNumber"
+                name="businessRegNo"
                 rules={[
                   {
-                    required: true,
+                    required: false,
                     message: "Please enter business registration number",
                   },
                 ]}
@@ -167,9 +179,9 @@ const ExporterForm = ({ isExisting }) => {
           <Col xs={24} sm={12}>
             <Form.Item
               label="Years in Export Business"
-              name="yearsExporting"
+              name="businessExperienceId"
               rules={[
-                { required: true, message: "Please enter years in exports" },
+                { required: false, message: "Please enter years in exports" },
               ]}
             >
               <Select
@@ -182,7 +194,9 @@ const ExporterForm = ({ isExisting }) => {
             <Form.Item
               label="Started Date of Export Business"
               name="exportStartDate"
-              rules={[{ required: true, message: "Please enter started date" }]}
+              rules={[
+                { required: false, message: "Please enter started date" },
+              ]}
             >
               <DatePicker
                 format="YYYY-MM-DD"
@@ -196,7 +210,7 @@ const ExporterForm = ({ isExisting }) => {
               label="Number of Employees"
               name="numberOfEmployees"
               rules={[
-                { required: true, message: "Please select employee count" },
+                { required: false, message: "Please select employee count" },
               ]}
             >
               <Select
@@ -208,9 +222,9 @@ const ExporterForm = ({ isExisting }) => {
           <Col xs={24} sm={12}>
             <Form.Item
               label="Name of Country / Countries of Export"
-              name="exportCountries"
+              name="exportingCountries"
               rules={[
-                { required: true, message: "Please select at least one" },
+                { required: false, message: "Please select at least one" },
               ]}
             >
               <Select
@@ -245,7 +259,7 @@ const ExporterForm = ({ isExisting }) => {
                   {
                     validator: () => {
                       const hasValidProduct = exportProducts.some(
-                        (product) => product.productId && product.value
+                        (product) => product.productId
                       );
                       return hasValidProduct
                         ? Promise.resolve()
@@ -276,34 +290,59 @@ const ExporterForm = ({ isExisting }) => {
                                 .toLowerCase()
                                 .includes(input.toLowerCase())
                             }
-                            options={formatSelects(productOptions)}
-                          />
-                        </Col>
-                        <Col xs={24} sm={8}>
-                          <InputNumber
-                            placeholder="Enter value"
-                            value={product.value}
-                            onChange={(value) =>
-                              updateExportProduct(index, "value", value)
-                            }
-                            min={0.01}
-                            step={0.01}
-                            className="w-full"
-                            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                          />
-                        </Col>
-                        <Col xs={24} sm={6}>
-                          <Space>
-                            {index === exportProducts.length - 1 && (
-                              <Button
-                                type="dashed"
-                                icon={<PlusOutlined />}
-                                onClick={addExportProduct}
-                                size="small"
-                              >
-                                Add
-                              </Button>
+                            options={formatSelects(productOptions).filter(
+                              (option) =>
+                                !exportProducts.some(
+                                  (p, i) =>
+                                    i !== index && p.productId === option.value
+                                )
                             )}
+                          />
+                          <div className="mt-2 flex gap-4">
+                            <Checkbox
+                              checked={product.isRaw}
+                              onChange={(e) =>
+                                updateExportProduct(
+                                  index,
+                                  "isRaw",
+                                  e.target.checked
+                                )
+                              }
+                            >
+                              Raw
+                            </Checkbox>
+                            <Checkbox
+                              checked={product.isProcessed}
+                              onChange={(e) =>
+                                updateExportProduct(
+                                  index,
+                                  "isProcessed",
+                                  e.target.checked
+                                )
+                              }
+                            >
+                              Value Added
+                            </Checkbox>
+                          </div>
+                        </Col>
+                        <Col xs={24} sm={12}>
+                          <TextArea
+                            placeholder="Enter details (optional)"
+                            value={product.details}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "details",
+                                e.target.value
+                              )
+                            }
+                            className="w-full"
+                            style={{ height: "65px", resize: "none" }}
+                            maxLength={500}
+                          />
+                        </Col>
+                        <Col xs={24} sm={2}>
+                          <div className="flex flex-col gap-2 justify-center items-center">
                             {exportProducts.length > 1 && (
                               <Button
                                 type="text"
@@ -313,7 +352,15 @@ const ExporterForm = ({ isExisting }) => {
                                 size="small"
                               />
                             )}
-                          </Space>
+                            {index === exportProducts.length - 1 && (
+                              <Button
+                                type="dashed"
+                                icon={<PlusOutlined />}
+                                onClick={addExportProduct}
+                                size="small"
+                              />
+                            )}
+                          </div>
                         </Col>
                       </Row>
                     </Card>
@@ -328,10 +375,10 @@ const ExporterForm = ({ isExisting }) => {
           <Col xs={24}>
             <Form.Item
               label="Certifications"
-              name="certifications"
+              name="certificateId"
               rules={[
                 {
-                  required: true,
+                  required: false,
                   message: "Please select at least one certification",
                   type: "array",
                 },

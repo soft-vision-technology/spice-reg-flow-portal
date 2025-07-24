@@ -7,7 +7,6 @@ import {
   Space,
   Modal,
   Form,
-  Input,
   Select,
   message,
   Popconfirm,
@@ -26,6 +25,9 @@ import {
   ClockCircleOutlined,
   EyeOutlined,
   PrinterOutlined,
+  PlusSquareOutlined,
+  ShopOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import CertificatePrintDrawer from "../components/custom/CertificatePrintDrawer";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,6 +40,7 @@ import {
 import EditPage from "./EditPage";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
+import DashboardStatCard from "../components/cards/DashboardStatCard";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -55,25 +58,25 @@ const UserManagement = () => {
   const [editUserId, setEditUserId] = useState(null);
   const dispatch = useDispatch();
   const {
-    existingEntrepreneurs,
-    existingExporters,
     startingExporters,
+    existingExporters,
+    existingEntrepreneurs,
     existingTraders,
     loading,
   } = useSelector((state) => state.report);
 
   // Fetch users on mount
   useEffect(() => {
+    dispatch(fetchStartingExporters()), dispatch(fetchExistingExporters());
     dispatch(fetchExistingEntrepreneurs());
-    dispatch(fetchExistingExporters());
-    dispatch(fetchStartingExporters()), dispatch(fetchExistingTraders());
+    dispatch(fetchExistingTraders());
   }, [dispatch]);
 
   // Combine all users for statistics and certificate drawer
   const allUsers = [
-    ...(existingEntrepreneurs || []),
-    ...(existingExporters || []),
     ...(startingExporters || []),
+    ...(existingExporters || []),
+    ...(existingEntrepreneurs || []),
     ...(existingTraders || []),
   ];
 
@@ -100,16 +103,7 @@ const UserManagement = () => {
   const navigate = useNavigate();
   // Replace handleEdit to open EditPage
   const handleEdit = (user) => {
-    const userRole = user?.role.name.toLowerCase();
-    const roleIdOfUser =
-      userRole == "intermediarytrader"
-        ? user.intermediaryTrader?.id
-        : user[userRole]?.id;
-    navigate(`/user-management-edit/${user.id}`, {
-      state: { usersRoleId: roleIdOfUser, userRole: userRole.toLowerCase() },
-    });
-    console.log("userRole: ", userRole);
-    console.log("userRoleId: ", roleIdOfUser);
+    navigate(`/user-management-edit/${user.id}`);
   };
 
   const handleEditBack = () => {
@@ -344,18 +338,14 @@ const UserManagement = () => {
             icon={<EyeOutlined />}
             size="small"
             onClick={() => handleView(record)}
-          >
-            View
-          </Button>
+          ></Button>
           <Button
             type="primary"
             icon={<EditOutlined />}
             size="small"
             style={{ backgroundColor: "#e67324", borderColor: "#e67324" }}
             onClick={() => handleEdit(record)}
-          >
-            Edit
-          </Button>
+          ></Button>
           <Popconfirm
             title="Delete User"
             description="Are you sure you want to delete this user? This action requires approval."
@@ -365,9 +355,7 @@ const UserManagement = () => {
             cancelText="Cancel"
             okButtonProps={{ danger: true }}
           >
-            <Button danger icon={<DeleteOutlined />} size="small">
-              Delete
-            </Button>
+            <Button danger icon={<DeleteOutlined />} size="small"></Button>
           </Popconfirm>
         </Space>
       ),
@@ -419,126 +407,149 @@ const UserManagement = () => {
         </div>
 
         {/* Statistics Cards */}
-        <Row gutter={[16, 16]} className="mb-6">
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {getDataByRole("Entrepreneur").length}
-              </div>
-              <div className="text-gray-500">Entrepreneurs</div>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {getDataByRole("Exporter").length}
-              </div>
-              <div className="text-gray-500">Exporters</div>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {getDataByRole("IntermediaryTrader").length}
-              </div>
-              <div className="text-gray-500">Traders</div>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card className="text-center">
-              <div className="text-2xl font-bold" style={{ color: "#e67324" }}>
-                {pendingActionsCount}
-              </div>
-              <div className="text-gray-500">Pending Actions</div>
-            </Card>
-          </Col>
-        </Row>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <DashboardStatCard
+            title="Entrepreneurs"
+            value={getDataByRole("Entrepreneur").length}
+            icon={<UserOutlined />}
+            color="#E67324"
+          />
+          <DashboardStatCard
+            title="Exporters"
+            value={getDataByRole("Exporter").length}
+            icon={<ShopOutlined />}
+            color="#10B981"
+          />
+          <DashboardStatCard
+            title="Traders"
+            value={getDataByRole("IntermediaryTrader").length}
+            icon={<ClockCircleOutlined />}
+            color="#F59E0B"
+          />
+          <DashboardStatCard
+            title="Pending Actions"
+            value={pendingActionsCount}
+            icon={<GlobalOutlined />}
+            color="#6366F1"
+          />
+        </div>
 
         {/* Tabbed Tables */}
         <Card className="shadow-sm">
-          <Tabs activeKey={activeTab} onChange={setActiveTab} type="card">
-            <TabPane
-              tab={
-                <span>
-                  <Tag color="purple" className="mr-1">
-                    {getDataByRole("Entrepreneur").length}
-                  </Tag>
-                  Entrepreneurs
-                </span>
+          {/* Flex container for Tabs + Add Button */}
+          <div className="flex justify-between items-center mb-4">
+            <Tabs
+              activeKey={activeTab}
+              onChange={setActiveTab}
+              type="card"
+              tabBarExtraContent={
+                <div className="flex gap-2">
+                  <Button
+                    className="bg-spice-500"
+                    type="primary"
+                    icon={<PlusSquareOutlined />}
+                    onClick={() => navigate("/select")}
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    className="bg-spice-500"
+                    type="primary"
+                    icon={<PrinterOutlined />}
+                    onClick={() => setCertificateDrawerVisible(true)}
+                  >
+                    Print
+                  </Button>
+                </div>
               }
-              key="entrepreneurs"
             >
-              <Table
-                columns={getColumns("Entrepreneur")}
-                dataSource={getDataByRole("Entrepreneur")}
-                rowKey="id"
-                loading={loading}
-                pagination={{
-                  pageSize: 10,
-                  showSizeChanger: true,
-                  showQuickJumper: true,
-                  showTotal: (total, range) =>
-                    `${range[0]}-${range[1]} of ${total} entrepreneurs`,
-                }}
-                scroll={{ x: 1600 }}
-                size="small"
-              />
-            </TabPane>
-            <TabPane
-              tab={
-                <span>
-                  <Tag color="blue" className="mr-1">
-                    {getDataByRole("Exporter").length}
-                  </Tag>
-                  Exporters
-                </span>
-              }
-              key="exporters"
-            >
-              <Table
-                columns={getColumns("Exporter")}
-                dataSource={getDataByRole("Exporter")}
-                rowKey="id"
-                loading={loading}
-                pagination={{
-                  pageSize: 10,
-                  showSizeChanger: true,
-                  showQuickJumper: true,
-                  showTotal: (total, range) =>
-                    `${range[0]}-${range[1]} of ${total} exporters`,
-                }}
-                scroll={{ x: 1600 }}
-                size="small"
-              />
-            </TabPane>
-            <TabPane
-              tab={
-                <span>
-                  <Tag color="green" className="mr-1">
-                    {getDataByRole("IntermediaryTrader").length}
-                  </Tag>
-                  Traders
-                </span>
-              }
-              key="traders"
-            >
-              <Table
-                columns={getColumns("IntermediaryTrader")}
-                dataSource={getDataByRole("IntermediaryTrader")}
-                rowKey="id"
-                loading={loading}
-                pagination={{
-                  pageSize: 10,
-                  showSizeChanger: true,
-                  showQuickJumper: true,
-                  showTotal: (total, range) =>
-                    `${range[0]}-${range[1]} of ${total} traders`,
-                }}
-                scroll={{ x: 1600 }}
-                size="small"
-              />
-            </TabPane>
-          </Tabs>
+              <TabPane
+                tab={
+                  <span>
+                    <Tag color="purple" className="mr-1">
+                      {getDataByRole("Entrepreneur").length}
+                    </Tag>
+                    Entrepreneurs
+                  </span>
+                }
+                key="entrepreneurs"
+              >
+                <Table
+                  columns={getColumns("Entrepreneur")}
+                  dataSource={getDataByRole("Entrepreneur")}
+                  rowKey="id"
+                  loading={loading}
+                  pagination={{
+                    pageSize: 10,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total, range) =>
+                      `${range[0]}-${range[1]} of ${total} entrepreneurs`,
+                  }}
+                  // scroll={{ x: 1600 }}
+                  size="small"
+                />
+              </TabPane>
+
+              {/* Exporters */}
+              <TabPane
+                tab={
+                  <span>
+                    <Tag color="blue" className="mr-1">
+                      {getDataByRole("Exporter").length}
+                    </Tag>
+                    Exporters
+                  </span>
+                }
+                key="exporters"
+              >
+                <Table
+                  columns={getColumns("Exporter")}
+                  dataSource={getDataByRole("Exporter")}
+                  rowKey="id"
+                  loading={loading}
+                  pagination={{
+                    pageSize: 10,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total, range) =>
+                      `${range[0]}-${range[1]} of ${total} exporters`,
+                  }}
+                  // scroll={{ x: 1600 }}
+                  size="small"
+                />
+              </TabPane>
+
+              {/* Traders */}
+              <TabPane
+                tab={
+                  <span>
+                    <Tag color="green" className="mr-1">
+                      {getDataByRole("IntermediaryTrader").length}
+                    </Tag>
+                    Traders
+                  </span>
+                }
+                key="traders"
+              >
+                <Table
+                  columns={getColumns("IntermediaryTrader")}
+                  dataSource={getDataByRole("IntermediaryTrader")}
+                  rowKey="id"
+                  loading={loading}
+                  pagination={{
+                    pageSize: 10,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total, range) =>
+                      `${range[0]}-${range[1]} of ${total} traders`,
+                  }}
+                  // scroll={{ x: 1600 }}
+                  size="small"
+                />
+              </TabPane>
+            </Tabs>
+          </div>
         </Card>
 
         {/* Certificate Print Drawer */}

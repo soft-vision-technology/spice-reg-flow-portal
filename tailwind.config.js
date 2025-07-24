@@ -19,7 +19,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        custom: ["Sugar and Spice HandSans"],
+        custom: ["Ethernal"],
+        pepper: ["PepperHands"],
+        maharlika: ["Maharlika"],
       },
       colors: {
         border: "hsl(var(--border))",

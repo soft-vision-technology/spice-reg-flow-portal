@@ -46,6 +46,9 @@ import {
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { fetchItems } from "../store/slices/settingsSlice";
+import gov_logo from "../assets/Emblem_of_Sri_Lanka.svg.png";
+import spice_logo from "../assets/spiceLogo.png";
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -68,6 +71,9 @@ const ReportsPage = () => {
 
   const numberOfEmployeeOptions = useSelector(selectNumEmployeeOptions) || [];
   const experienceOptions = useSelector(selectExperienceOptions) || [];
+  const selectAllCertificateTypes = useSelector(
+    (state) => state.settings.certificateTypes
+  );
 
   const [filters, setFilters] = useState({
     role: "all",
@@ -79,6 +85,7 @@ const ReportsPage = () => {
     product: "all",
     searchText: "",
     dateRange: null,
+    certificates: null,
   });
 
   const [activeTab, setActiveTab] = useState("overview");
@@ -89,10 +96,11 @@ const ReportsPage = () => {
       dispatch(fetchStartingEntrepreneurs()),
       dispatch(fetchExistingExporters()),
       dispatch(fetchStartingExporters()),
-      dispatch(fetchStartingTraders()),
+      // dispatch(fetchStartingTraders()),
       dispatch(fetchExistingTraders()),
       dispatch(fetchNumEmployeeOptions()),
       dispatch(fetchExperienceOptions()),
+      dispatch(fetchItems("certificates")),
     ]);
   };
 
@@ -148,12 +156,24 @@ const ReportsPage = () => {
           .filter(Boolean)
       ),
     ];
+    const certificates = [
+      ...new Set(
+        allData
+          .flatMap((item) => {
+            const certificateData = item.exporter || item.entrepreneur;
+            // console.log(certificateData?.certificateId)
+            return certificateData?.certificateId || [];
+          })
+          .filter(Boolean)
+      ),
+    ];
     return {
       provinces,
       districts,
       roles,
       businessStatuses,
       products,
+      certificates,
     };
   }, [allData]);
 
@@ -174,35 +194,41 @@ const ReportsPage = () => {
         item.exporter || item.entrepreneur || item.intermediaryTrader;
       const matchesEmployees =
         filters.numberOfEmployees === "all" ||
-        (businessData?.numberOfEmployee?.id?.toString() ===
-          filters.numberOfEmployees);
+        businessData?.numberOfEmployee?.id?.toString() ===
+          filters.numberOfEmployees;
 
       const matchesExperience =
         filters.businessExperience === "all" ||
-        (businessData?.businessExperience?.id?.toString() ===
-          filters.businessExperience);
+        businessData?.businessExperience?.id?.toString() ===
+          filters.businessExperience;
 
       // Product filter
       const matchesProduct =
         filters.product === "all" ||
-        (businessData?.businessProducts?.some(
+        businessData?.businessProducts?.some(
           (bp) => bp.product?.name === filters.product
-        ));
+        );
 
       const matchesSearch =
         filters.searchText === "" ||
         item.name?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
         item.email?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
         item.nic?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
-        (businessData?.businessName
+        businessData?.businessName
           ?.toLowerCase()
-          .includes(filters.searchText.toLowerCase()));
+          .includes(filters.searchText.toLowerCase());
 
       // Date range filter
       const matchesDateRange =
         !filters.dateRange ||
         (new Date(item.createdAt) >= filters.dateRange[0] &&
           new Date(item.createdAt) <= filters.dateRange[1]);
+
+      const matchesCertificate =
+        filters.certificates === null ||
+        (Array.isArray(businessData?.certificateId)
+          ? businessData.certificateId.includes(filters.certificates)
+          : businessData?.certificateId === filters.certificates);
 
       return (
         matchesRole &&
@@ -213,7 +239,8 @@ const ReportsPage = () => {
         matchesExperience &&
         matchesProduct &&
         matchesSearch &&
-        matchesDateRange
+        matchesDateRange &&
+        matchesCertificate
       );
     });
   }, [allData, filters]);
@@ -272,6 +299,7 @@ const ReportsPage = () => {
             .join(", ") || "N/A";
 
         return {
+          "Serial No:": item.serialNumber || "N/A",
           Name: `${item.title || ""} ${item.name || ""}`.trim(),
           Initials: item.initials || "N/A",
           NIC: item.nic || "N/A",
@@ -336,12 +364,56 @@ const ReportsPage = () => {
     try {
       // Use tabData if provided, otherwise use filteredData
       const dataToExport = tabData || filteredData;
-
       const doc = new jsPDF("l", "mm", "a4"); // Landscape orientation for better table fit
 
-      // Add title
-      doc.setFontSize(18);
-      doc.text(`Business Reports - ${tabName}`, 20, 20);
+      // doc.addImage(gov_logo, "PNG", 15, 10, 20, 25);
+      // doc.addImage(spice_logo, "PNG", 265, 10, 30, 30);
+
+      // // Add title
+      // doc.setFontSize(14);
+      // doc.setTextColor(41, 128, 185);
+      // doc.text(
+      //   "කුළුබඩු හා ඒ ආශ්‍රිත නිෂ්පාදන අලෙවි මණ්ඩලය",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   18,
+      //   { align: "center" }
+      // );
+      // doc.setFontSize(10);
+      // doc.text(
+      //   "மசாலாவும் அது தொடர்பானது தயாரிப்புகள் சந்தைப்படுத்தல் வாரியம்",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   24,
+      //   { align: "center" }
+      // );
+      // doc.setFontSize(12);
+      // doc.text(
+      //   "Spices and Allied Products Marketing Board",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   30,
+      //   { align: "center" }
+      // );
+
+      // doc.setFontSize(11);
+      // doc.text(
+      //   "වැවිලි සහ ප්‍රජා යටිතල පහසුකම් අමාත්‍යංසය",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   36,
+      //   { align: "center" }
+      // );
+      // doc.setFontSize(9);
+      // doc.text(
+      //   "பெருந்தோட்ட மற்றும் சமூக உட்கட்டமைப்பு வசதிகள் அமைச்சர்",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   41,
+      //   { align: "center" }
+      // );
+      // doc.setFontSize(10);
+      // doc.text(
+      //   "Ministry of Plantation and Community Infrastructure",
+      //   doc.internal.pageSize.getWidth() / 2,
+      //   46,
+      //   { align: "center" }
+      // );
 
       // Add summary stats for the current tab
       const tabStats = {
@@ -363,7 +435,7 @@ const ReportsPage = () => {
       };
 
       doc.setFontSize(10);
-      let yPosition = 35;
+      let yPosition = 52;
       doc.text(`Total Records: ${tabStats.total}`, 20, yPosition);
       doc.text(`Entrepreneurs: ${tabStats.entrepreneurs}`, 80, yPosition);
       doc.text(`Exporters: ${tabStats.exporters}`, 140, yPosition);
@@ -385,6 +457,7 @@ const ReportsPage = () => {
             .join(", ") || "N/A";
 
         return [
+          item.serialNumber || "N/A",
           `${item.title || ""} ${item.name || ""}`.trim(),
           item.role?.name || "N/A",
           item.businessStatus || "N/A",
@@ -402,10 +475,10 @@ const ReportsPage = () => {
         ];
       });
 
-      // Add table using autoTable
       autoTable(doc, {
         head: [
           [
+            "Serial No",
             "Name",
             "Role",
             "Status",
@@ -445,6 +518,7 @@ const ReportsPage = () => {
           7: { cellWidth: 40 }, // Products
           8: { cellWidth: 25 }, // Contact
           9: { cellWidth: 20 }, // Date
+          10: { cellWidth: 20 },
         },
         didDrawPage: function (data) {
           // Add page numbers
@@ -552,6 +626,19 @@ const ReportsPage = () => {
   const getColumns = (type) => {
     const baseColumns = [
       {
+        title: "Serial No",
+        dataIndex: "serialNumber",
+        key: "serialNumber",
+        sorter: (a, b) =>
+          (a.serialNumber || "").localeCompare(b.serialNumber || ""),
+        render: (serialNumber) => (
+          <div>
+            <div className="font-normal">{serialNumber}</div>
+          </div>
+        ),
+        width: 120,
+      },
+      {
         title: "Name",
         dataIndex: "name",
         key: "name",
@@ -596,7 +683,9 @@ const ReportsPage = () => {
         render: (_, record) => (
           <div>
             <div>{record.district?.name}</div>
-            <div className="text-sm text-gray-500">{record.province?.name}</div>
+            <div className="text-sm text-gray-500">
+              {record.certificate?.id}
+            </div>
           </div>
         ),
         width: 150,
@@ -772,58 +861,6 @@ const ReportsPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Business Reports</h1>
-        <p className="text-gray-600 mt-1">
-          Comprehensive overview of registered businesses
-        </p>
-      </div>
-
-      {/* Statistics Cards */}
-      <Row gutter={16} className="mb-6">
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Total Users"
-              value={stats.total}
-              prefix={<UserOutlined />}
-              valueStyle={{ color: "#1890ff" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Entrepreneurs"
-              value={stats.entrepreneurs}
-              prefix={<ShopOutlined />}
-              valueStyle={{ color: "#52c41a" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Exporters"
-              value={stats.exporters}
-              prefix={<GlobalOutlined />}
-              valueStyle={{ color: "#722ed1" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Traders"
-              value={stats.traders}
-              prefix={<MoneyCollectOutlined />}
-              valueStyle={{ color: "#fa8c16" }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
       {/* Filters */}
       <Card className="mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -958,6 +995,27 @@ const ReportsPage = () => {
                   {exp.name}
                 </Option>
               ))}
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Select
+              placeholder="Certificate"
+              value={filters.certificates}
+              onChange={(value) => handleFilterChange("certificates", value)}
+              className="w-full"
+              allowClear
+            >
+              <Option value={null}>All Certificates</Option>
+              {filterOptions.certificates.map((certId) => {
+                const certType = selectAllCertificateTypes?.find(
+                  (item) => item.id === certId
+                );
+                return (
+                  <Option key={certId} value={certId}>
+                    {certType?.name || `Certificate ${certId}`}
+                  </Option>
+                );
+              })}
             </Select>
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>

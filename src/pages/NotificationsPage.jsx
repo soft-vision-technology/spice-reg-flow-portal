@@ -30,6 +30,7 @@ import {
   markAsUnread,
   markNotificationAsRead,
   markAllNotificationAsRead,
+  fetchReadNotifications,
 } from "../store/slices/notificationSlice";
 import { useNavigate } from "react-router-dom";
 
@@ -52,6 +53,15 @@ const NotificationsPage = () => {
   useEffect(() => {
     dispatch(fetchNotifications());
   }, [dispatch]);
+
+  useEffect(() => {
+    // Fetch notifications based on filterStatus
+    if (filterStatus === "read") {
+      dispatch(fetchReadNotifications());
+    } else {
+      dispatch(fetchNotifications());
+    }
+  }, [dispatch, filterStatus]);
 
   // Helper to format time (e.g., "2 minutes ago")
   function formatTime(dateString) {
@@ -135,10 +145,13 @@ const NotificationsPage = () => {
     const matchesSearch =
       notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       notification.message.toLowerCase().includes(searchTerm.toLowerCase());
+
     const typeTag = getNotificationTypeTag(notification.type);
+
     const matchesType =
       filterType === "all" ||
-      typeTag.text.toLowerCase() === filterType.toLowerCase();
+      notification.type.toLowerCase() === filterType.toLowerCase();
+
     const matchesStatus =
       filterStatus === "all" ||
       (filterStatus === "read" && notification.read) ||
@@ -159,8 +172,6 @@ const NotificationsPage = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          
-
           {/* Filters and Search */}
           <Card className="mb-4">
             <Row gutter={[16, 16]} align="middle">
@@ -180,10 +191,8 @@ const NotificationsPage = () => {
                   prefix={<FilterOutlined />}
                 >
                   <Option value="all">All Types</Option>
-                  <Option value="info">Info</Option>
-                  <Option value="warning">Warning</Option>
-                  <Option value="success">Success</Option>
-                  <Option value="error">Error</Option>
+                  <Option value="approval">Approval</Option>
+                  <Option value="information">Information</Option>
                 </Select>
               </Col>
               <Col xs={12} sm={6} md={4}>

@@ -1,15 +1,15 @@
 import React from "react";
 import { Typography, Card, Row, Col } from "antd";
 import LoginModal from "../components/layout/LoginModal";
-import img_1 from "../../src/assets/adult-nature-coffee-harvesting.jpg"
-import img_2 from "../../src/assets/spices-near-pan.jpg"
+import img_1 from "../../src/assets/spices-near-pan.jpg";
+import img_2 from "../../src/assets/spices-near-pan.jpg";
 import img_3 from "../../src/assets/openair-market-with-traders-selling-spices-herbs-aromatic-colorful.jpg";
 
 const { Title, Paragraph } = Typography;
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-spice-100 to-earth-100">
+    <div className="bg-gradient-to-br from-spice-100 to-earth-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-24">
           <div className="text-center mb-16">
@@ -98,6 +98,13 @@ const HomePage = () => {
           </Row>
         </div>
       </div>
+      <footer className="bg-spice-500 py-6">
+        <div className="text-center">
+          <span className="text-white">
+            © 2025 Ceylon Spice Industry. All rights reserved.
+          </span>
+        </div>
+      </footer>
     </div>
   );
 };

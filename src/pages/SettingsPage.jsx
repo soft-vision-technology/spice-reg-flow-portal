@@ -30,7 +30,7 @@ const { TabPane } = Tabs;
 
 const SettingsPage = () => {
   const dispatch = useDispatch();
-  
+
   // Local state for modal
   const [modalVisible, setModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -39,32 +39,61 @@ const SettingsPage = () => {
 
   // Categories configuration
   const categories = [
-    { key: "spices", label: "Spice Products", title: "Spice Products" },
-    { key: "certificates", label: "Certificate Types", title: "Certificate Types" },
-    { key: "experience", label: "Business Experience", title: "Business Experience" },
-    { key: "employees", label: "Employee Ranges", title: "Number of Employees" },
+    { key: "spices",
+      label: "Spice Products",
+      title: "Spice Products"
+    },
+    {
+      key: "certificates",
+      label: "Certificate Types",
+      title: "Certificate Types",
+    },
+    {
+      key: "experience",
+      label: "Business Experience",
+      title: "Business Experience",
+    },
+    {
+      key: "employees",
+      label: "Employee Ranges",
+      title: "Number of Employees",
+    },
+    { key: "serial", 
+      label: "Serial Configuration",
+      title: "Serial Number"
+    },
+    { key: "certificate", 
+      label: "Certificate Number Configuration",
+      title: "Certificate Number",
+      disabled: true // Mark this tab as disabled
+    },
   ];
 
   // Fetch all data on component mount
   useEffect(() => {
-    categories.forEach(category => {
-      dispatch(fetchItems(category.key));
+    categories.forEach((category) => {
+      // Skip fetching for disabled categories
+      if (!category.disabled) {
+        dispatch(fetchItems(category.key));
+      }
     });
   }, [dispatch]);
 
   // Collect all category states at the top level
   const categoryStates = {};
-  categories.forEach(category => {
+  categories.forEach((category) => {
     categoryStates[category.key] = {
-      data: useSelector(state => selectCategoryData(state, category.key)),
-      loading: useSelector(state => selectCategoryLoading(state, category.key)),
-      error: useSelector(state => selectCategoryError(state, category.key)),
+      data: useSelector((state) => selectCategoryData(state, category.key)),
+      loading: useSelector((state) =>
+        selectCategoryLoading(state, category.key)
+      ),
+      error: useSelector((state) => selectCategoryError(state, category.key)),
     };
   });
 
   // Check if any category is loading
-  const isAnyLoading = categories.some(category =>
-    categoryStates[category.key].loading
+  const isAnyLoading = categories.some(
+    (category) => categoryStates[category.key].loading
   );
 
   // Handle add new item
@@ -79,7 +108,16 @@ const SettingsPage = () => {
   const handleEdit = (item, category) => {
     setCurrentCategory(category);
     setEditingItem(item);
-    form.setFieldsValue({ name: item.name });
+
+    if (category === "serial") {
+      // Fixed: Use setFieldsValue instead of setFieldValue
+      form.setFieldsValue({
+        prefix: item.prefix,
+        suffix: item.suffix,
+      });
+    } else {
+      form.setFieldsValue({ name: item.name });
+    }
     setModalVisible(true);
   };
 
@@ -97,24 +135,28 @@ const SettingsPage = () => {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      
+
       if (editingItem) {
         // Update existing item
-        await dispatch(updateItem({ 
-          category: currentCategory, 
-          id: editingItem.id, 
-          itemData: values 
-        })).unwrap();
+        await dispatch(
+          updateItem({
+            category: currentCategory,
+            id: editingItem.id,
+            itemData: values,
+          })
+        ).unwrap();
         message.success("Item updated successfully");
       } else {
         // Add new item
-        await dispatch(createItem({ 
-          category: currentCategory, 
-          itemData: values 
-        })).unwrap();
+        await dispatch(
+          createItem({
+            category: currentCategory,
+            itemData: values,
+          })
+        ).unwrap();
         message.success("Item added successfully");
       }
-      
+
       handleCloseModal();
     } catch (error) {
       message.error(error.message || "Operation failed");
@@ -134,52 +176,103 @@ const SettingsPage = () => {
     dispatch(clearError({ category }));
   };
 
-  // Table columns
-  const getColumns = (category) => [
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      width: 120,
-      align: "center",
-      render: (_, record) => (
-        <Space size="small">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record, category)}
-            className="text-blue-600 hover:text-blue-800"
-            title="Edit"
-          />
-          <Popconfirm
-            title="Delete Item"
-            description="Are you sure you want to delete this item?"
-            onConfirm={() => handleDelete(record.id, category)}
-            okText="Yes"
-            cancelText="No"
-            okButtonProps={{ danger: true }}
-          >
+  // Table columns - Updated for serial configuration
+  const getColumns = (category) => {
+    if (category === "serial") {
+      return [
+        {
+          title: "Prefix",
+          dataIndex: "prefix",
+          key: "prefix",
+          sorter: (a, b) => (a.prefix || "").localeCompare(b.prefix || ""),
+        },
+        {
+          title: "Suffix",
+          dataIndex: "suffix",
+          key: "suffix",
+          sorter: (a, b) => (a.suffix || "").localeCompare(b.suffix || ""),
+        },
+        {
+          title: "Actions",
+          key: "actions",
+          width: 120,
+          align: "center",
+          render: (_, record) => (
+            <Space size="small">
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record, category)}
+                className="text-blue-600 hover:text-blue-800"
+                title="Edit"
+              />
+              <Popconfirm
+                title="Delete Item"
+                description="Are you sure you want to delete this item?"
+                onConfirm={() => handleDelete(record.id, category)}
+                okText="Yes"
+                cancelText="No"
+                okButtonProps={{ danger: true }}
+              >
+                <Button
+                  type="text"
+                  icon={<DeleteOutlined />}
+                  className="text-red-600 hover:text-red-800"
+                  title="Delete"
+                />
+              </Popconfirm>
+            </Space>
+          ),
+        },
+      ];
+    }
+
+    return [
+      {
+        title: "Name",
+        dataIndex: "name",
+        key: "name",
+        sorter: (a, b) => a.name.localeCompare(b.name),
+      },
+      {
+        title: "Actions",
+        key: "actions",
+        width: 120,
+        align: "center",
+        render: (_, record) => (
+          <Space size="small">
             <Button
               type="text"
-              icon={<DeleteOutlined />}
-              className="text-red-600 hover:text-red-800"
-              title="Delete"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record, category)}
+              className="text-blue-600 hover:text-blue-800"
+              title="Edit"
             />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+            <Popconfirm
+              title="Delete Item"
+              description="Are you sure you want to delete this item?"
+              onConfirm={() => handleDelete(record.id, category)}
+              okText="Yes"
+              cancelText="No"
+              okButtonProps={{ danger: true }}
+            >
+              <Button
+                type="text"
+                icon={<DeleteOutlined />}
+                className="text-red-600 hover:text-red-800"
+                title="Delete"
+              />
+            </Popconfirm>
+          </Space>
+        ),
+      },
+    ];
+  };
 
   // Render table for each category
   const renderTable = (categoryConfig) => {
     const { data, loading, error } = categoryStates[categoryConfig.key];
-    
+
     return (
       <Card
         className="mb-6 shadow-sm"
@@ -212,7 +305,7 @@ const SettingsPage = () => {
             showIcon
           />
         )}
-        
+
         <Spin spinning={loading} tip="Loading...">
           <Table
             dataSource={data}
@@ -222,7 +315,7 @@ const SettingsPage = () => {
               pageSize: 10,
               showSizeChanger: true,
               showQuickJumper: true,
-              showTotal: (total, range) => 
+              showTotal: (total, range) =>
                 `${range[0]}-${range[1]} of ${total} items`,
             }}
             size="middle"
@@ -247,7 +340,7 @@ const SettingsPage = () => {
             Manage your application's configuration data
           </p>
         </div>
-        
+
         {/* Main Content */}
         <div className="bg-white rounded-lg shadow-sm">
           <Tabs
@@ -256,12 +349,26 @@ const SettingsPage = () => {
             size="large"
             tabBarStyle={{ marginBottom: "24px" }}
           >
-            {categories.map(categoryConfig => (
+            {categories.map((categoryConfig) => (
               <TabPane 
-                tab={categoryConfig.label} 
+                tab={
+                  <span 
+                    className={categoryConfig.disabled ? 'cursor-not-allowed opacity-50' : ''}
+                    style={categoryConfig.disabled ? { pointerEvents: 'none' } : {}}
+                  >
+                    {categoryConfig.label}
+                  </span>
+                } 
                 key={categoryConfig.key}
+                disabled={categoryConfig.disabled}
               >
-                {renderTable(categoryConfig)}
+                {categoryConfig.disabled ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 text-lg">This section is currently disabled</p>
+                  </div>
+                ) : (
+                  renderTable(categoryConfig)
+                )}
               </TabPane>
             ))}
           </Tabs>
@@ -284,39 +391,59 @@ const SettingsPage = () => {
           className="top-20"
           confirmLoading={isAnyLoading}
           okButtonProps={{
-            className: "bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700",
+            className:
+              "bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700",
           }}
           width={500}
         >
           <div className="py-4">
-            <Form 
-              form={form} 
-              layout="vertical" 
-              requiredMark={false}
-            >
-              <Form.Item
-                name="name"
-                label={
-                  <span className="text-sm font-medium text-gray-700">
-                    Item Name
-                  </span>
-                }
-                rules={[
-                  { required: true, message: "Please enter a name" },
-                  { min: 2, message: "Name must be at least 2 characters" },
-                  { max: 100, message: "Name cannot exceed 100 characters" },
-                  {
-                    pattern: /^[a-zA-Z0-9\s\-_]+$/,
-                    message: "Name can only contain letters, numbers, spaces, hyphens, and underscores",
-                  },
-                ]}
-              >
-                <Input 
-                  placeholder="Enter item name" 
-                  className="rounded-md"
-                  size="large"
-                />
-              </Form.Item>
+            <Form form={form} layout="vertical" requiredMark={false}>
+              {currentCategory === "serial" ? (
+                <>
+                  <Form.Item
+                    name="prefix"
+                    label="Prefix"
+                    rules={[
+                      {
+                        max: 10,
+                        message: "Prefix cannot exceed 10 characters",
+                      },
+                    ]}
+                  >
+                    <Input placeholder="e.g., INV" size="large" />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="suffix"
+                    label="Suffix"
+                    rules={[
+                      {
+                        max: 10,
+                        message: "Suffix cannot exceed 10 characters",
+                      },
+                    ]}
+                  >
+                    <Input placeholder="e.g., -2025" size="large" />
+                  </Form.Item>
+                </>
+              ) : (
+                <Form.Item
+                  name="name"
+                  label="Item Name"
+                  rules={[
+                    { required: true, message: "Please enter a name" },
+                    { min: 2, message: "Name must be at least 2 characters" },
+                    { max: 100, message: "Name cannot exceed 100 characters" },
+                    {
+                      pattern: /^[a-zA-Z0-9\s\-_]+$/,
+                      message:
+                        "Only letters, numbers, spaces, hyphens, and underscores allowed",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Enter item name" size="large" />
+                </Form.Item>
+              )}
             </Form>
           </div>
         </Modal>

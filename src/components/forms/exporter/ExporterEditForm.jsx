@@ -1,24 +1,6 @@
-import React, { useEffect, useState } from "react";
-import {
-  Form,
-  Input,
-  Select,
-  InputNumber,
-  Upload,
-  Button,
-  Row,
-  Col,
-  Checkbox,
-  Space,
-  Card,
-  DatePicker,
-  Radio,
-} from "antd";
-import {
-  UploadOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import { Form, Input, Select, Button, Row, Col, Checkbox, Card, DatePicker } from "antd";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
 import countries from "country-json/src/country-by-name.json";
 import {
@@ -35,6 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../../api/axiosInstance";
+import TextArea from "antd/es/input/TextArea";
 
 const ExporterEditForm = ({ roleData, isExisting }) => {
   const dispatch = useDispatch();
@@ -44,7 +27,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
   const [form] = Form.useForm();
   const { id } = useParams();
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, value: null },
+    { id: null, productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   const [originalData, setOriginalData] = useState({});
@@ -80,13 +63,9 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
         ? dayjs(roleData.startDate)
         : undefined,
       businessDescription: roleData.businessDescription,
-      certifications: Array.isArray(roleData.certificate)
-        ? roleData.certificate.map((c) => c.id?.toString())
-        : roleData.certificateId
-        ? [roleData.certificateId.toString()]
-        : roleData.certificate?.id
-        ? [roleData.certificate.id.toString()]
-        : [],
+      certifications: Array.isArray(roleData.certificateId)
+        ? roleData?.certificateId?.map((c) => c?.toString())
+        : roleData.certificateId,
     });
 
     // Store original data for comparison
@@ -105,24 +84,29 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
         ? dayjs(roleData.startDate).format("YYYY-MM-DD")
         : undefined,
       businessDescription: roleData.businessDescription,
-      certifications: Array.isArray(roleData.certificate)
-        ? roleData.certificate.map((c) => c.id?.toString())
-        : roleData.certificateId
-        ? [roleData.certificateId.toString()]
-        : roleData.certificate?.id
-        ? [roleData.certificate.id.toString()]
-        : [],
+      certifications: Array.isArray(roleData.certificateId)
+        ? roleData?.certificateId?.map((c) => c?.toString())
+        : roleData.certificateId || [],
     });
 
     // Set export products
-    if (Array.isArray(roleData.businessProducts)) {
-      const initialProducts = roleData.businessProducts.map((bp) => ({
-        productId: bp.productId?.toString() || bp.product?.id?.toString(),
-        value: bp.value ? parseFloat(bp.value) : null,
-      }));
-      setExportProducts(initialProducts);
-      setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
-    }
+    const initialProducts = Array.isArray(roleData.businessProducts)
+      ? roleData.businessProducts.map((bp) => ({
+        id: bp.id || null,
+          productId:
+            bp.productId?.toString() || bp.product?.id?.toString() || null,
+          isRaw: bp.isRaw || false,
+          isProcessed: bp.isProcessed || false,
+          details: bp.value || "",
+        }))
+      : [];
+
+    setExportProducts(
+      initialProducts.length > 0
+        ? initialProducts
+        : [{id:null, productId: null, details: "", isRaw: false, isProcessed: false }]
+    );
+    setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
   }, [roleData, form]);
 
   const handleChange = (changedValues, allValues) => {
@@ -152,10 +136,13 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
         ? dayjs(allValues.exportStartDate).toISOString()
         : null,
       products: exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter((product) => product.productId)
         .map((product) => ({
+          id: product.id,
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         })),
       userId: location?.state?.result,
     };
@@ -178,7 +165,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, value: null }]);
+    setExportProducts([...exportProducts, { productId: null, details: "", isRaw: false, isProcessed: false  }]);
   };
 
   const removeExportProduct = (index) => {
@@ -213,8 +200,12 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
 
       // Handle date comparison
       if (key === "exportStartDate") {
-        currentValue = currentValue ? dayjs(currentValue).format("YYYY-MM-DD") : undefined;
-        originalValue = originalValue ? dayjs(originalValue).format("YYYY-MM-DD") : undefined;
+        currentValue = currentValue
+          ? dayjs(currentValue).format("YYYY-MM-DD")
+          : undefined;
+        originalValue = originalValue
+          ? dayjs(originalValue).format("YYYY-MM-DD")
+          : undefined;
       }
 
       // Handle array comparison
@@ -229,11 +220,14 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
 
     // Compare products
     if (!arraysEqual(exportProducts, originalProducts)) {
-      changedData.businessProducts = exportProducts
-        .filter((product) => product.productId && product.value)
+      changedData.products = exportProducts
+        .filter((product) => product.productId)
         .map((product) => ({
+          id: product.id || null,
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         }));
     }
 
@@ -286,16 +280,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
 
       const mappedChanges = mapFieldNames(changedFields);
 
-      const approvalRequest = {
-        type: "editData",
-        requestName: `Exporter: ${roleData?.user?.name}`,
-        requestData: mappedChanges,
-        requestedUrl: `exporter/${roleData.id || location?.state?.result}`,
-      };
-
-      console.log("Submitting changes:", approvalRequest);
-
-      if (!roleData?.id) {
+      if (!roleData) {
         // Use all form values for new exporter
         const allValues = await form.validateFields();
         const mappedAll = mapFieldNames(allValues);
@@ -309,14 +294,17 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
           exportingCountries: mappedAll.exportingCountries || null,
           productRange: mappedAll.productRange || null,
           businessDescription: mappedAll.businessDescription || null,
-          businessProducts: exportProducts
-            .filter((product) => product.productId && product.value)
+          products: exportProducts
+            .filter((product) => product.productId)
             .map((product) => ({
+              id: product.id || null,
               productId: parseInt(product.productId),
-              value: parseFloat(product.value),
+              isRaw: product.isRaw,
+              isProcessed: product.isProcessed,
+              value: product.details || "",
             })),
           certificateId: mappedAll.certificateId || [],
-          userId: id? parseInt(id) : null,
+          userId: id ? parseInt(id) : null,
         };
 
         const response = await axiosInstance.post(
@@ -329,11 +317,23 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
         return response;
       }
 
+      const approvalRequest = {
+        type: "editData",
+        requestName: `Exporter: ${roleData?.user?.name}`,
+        requestData: mappedChanges,
+        requestedUrl: `exporter/${roleData.id}`,
+      };
+
+      console.log("Submitting changes:", approvalRequest);
+
       const response = await axiosInstance.post(
         "/api/approval/create",
         approvalRequest
       );
+
       navigate("/user-management");
+      alert("Success!");
+
       console.log("Approval request submitted successfully:", response.data);
     } catch (error) {
       console.error("Failed to submit approval request:", error);
@@ -359,7 +359,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
               label="Business Name"
               name="businessName"
               rules={[
-                { required: true, message: "Please enter business name" },
+                { required: false, message: "Please enter business name" },
               ]}
             >
               <Input placeholder="Global Spice Exports Ltd." />
@@ -372,7 +372,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
                 name="businessRegNumber"
                 rules={[
                   {
-                    required: true,
+                    required: false,
                     message: "Please enter business registration number",
                   },
                 ]}
@@ -386,7 +386,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
               label="Years in Export Business"
               name="yearsExporting"
               rules={[
-                { required: true, message: "Please enter years in exports" },
+                { required: false, message: "Please enter years in exports" },
               ]}
             >
               <Select
@@ -399,7 +399,9 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
             <Form.Item
               label="Started Date of Export Business"
               name="exportStartDate"
-              rules={[{ required: true, message: "Please enter started date" }]}
+              rules={[
+                { required: false, message: "Please enter started date" },
+              ]}
             >
               <DatePicker
                 format="YYYY-MM-DD"
@@ -413,7 +415,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
               label="Number of Employees"
               name="numberOfEmployeeId"
               rules={[
-                { required: true, message: "Please select employee count" },
+                { required: false, message: "Please select employee count" },
               ]}
             >
               <Select
@@ -427,7 +429,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
               label="Name of Country / Countries of Export"
               name="exportingCountries"
               rules={[
-                { required: true, message: "Please select at least one" },
+                { required: false, message: "Please select at least one" },
               ]}
             >
               <Select
@@ -455,105 +457,128 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
 
         {isExisting && (
           <Row gutter={16}>
-            <Col xs={24}>
-              <Form.Item
-                label="Export Spice Products & Values"
-                rules={[
-                  {
-                    validator: () => {
-                      const hasValidProduct = exportProducts.some(
-                        (product) => product.productId && product.value
-                      );
-                      return hasValidProduct
-                        ? Promise.resolve()
-                        : Promise.reject(
-                            new Error(
-                              "Please add at least one spice product with value"
-                            )
-                          );
-                    },
+          <Col xs={24}>
+            <Form.Item
+              label="Export Spice Products & Values"
+              rules={[
+                {
+                  validator: () => {
+                    const hasValidProduct = exportProducts.some(
+                      (product) => product.productId
+                    );
+                    return hasValidProduct
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error(
+                            "Please add at least one spice product with value"
+                          )
+                        );
                   },
-                ]}
-              >
-                <div className="space-y-4">
-                  {exportProducts.map((product, index) => (
-                    <Card key={index} size="small" className="bg-gray-50">
-                      <Row gutter={12} align="middle">
-                        <Col xs={24} sm={10}>
-                          <Select
-                            placeholder="Select spice product"
-                            value={product.productId}
-                            onChange={(value) =>
-                              updateExportProduct(index, "productId", value)
+                },
+              ]}
+            >
+              <div className="space-y-4">
+                {exportProducts.map((product, index) => (
+                  <Card key={index} size="small" className="bg-gray-50">
+                    <Row gutter={12} align="middle">
+                      <Col xs={24} sm={10}>
+                        <Select
+                          placeholder="Select spice product"
+                          value={product.productId}
+                          onChange={(value) =>
+                            updateExportProduct(index, "productId", value)
+                          }
+                          className="w-full"
+                          showSearch
+                          filterOption={(input, option) =>
+                            option.label
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          options={formatSelects(productOptions).filter(
+                            (option) =>
+                              !exportProducts.some(
+                                (p, i) =>
+                                  i !== index && p.productId === option.value
+                              )
+                          )}
+                        />
+                        <div className="mt-2 flex gap-4">
+                          <Checkbox
+                            checked={product.isRaw}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "isRaw",
+                                e.target.checked
+                              )
                             }
-                            className="w-full"
-                            showSearch
-                            filterOption={(input, option) =>
-                              option.label
-                                .toLowerCase()
-                                .includes(input.toLowerCase())
+                          >
+                            Raw
+                          </Checkbox>
+                          <Checkbox
+                            checked={product.isProcessed}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "isProcessed",
+                                e.target.checked
+                              )
                             }
-                            options={formatSelects(productOptions)}
-                          />
-                        </Col>
-                        <Col xs={24} sm={8}>
-                          <InputNumber
-                            placeholder="Enter value"
-                            value={product.value}
-                            onChange={(value) =>
-                              updateExportProduct(index, "value", value)
-                            }
-                            min={0.01}
-                            step={0.01}
-                            className="w-full"
-                            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                          />
-                        </Col>
-                        <Col xs={24} sm={6}>
-                          <Space>
-                            {index === exportProducts.length - 1 && (
-                              <Button
-                                type="dashed"
-                                icon={<PlusOutlined />}
-                                onClick={addExportProduct}
-                                size="small"
-                              >
-                                Add
-                              </Button>
-                            )}
-                            {exportProducts.length > 1 && (
-                              <Button
-                                type="text"
-                                danger
-                                icon={<DeleteOutlined />}
-                                onClick={() => removeExportProduct(index)}
-                                size="small"
-                              />
-                            )}
-                          </Space>
-                        </Col>
-                      </Row>
-                    </Card>
-                  ))}
-                </div>
-              </Form.Item>
-            </Col>
-          </Row>
+                          >
+                            Value Added
+                          </Checkbox>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={12}>
+                        <TextArea
+                          placeholder="Enter details (optional)"
+                          value={product.details}
+                          onChange={(e) =>
+                            updateExportProduct(
+                              index,
+                              "details",
+                              e.target.value
+                            )
+                          }
+                          className="w-full"
+                          style={{ height: "65px", resize: "none" }}
+                          maxLength={500}
+                        />
+                      </Col>
+                      <Col xs={24} sm={2}>
+                        <div className="flex flex-col gap-2 justify-center items-center">
+                          {exportProducts.length > 1 && (
+                            <Button
+                              type="text"
+                              danger
+                              icon={<DeleteOutlined />}
+                              onClick={() => removeExportProduct(index)}
+                              size="small"
+                            />
+                          )}
+                          {index === exportProducts.length - 1 && (
+                            <Button
+                              type="dashed"
+                              icon={<PlusOutlined />}
+                              onClick={addExportProduct}
+                              size="small"
+                            />
+                          )}
+                        </div>
+                      </Col>
+                    </Row>
+                  </Card>
+                ))}
+              </div>
+            </Form.Item>
+          </Col>
+        </Row>
         )}
 
         <Row gutter={16}>
           <Col xs={24}>
-            <Form.Item
-              label="Certifications"
-              name="certifications"
-              rules={[
-                {
-                  required: true,
-                  message: "Please select at least one certification",
-                  type: "array",
-                },
-              ]}
-            >
+            <Form.Item label="Certifications" name="certifications">
               <Checkbox.Group options={formatSelects(certificateOptions)} />
             </Form.Item>
           </Col>

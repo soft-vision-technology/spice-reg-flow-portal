@@ -7,26 +7,52 @@ import {
   NotificationOutlined,
   HomeOutlined,
   SettingOutlined,
+  CodeFilled,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useFormContext } from "../../contexts/FormContext";
-import { selectAuthUser } from "../../store/slices/authSlice";
-import { useSelector } from "react-redux";
-
-
+import {
+  selectAuthUser,
+  selectAuthInitialized,
+  selectIsAdmin,
+  initializeAuth,
+} from "../../store/slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 
 const SidebarMenu = () => {
-  const user = useSelector(selectAuthUser);
+  const dispatch = useDispatch();
   const location = useLocation();
   const { role, status } = useFormContext();
 
-  // Wait for user to be loaded
-  if (!user) return null; // or a spinner
+  // Use optimized selectors
+  const user = useSelector(selectAuthUser);
+  const isInitialized = useSelector(selectAuthInitialized);
+  const isAdmin = useSelector(selectIsAdmin);
+
+  // Initialize auth on component mount
+  useEffect(() => {
+    if (!isInitialized) {
+      dispatch(initializeAuth());
+    }
+  }, [dispatch, isInitialized]);
+
+  // Show loading state while initializing
+  if (!isInitialized) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-spice-500"></div>
+      </div>
+    );
+  }
+
+  // Don't render if no user (should not happen after login)
+  if (!user) {
+    return null;
+  }
 
   const hasSelectedRole = role !== "";
   const hasSelectedStatus = status !== "";
-
-  const isAdmin = user?.userRole === 1;
 
   return (
     <Menu
@@ -62,22 +88,33 @@ const SidebarMenu = () => {
       )}
 
       <Menu.Item key="/notifications" icon={<NotificationOutlined />}>
-        <Link to="/notifications">
-          Notifications
-        </Link>
+        <Link to="/notifications">Notifications</Link>
       </Menu.Item>
-      {isAdmin && (
+
       <Menu.Item
-        key="/settings"
-        icon={<SettingOutlined />}
+        key="/dev-env/page_"
+        icon={<CodeFilled />}
         style={{
-          marginBottom: 5,
+          marginBottom: 50,
           position: "absolute",
-          bottom: 0,
+          bottom: 1,
         }}
       >
-        <Link to="/settings">Settings</Link>
+        <Link to="/dev-env/page_">dev_look</Link>
       </Menu.Item>
+
+      {isAdmin && (
+        <Menu.Item
+          key="/settings"
+          icon={<SettingOutlined />}
+          style={{
+            marginBottom: 5,
+            position: "absolute",
+            bottom: 0,
+          }}
+        >
+          <Link to="/settings">Settings</Link>
+        </Menu.Item>
       )}
     </Menu>
   );

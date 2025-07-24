@@ -10,11 +10,38 @@ export const loginUser = createAsyncThunk(
         email,
         password,
       });
-      localStorage.setItem("token", response.data?.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      return response.data;
+      
+      // Store in localStorage immediately
+      const userData = response.data;
+      localStorage.setItem("token", userData?.token);
+      localStorage.setItem("user", JSON.stringify(userData.user));
+      
+      return userData;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Login failed");
+    } 
+  }
+);
+
+// Initialize user from localStorage thunk
+export const initializeAuth = createAsyncThunk(
+  "auth/initializeAuth",
+  async (_, { rejectWithValue }) => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("token");
+      
+      if (storedUser && storedToken) {
+        const userData = JSON.parse(storedUser);
+        return { user: userData, token: storedToken };
+      }
+      
+      return null;
+    } catch (error) {
+      // Clear corrupted data
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      return rejectWithValue("Failed to initialize auth");
     }
   }
 );
@@ -122,6 +149,7 @@ const authSlice = createSlice({
     loading: false,
     error: null,
     user: null,
+    isInitialized: false, // Track if auth has been initialized
 
     // User management state
     users: [],
@@ -191,12 +219,20 @@ const authSlice = createSlice({
       state.error = null;
       state.isModalOpen = false;
       state.loading = false;
+      state.isInitialized = false;
       // Clear user management state on logout
       state.users = [];
       state.selectedUser = null;
+      // Clear localStorage
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
     },
     restoreUser: (state, action) => {
       state.user = action.payload;
+      state.isInitialized = true;
+    },
+    setInitialized: (state, action) => {
+      state.isInitialized = action.payload;
     },
 
     // User management reducers
@@ -249,6 +285,23 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Initialize auth
+      .addCase(initializeAuth.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(initializeAuth.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isInitialized = true;
+        if (action.payload) {
+          state.user = action.payload.user;
+        }
+      })
+      .addCase(initializeAuth.rejected, (state) => {
+        state.loading = false;
+        state.isInitialized = true;
+        state.user = null;
+      })
+
       // Login user
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -256,14 +309,16 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
+        state.user = action.payload.user;
         state.isModalOpen = false;
         state.error = null;
+        state.isInitialized = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
         state.user = null;
+        state.isInitialized = true;
       })
 
       // Fetch users
@@ -385,6 +440,7 @@ export const {
   clearError,
   logout,
   restoreUser,
+  setInitialized,
 
   // User management actions
   setSelectedUser,
@@ -406,20 +462,41 @@ export const {
 
 export default authSlice.reducer;
 
-// Selector to get user from Redux state or localStorage
+// Enhanced selector to get user with fallback
 export const selectAuthUser = (state) => {
-  // Try Redux state first
+  // Return Redux user if available
   if (state.auth && state.auth.user) {
     return state.auth.user;
   }
-  // Fallback to localStorage if Redux state is empty (e.g. after refresh)
-  const userStr = localStorage.getItem("user");
-  if (userStr) {
-    try {
-      return JSON.parse(userStr);
-    } catch {
-      return null;
+  
+  // Fallback to localStorage only if Redux is not initialized
+  if (!state.auth.isInitialized) {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        return JSON.parse(userStr);
+      } catch {
+        return null;
+      }
     }
   }
+  
   return null;
+};
+
+// Selector to check if auth is initialized
+export const selectAuthInitialized = (state) => {
+  return state.auth.isInitialized;
+};
+
+// Selector to get user role
+export const selectUserRole = (state) => {
+  const user = selectAuthUser(state);
+  return user?.userRole || null;
+};
+
+// Selector to check if user is admin
+export const selectIsAdmin = (state) => {
+  const user = selectAuthUser(state);
+  return user?.userRole === 1;
 };

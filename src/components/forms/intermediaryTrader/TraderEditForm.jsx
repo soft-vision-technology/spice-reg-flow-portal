@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Form,
   Input,
   Select,
-  InputNumber,
   DatePicker,
   Button,
   Row,
   Col,
   Card,
-  Space,
+  Checkbox,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
@@ -25,6 +24,7 @@ import {
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import axiosInstance from "../../../api/axiosInstance";
+import TextArea from "antd/es/input/TextArea";
 
 const TraderEditForm = ({ roleData, isExisting }) => {
   const dispatch = useDispatch();
@@ -33,10 +33,12 @@ const TraderEditForm = ({ roleData, isExisting }) => {
   const { updateFormData, formData } = useFormContext();
   const [form] = Form.useForm();
   const { id } = useParams();
+
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, value: null },
+    {id: null, productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
+  // Store original data for comparison
   const [originalData, setOriginalData] = useState({});
   const [originalProducts, setOriginalProducts] = useState({});
 
@@ -57,9 +59,15 @@ const TraderEditForm = ({ roleData, isExisting }) => {
       businessName: roleData.businessName,
       businessRegistrationNumber: roleData.businessRegNo,
       businessAddress: roleData.businessAddress,
-      numberOfEmployees: roleData.numberOfEmployee?.id?.toString() || roleData.numberOfEmployeeId?.toString(),
-      yearsTrading: roleData.businessExperience?.id?.toString() || roleData.businessExperienceId?.toString(),
-      registrationDate: roleData.businessStartDate ? dayjs(roleData.businessStartDate) : undefined,
+      numberOfEmployees:
+        roleData.numberOfEmployee?.id?.toString() ||
+        roleData.numberOfEmployeeId?.toString(),
+      yearsTrading:
+        roleData.businessExperience?.id?.toString() ||
+        roleData.businessExperienceId?.toString(),
+      registrationDate: roleData.businessStartDate
+        ? dayjs(roleData.businessStartDate)
+        : undefined,
       additionalInfo: roleData.businessDescription || "",
     });
 
@@ -67,23 +75,38 @@ const TraderEditForm = ({ roleData, isExisting }) => {
       businessName: roleData.businessName,
       businessRegistrationNumber: roleData.businessRegNo,
       businessAddress: roleData.businessAddress,
-      numberOfEmployees: roleData.numberOfEmployee?.id?.toString() || roleData.numberOfEmployeeId?.toString(),
-      yearsTrading: roleData.businessExperience?.id?.toString() || roleData.businessExperienceId?.toString(),
-      registrationDate: roleData.businessStartDate ? dayjs(roleData.businessStartDate).format("YYYY-MM-DD") : undefined,
+      numberOfEmployees:
+        roleData.numberOfEmployee?.id?.toString() ||
+        roleData.numberOfEmployeeId?.toString(),
+      yearsTrading:
+        roleData.businessExperience?.id?.toString() ||
+        roleData.businessExperienceId?.toString(),
+      registrationDate: roleData.businessStartDate
+        ? dayjs(roleData.businessStartDate).format("YYYY-MM-DD")
+        : undefined,
       additionalInfo: roleData.businessDescription || "",
     });
 
-    if (Array.isArray(roleData.businessProducts)) {
-      const initialProducts = roleData.businessProducts.map((bp) => ({
-        productId: bp.productId?.toString() || bp.product?.id?.toString(),
-        value: bp.value ? parseFloat(bp.value) : null,
-      }));
-      setExportProducts(initialProducts);
-      setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
-    }
+    const initialProducts = Array.isArray(roleData.businessProducts)
+      ? roleData.businessProducts.map((bp) => ({
+        id: bp.id || null,
+          productId:
+            bp.productId?.toString() || bp.product?.id?.toString() || null,
+          isRaw: bp.isRaw || false,
+          isProcessed: bp.isProcessed || false,
+          details: bp.value || "",
+        }))
+      : [];
+
+    setExportProducts(
+      initialProducts.length > 0
+        ? initialProducts
+        : [{id:null, productId: null, details: "", isRaw: false, isProcessed: false }]
+    );
+    setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
   }, [roleData, form]);
 
-const handleChange = (changedValues, allValues) => {
+  const handleChange = (changedValues, allValues) => {
     // Format the data according to API requirements
     const formattedData = {
       businessName: allValues.businessName || null,
@@ -101,10 +124,13 @@ const handleChange = (changedValues, allValues) => {
       additionalInfo: allValues.additionalInfo || null,
       userId: location?.state?.result,
       products: exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter((product) => product.productId)
         .map((product) => ({
+          id: product.id,
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         })),
     };
 
@@ -125,7 +151,10 @@ const handleChange = (changedValues, allValues) => {
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, value: null }]);
+    setExportProducts([
+      ...exportProducts,
+      { productId: null, details: "", isRaw: false, isProcessed: false },
+    ]);
   };
 
   const removeExportProduct = (index) => {
@@ -160,8 +189,12 @@ const handleChange = (changedValues, allValues) => {
 
       // Handle date comparison
       if (key === "registrationDate") {
-        currentValue = currentValue ? dayjs(currentValue).format("YYYY-MM-DD") : undefined;
-        originalValue = originalValue ? dayjs(originalValue).format("YYYY-MM-DD") : undefined;
+        currentValue = currentValue
+          ? dayjs(currentValue).format("YYYY-MM-DD")
+          : undefined;
+        originalValue = originalValue
+          ? dayjs(originalValue).format("YYYY-MM-DD")
+          : undefined;
       }
 
       // Handle array comparison
@@ -176,11 +209,14 @@ const handleChange = (changedValues, allValues) => {
 
     // Compare products
     if (!arraysEqual(exportProducts, originalProducts)) {
-      changedData.businessProducts = exportProducts
-        .filter((product) => product.productId && product.value)
+      changedData.products = exportProducts
+        .filter((product) => product.productId && product.details)
         .map((product) => ({
+          id: product.id || null,
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details, // keep as string, or parse if needed
         }));
     }
 
@@ -193,7 +229,6 @@ const handleChange = (changedValues, allValues) => {
       numberOfEmployees: "numberOfEmployeeId",
       yearsTrading: "businessExperienceId",
       registrationDate: "businessStartDate",
-      businessProducts: "businessProducts",
       additionalInfo: "businessDescription",
     };
 
@@ -223,11 +258,13 @@ const handleChange = (changedValues, allValues) => {
       const values = await form.validateFields();
       const changedFields = getChangedFields(values);
 
+      // If no changes, don't submit
       if (Object.keys(changedFields).length === 0) {
         console.log("No changes detected");
         return;
       }
 
+      // Map field names to API format
       const mappedChanges = mapFieldNames(changedFields);
 
       const approvalRequest = {
@@ -239,7 +276,7 @@ const handleChange = (changedValues, allValues) => {
 
       console.log("Submitting changes:", approvalRequest);
 
-      if (!roleData?.id) {
+      if (!roleData) {
         // Use all form values for new trader
         const allValues = await form.validateFields();
         const mappedAll = mapFieldNames(allValues);
@@ -252,14 +289,18 @@ const handleChange = (changedValues, allValues) => {
           businessExperienceId: mappedAll.businessExperienceId || null,
           businessStartDate: mappedAll.businessStartDate || null,
           businessDescription: mappedAll.businessDescription || null,
-          businessProducts: exportProducts
-            .filter((product) => product.productId && product.value)
+          products: exportProducts
+            .filter((product) => product.productId)
             .map((product) => ({
+              id: product.id || null,
               productId: parseInt(product.productId),
-              value: parseFloat(product.value),
+              isRaw: product.isRaw,
+              isProcessed: product.isProcessed,
+              value: product.details || "",
             })),
-          userId: id? parseInt(id) : null,
+          userId: id ? parseInt(id) : null,
         };
+        console.log(formattedData);
 
         const response = await axiosInstance.post(
           "/api/trader/",
@@ -276,6 +317,8 @@ const handleChange = (changedValues, allValues) => {
         approvalRequest
       );
       navigate("/user-management");
+      alert("Success!");
+
       console.log("Approval request submitted successfully:", response.data);
     } catch (error) {
       console.error("Failed to submit approval request:", error);
@@ -301,7 +344,7 @@ const handleChange = (changedValues, allValues) => {
               label="Business Name"
               name="businessName"
               rules={[
-                { required: true, message: "Please enter business name" },
+                { required: false, message: "Please enter business name" },
               ]}
             >
               <Input placeholder="Spice Trading Enterprises" />
@@ -313,7 +356,7 @@ const handleChange = (changedValues, allValues) => {
               name="businessRegistrationNumber"
               rules={[
                 {
-                  required: true,
+                  required: false,
                   message: "Please enter registration number",
                 },
               ]}
@@ -329,7 +372,7 @@ const handleChange = (changedValues, allValues) => {
               label="Business Address"
               name="businessAddress"
               rules={[
-                { required: true, message: "Please enter business address" },
+                { required: false, message: "Please enter business address" },
               ]}
             >
               <Input.TextArea
@@ -341,30 +384,30 @@ const handleChange = (changedValues, allValues) => {
         </Row>
 
         <Row gutter={16}>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Registration Date"
-                name="registrationDate"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select registration date",
-                  },
-                ]}
-              >
-                <DatePicker
-                  format="YYYY-MM-DD"
-                  style={{ width: "100%" }}
-                  placeholder="Select date"
-                />
-              </Form.Item>
-            </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Registration Date"
+              name="registrationDate"
+              rules={[
+                {
+                  required: false,
+                  message: "Please select registration date",
+                },
+              ]}
+            >
+              <DatePicker
+                format="YYYY-MM-DD"
+                style={{ width: "100%" }}
+                placeholder="Select date"
+              />
+            </Form.Item>
+          </Col>
           <Col xs={24} sm={12}>
             <Form.Item
               label="Years in Trading Business"
               name="yearsTrading"
               rules={[
-                { required: true, message: "Please select years in trading" },
+                { required: false, message: "Please select years in trading" },
               ]}
             >
               <Select
@@ -381,7 +424,7 @@ const handleChange = (changedValues, allValues) => {
               label="Number of Employees"
               name="numberOfEmployees"
               rules={[
-                { required: true, message: "Please select employee count" },
+                { required: false, message: "Please select employee count" },
               ]}
             >
               <Select
@@ -395,12 +438,12 @@ const handleChange = (changedValues, allValues) => {
         <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
-              label="Trading Spice Products & Values"
+              label="Export Spice Products & Values"
               rules={[
                 {
                   validator: () => {
                     const hasValidProduct = exportProducts.some(
-                      (product) => product.productId && product.value
+                      (product) => product.productId
                     );
                     return hasValidProduct
                       ? Promise.resolve()
@@ -431,34 +474,59 @@ const handleChange = (changedValues, allValues) => {
                               .toLowerCase()
                               .includes(input.toLowerCase())
                           }
-                          options={formatSelects(productOptions)}
-                        />
-                      </Col>
-                      <Col xs={24} sm={8}>
-                        <InputNumber
-                          placeholder="Enter value"
-                          value={product.value}
-                          onChange={(value) =>
-                            updateExportProduct(index, "value", value)
-                          }
-                          min={0.01}
-                          step={0.01}
-                          className="w-full"
-                          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                        />
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <Space>
-                          {index === exportProducts.length - 1 && (
-                            <Button
-                              type="dashed"
-                              icon={<PlusOutlined />}
-                              onClick={addExportProduct}
-                              size="small"
-                            >
-                              Add
-                            </Button>
+                          options={formatSelects(productOptions).filter(
+                            (option) =>
+                              !exportProducts.some(
+                                (p, i) =>
+                                  i !== index && p.productId === option.value
+                              )
                           )}
+                        />
+                        <div className="mt-2 flex gap-4">
+                          <Checkbox
+                            checked={product.isRaw}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "isRaw",
+                                e.target.checked
+                              )
+                            }
+                          >
+                            Raw
+                          </Checkbox>
+                          <Checkbox
+                            checked={product.isProcessed}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "isProcessed",
+                                e.target.checked
+                              )
+                            }
+                          >
+                            Value Added
+                          </Checkbox>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={12}>
+                        <TextArea
+                          placeholder="Enter details (optional)"
+                          value={product.details}
+                          onChange={(e) =>
+                            updateExportProduct(
+                              index,
+                              "details",
+                              e.target.value
+                            )
+                          }
+                          className="w-full"
+                          style={{ height: "65px", resize: "none" }}
+                          maxLength={500}
+                        />
+                      </Col>
+                      <Col xs={24} sm={2}>
+                        <div className="flex flex-col gap-2 justify-center items-center">
                           {exportProducts.length > 1 && (
                             <Button
                               type="text"
@@ -468,7 +536,15 @@ const handleChange = (changedValues, allValues) => {
                               size="small"
                             />
                           )}
-                        </Space>
+                          {index === exportProducts.length - 1 && (
+                            <Button
+                              type="dashed"
+                              icon={<PlusOutlined />}
+                              onClick={addExportProduct}
+                              size="small"
+                            />
+                          )}
+                        </div>
                       </Col>
                     </Row>
                   </Card>
@@ -487,9 +563,13 @@ const handleChange = (changedValues, allValues) => {
               />
             </Form.Item>
           </Col>
-          <Button type="primary" onClick={handleSubmit} className="bg-spice-500">
-          Submit Changes
-        </Button>
+          <Button
+            type="primary"
+            onClick={handleSubmit}
+            className="bg-spice-500"
+          >
+            Submit Changes
+          </Button>
         </Row>
       </Form>
     </div>

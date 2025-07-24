@@ -10,6 +10,7 @@ import {
   Col,
   Card,
   Space,
+  Checkbox,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
@@ -24,6 +25,7 @@ import {
 } from "../../../store/slices/utilsSlice";
 import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
+import TextArea from "antd/es/input/TextArea";
 
 const TraderForm = ({ isExisting }) => {
   const dispatch = useDispatch();
@@ -31,7 +33,7 @@ const TraderForm = ({ isExisting }) => {
   const { updateFormData, formData } = useFormContext();
   const [form] = Form.useForm();
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, value: null },
+    { productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   const load = async () => {
@@ -58,7 +60,10 @@ const TraderForm = ({ isExisting }) => {
   };
 
   const addExportProduct = () => {
-    setExportProducts([...exportProducts, { productId: null, value: null }]);
+    setExportProducts([
+      ...exportProducts,
+      { productId: null, details: "", isRaw: false, isProcessed: false },
+    ]);
   };
 
   const removeExportProduct = (index) => {
@@ -92,10 +97,15 @@ const TraderForm = ({ isExisting }) => {
       additionalInfo: allValues.additionalInfo || null,
       userId: location?.state?.result,
       products: exportProducts
-        .filter((product) => product.productId && product.value)
+        .filter(
+          (product) =>
+            product.productId && (product.details || product.details === "")
+        )
         .map((product) => ({
           productId: parseInt(product.productId),
-          value: parseFloat(product.value),
+          isRaw: product.isRaw,
+          isProcessed: product.isProcessed,
+          value: product.details || "",
         })),
     };
 
@@ -120,7 +130,7 @@ const TraderForm = ({ isExisting }) => {
               label="Business Name"
               name="businessName"
               rules={[
-                { required: true, message: "Please enter business name" },
+                { required: false, message: "Please enter business name" },
               ]}
             >
               <Input placeholder="Spice Trading Enterprises" />
@@ -132,7 +142,7 @@ const TraderForm = ({ isExisting }) => {
               name="businessRegistrationNumber"
               rules={[
                 {
-                  required: true,
+                  required: false,
                   message: "Please enter registration number",
                 },
               ]}
@@ -148,7 +158,7 @@ const TraderForm = ({ isExisting }) => {
               label="Business Address"
               name="businessAddress"
               rules={[
-                { required: true, message: "Please enter business address" },
+                { required: false, message: "Please enter business address" },
               ]}
             >
               <Input.TextArea
@@ -160,66 +170,14 @@ const TraderForm = ({ isExisting }) => {
         </Row>
 
         <Row gutter={16}>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Registration Date"
-                name="registrationDate"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select registration date",
-                  },
-                ]}
-              >
-                <DatePicker
-                  format="YYYY-MM-DD"
-                  style={{ width: "100%" }}
-                  placeholder="Select date"
-                />
-              </Form.Item>
-            </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Years in Trading Business"
-              name="yearsTrading"
-              rules={[
-                { required: true, message: "Please select years in trading" },
-              ]}
-            >
-              <Select
-                placeholder="Select years"
-                options={formatSelects(experienceOptions)}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label="Number of Employees"
-              name="numberOfEmployees"
-              rules={[
-                { required: true, message: "Please select employee count" },
-              ]}
-            >
-              <Select
-                placeholder="Select count"
-                options={formatSelects(numberOfEmployeeOptions)}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
           <Col xs={24}>
             <Form.Item
-              label="Trading Spice Products & Values"
+              label="Export Spice Products & Values"
               rules={[
                 {
                   validator: () => {
                     const hasValidProduct = exportProducts.some(
-                      (product) => product.productId && product.value
+                      (product) => product.productId
                     );
                     return hasValidProduct
                       ? Promise.resolve()
@@ -250,34 +208,59 @@ const TraderForm = ({ isExisting }) => {
                               .toLowerCase()
                               .includes(input.toLowerCase())
                           }
-                          options={formatSelects(productOptions)}
-                        />
-                      </Col>
-                      <Col xs={24} sm={8}>
-                        <InputNumber
-                          placeholder="Enter value"
-                          value={product.value}
-                          onChange={(value) =>
-                            updateExportProduct(index, "value", value)
-                          }
-                          min={0.01}
-                          step={0.01}
-                          className="w-full"
-                          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                        />
-                      </Col>
-                      <Col xs={24} sm={6}>
-                        <Space>
-                          {index === exportProducts.length - 1 && (
-                            <Button
-                              type="dashed"
-                              icon={<PlusOutlined />}
-                              onClick={addExportProduct}
-                              size="small"
-                            >
-                              Add
-                            </Button>
+                          options={formatSelects(productOptions).filter(
+                            (option) =>
+                              !exportProducts.some(
+                                (p, i) =>
+                                  i !== index && p.productId === option.value
+                              )
                           )}
+                        />
+                        <div className="mt-2 flex gap-4">
+                          <Checkbox
+                            checked={product.isRaw}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "isRaw",
+                                e.target.checked
+                              )
+                            }
+                          >
+                            Raw
+                          </Checkbox>
+                          <Checkbox
+                            checked={product.isProcessed}
+                            onChange={(e) =>
+                              updateExportProduct(
+                                index,
+                                "isProcessed",
+                                e.target.checked
+                              )
+                            }
+                          >
+                            Value Added
+                          </Checkbox>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={12}>
+                        <TextArea
+                          placeholder="Enter details (optional)"
+                          value={product.details}
+                          onChange={(e) =>
+                            updateExportProduct(
+                              index,
+                              "details",
+                              e.target.value
+                            )
+                          }
+                          className="w-full"
+                          style={{ height: "65px", resize: "none" }}
+                          maxLength={500}
+                        />
+                      </Col>
+                      <Col xs={24} sm={2}>
+                        <div className="flex flex-col gap-2 justify-center items-center">
                           {exportProducts.length > 1 && (
                             <Button
                               type="text"
@@ -287,12 +270,72 @@ const TraderForm = ({ isExisting }) => {
                               size="small"
                             />
                           )}
-                        </Space>
+                          {index === exportProducts.length - 1 && (
+                            <Button
+                              type="dashed"
+                              icon={<PlusOutlined />}
+                              onClick={addExportProduct}
+                              size="small"
+                            />
+                          )}
+                        </div>
                       </Col>
                     </Row>
                   </Card>
                 ))}
               </div>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Registration Date"
+              name="registrationDate"
+              rules={[
+                {
+                  required: false,
+                  message: "Please select registration date",
+                },
+              ]}
+            >
+              <DatePicker
+                format="YYYY-MM-DD"
+                style={{ width: "100%" }}
+                placeholder="Select date"
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Years in Trading Business"
+              name="yearsTrading"
+              rules={[
+                { required: false, message: "Please select years in trading" },
+              ]}
+            >
+              <Select
+                placeholder="Select years"
+                options={formatSelects(experienceOptions)}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label="Number of Employees"
+              name="numberOfEmployees"
+              rules={[
+                { required: false, message: "Please select employee count" },
+              ]}
+            >
+              <Select
+                placeholder="Select count"
+                options={formatSelects(numberOfEmployeeOptions)}
+              />
             </Form.Item>
           </Col>
         </Row>

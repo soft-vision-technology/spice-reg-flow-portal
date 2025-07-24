@@ -17,6 +17,7 @@ import {
   message,
   Modal,
   Descriptions,
+  List,
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -25,6 +26,13 @@ import {
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "../api/axiosInstance";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchCertificateOptions,
+  fetchExperienceOptions,
+  fetchNumEmployeeOptions,
+  fetchProductOptions,
+} from "../store/slices/utilsSlice";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -33,6 +41,7 @@ const { confirm } = Modal;
 const ApprovalPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [approval, setApproval] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentData, setCurrentData] = useState(null);
@@ -46,7 +55,10 @@ const ApprovalPage = () => {
     setLoading(true);
     axiosInstance
       .get(`/api/approval/get/${id}`)
-      .then((res) => setApproval(res.data?.newRequest))
+      .then((res) => {
+        setApproval(res.data?.newRequest);
+        setRemarks(res.data?.newRequest?.remarks || "");
+      })
       .catch(() => {
         setApproval(null);
         message.error("Failed to load approval request");
@@ -67,6 +79,22 @@ const ApprovalPage = () => {
         .finally(() => setCurrentLoading(false));
     }
   }, [approval]);
+
+  useEffect(() => {
+    if (approval?.status === "approved") {
+      form.setFieldsValue({ remarks: approval.remarks });
+    } else {
+      form.setFieldsValue({ remarks });
+    }
+    // eslint-disable-next-line
+  }, [approval, remarks]);
+
+  useEffect(() => {
+    dispatch(fetchNumEmployeeOptions());
+    dispatch(fetchExperienceOptions());
+    dispatch(fetchCertificateOptions());
+    dispatch(fetchProductOptions());
+  }, [dispatch]);
 
   const getStatusTag = (status) => {
     const statusConfig = {
@@ -151,6 +179,104 @@ const ApprovalPage = () => {
     });
   };
 
+  // Get lookup options from utilsSlice
+  const numberOfEmployeeOptions = useSelector(
+    (state) => state.utils.numEmployeeOptions
+  );
+  const experienceOptions = useSelector(
+    (state) => state.utils.experienceOptions
+  );
+  const certificateOptions = useSelector(
+    (state) => state.utils.certificateOptions
+  );
+  const productOptions = useSelector((state) => state.utils.productOptions);
+
+  // Helper functions to map IDs to names
+  const getOptionName = (options, id) => {
+    const found = options.find((opt) => String(opt.id) === String(id));
+    return found ? found.name : id;
+  };
+
+  const getProductName = (id) => {
+    const found = productOptions.find((opt) => String(opt.id) === String(id));
+    return found ? found.name : id;
+  };
+
+  const getCertificateNames = (ids) => {
+    if (!Array.isArray(ids)) return "";
+    return ids
+      .map((id) => getOptionName(certificateOptions, id))
+      .join(", ");
+  };
+
+  // Update createComparisonData to map IDs to names
+  const createComparisonData = () => {
+    const requestData = approval?.requestData || {};
+    const data = [];
+
+    Object.entries(requestData).forEach(([key, value]) => {
+      if (key === "products" && Array.isArray(value)) {
+        const currentProducts = Array.isArray(currentData?.businessProducts)
+          ? currentData.businessProducts
+          : [];
+        data.push({
+          key,
+          field: "Export Products",
+          currentValue: currentProducts.map((p) => ({
+            ...p,
+            productName: getProductName(p.productId),
+          })),
+          requestedValue: value.map((p) => ({
+            ...p,
+            productName: getProductName(p.productId),
+          })),
+        });
+      } else if (key === "numberOfEmployeeId") {
+        data.push({
+          key,
+          field: "Number of Employees",
+          currentValue: getOptionName(
+            numberOfEmployeeOptions,
+            currentData?.numberOfEmployeeId
+          ),
+          requestedValue: getOptionName(numberOfEmployeeOptions, value),
+        });
+      } else if (key === "businessExperienceId") {
+        data.push({
+          key,
+          field: "Business Experience",
+          currentValue: getOptionName(
+            experienceOptions,
+            currentData?.businessExperienceId
+          ),
+          requestedValue: getOptionName(experienceOptions, value),
+        });
+      } else if (key === "certificateId") {
+        data.push({
+          key,
+          field: "Certifications",
+          currentValue: getCertificateNames(currentData?.certificateId),
+          requestedValue: getCertificateNames(value),
+        });
+      } else {
+        data.push({
+          key,
+          field: key,
+          currentValue:
+            currentData?.[key] !== undefined
+              ? Array.isArray(currentData[key])
+                ? currentData[key].join(", ")
+                : String(currentData[key])
+              : "N/A",
+          requestedValue: Array.isArray(value) ? value.join(", ") : String(value),
+        });
+      }
+    });
+
+    return data;
+  };
+
+  // Update createComparisonColumns to show productName
   const createComparisonColumns = () => [
     {
       title: "Field",
@@ -162,28 +288,53 @@ const ApprovalPage = () => {
       title: "Current Value",
       dataIndex: "currentValue",
       key: "currentValue",
-      render: (value) => (
-        <Text type={value === "N/A" ? "secondary" : undefined}>{value}</Text>
-      ),
+      render: (value, record) =>
+        record.key === "products" && Array.isArray(record.currentValue) ? (
+          <List
+            size="small"
+            bordered
+            dataSource={record.currentValue}
+            renderItem={(item, idx) => (
+              <List.Item>
+                <div>
+                  <b>Product:</b> {item.productName} &nbsp;
+                  <b>Raw:</b> {item.isRaw ? "Yes" : "No"} &nbsp;
+                  <b>Value Added:</b> {item.isProcessed ? "Yes" : "No"} &nbsp;
+                  <b>Details:</b> {item.value}
+                </div>
+              </List.Item>
+            )}
+          />
+        ) : (
+          <Text type={value === "N/A" ? "secondary" : undefined}>{value}</Text>
+        ),
     },
     {
       title: "Requested Value",
       dataIndex: "requestedValue",
       key: "requestedValue",
-      render: (value) => <Text mark>{value}</Text>,
+      render: (value, record) =>
+        record.key === "products" && Array.isArray(record.requestedValue) ? (
+          <List
+            size="small"
+            bordered
+            dataSource={record.requestedValue}
+            renderItem={(item, idx) => (
+              <List.Item>
+                <div>
+                  <b>Product:</b> {item.productName} &nbsp;
+                  <b>Raw:</b> {item.isRaw ? "Yes" : "No"} &nbsp;
+                  <b>Value Added:</b> {item.isProcessed ? "Yes" : "No"} &nbsp;
+                  <b>Details:</b> {item.value}
+                </div>
+              </List.Item>
+            )}
+          />
+        ) : (
+          <Text mark>{value}</Text>
+        ),
     },
   ];
-
-  const createComparisonData = () => {
-    const requestData = approval?.requestData || {};
-    return Object.entries(requestData).map(([key, value]) => ({
-      key,
-      field: key,
-      currentValue:
-        currentData?.[key] !== undefined ? String(currentData[key]) : "N/A",
-      requestedValue: String(value),
-    }));
-  };
 
   if (loading) {
     return (
@@ -269,21 +420,21 @@ const ApprovalPage = () => {
             <Form.Item
               label="Remarks"
               name="remarks"
-              rules={[
-                { required: false, message: "Remarks are required" },
-                { min: 10, message: "Remarks must be at least 10 characters" },
-              ]}
+              rules={[{ required: false, message: "Remarks are required" }]}
             >
               <TextArea
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
                 placeholder="Please provide your remarks for this approval decision..."
                 rows={4}
-                disabled={submitting}
+                disabled={
+                  submitting ||
+                  approval.status !== "pending" 
+                }
               />
             </Form.Item>
 
-            {approval.status !== "approved" && (
+            {approval.status !== "approved" && approval.status !== "denied" && (
               <Form.Item>
                 <Space>
                   <Button

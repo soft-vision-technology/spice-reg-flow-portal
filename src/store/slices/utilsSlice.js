@@ -65,6 +65,18 @@ export const fetchProvince = createAsyncThunk(
   }
 );
 
+export const fetchSerialNumber = createAsyncThunk(
+  "utils/fetchSerialNumber", 
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get("/api/serial_number");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch serial options.");
+    }
+  }
+);
+
 // Slice
 const utilsSlice = createSlice({
   name: "utils",
@@ -74,6 +86,7 @@ const utilsSlice = createSlice({
     numEmployeeOptions: [],
     productOptions: [],
     provinceOptions: [],
+    serialOptions:[],
     loading: false,
     error: null,
   },
@@ -84,6 +97,7 @@ const utilsSlice = createSlice({
       state.numEmployeeOptions = [];
       state.productOptions = [];
       state.provinceOptions = [];
+      state.serialOptions = [];
       state.loading = false;
       state.error = null;
     },
@@ -146,6 +160,7 @@ const utilsSlice = createSlice({
         state.error = action.payload;
       })
 
+      // Province Options
       .addCase(fetchProvince.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -155,6 +170,20 @@ const utilsSlice = createSlice({
         state.provinceOptions = action.payload;
       })
       .addCase(fetchProvince.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Serial Options
+      .addCase(fetchSerialNumber.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchSerialNumber.fulfilled, (state, action) => {
+        state.loading = false;
+        state.serialOptions = action.payload;
+      })
+      .addCase(fetchSerialNumber.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
@@ -169,6 +198,7 @@ export const selectCertificateOptions = (state) => state.utils.certificateOption
 export const selectNumEmployeeOptions = (state) => state.utils.numEmployeeOptions;
 export const selectProductOptions = (state) => state.utils.productOptions;
 export const selectProvinceOptions = (state) => state.utils.provinceOptions;
+export const selectSerialOptions = (state) => state.utils.serialOptions;
 export const selectUtilsLoading = (state) => state.utils.loading;
 export const selectUtilsError = (state) => state.utils.error;
 

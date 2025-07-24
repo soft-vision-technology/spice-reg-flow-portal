@@ -40,46 +40,29 @@ const EditPage = ({ userId, onUserUpdate }) => {
   const [activeTab, setActiveTab] = useState("basic");
   const [formData, setFormData] = useState({});
   const [selectedProvince, setSelectedProvince] = useState(null);
-  const location = useLocation();
   const { id } = useParams();
 
   console.log(id);
-  const states = location.state || {};
-  const userRole = states.userRole || "";
-  const usersRoleId = states.usersRoleId || "";
   const [roleData, setRoleData] = useState();
   const [editRoleData, setEditRoleData] = useState("");
 
-
-  useEffect(() => {
-    if (userRole == "exporter") {
-      setEditRoleData("exporter");
-    } else if (userRole == "entrepreneur") {
-      setEditRoleData("entrepreneur");
-    } else if (userRole == "intermediarytrader") {
-      setEditRoleData("trader");
-    } else {
-      setEditRoleData("basic");
-    }
-  }, [userRole]);
-
-  const fetchRoleData = async (usersRoleId) => {
-    console.log('res: ',usersRoleId)
-    try {
-      const apiRole = userRole == "intermediarytrader" ? "trader" : userRole;
-      const response = await axiosInstance(`/api/${apiRole}/${usersRoleId}`);
-      setRoleData(response.data);
-    } catch (error) {
-      console.log(error);
-      throw new Error("Failed to fetch user data");
-    }
-  };
-
-
+  
   const fetchUserData = async (userId) => {
     try {
-      const response = await axiosInstance(`/api/users/${userId}`);
+      const response = await axiosInstance.get(`/api/users/${userId}`);
       console.log(response);
+      if(response.data?.roleId== 1){
+        setEditRoleData(1)
+        setRoleData(response.data?.entrepreneur)
+      }
+      if(response.data?.roleId== 2){
+        setEditRoleData(2)
+        setRoleData(response.data?.intermediaryTrader)
+      }
+      if(response.data?.roleId== 3){
+        setEditRoleData(3)
+        setRoleData(response.data?.exporter)
+      }
       setUser(response.data);
     } catch (error) {
       console.log(error);
@@ -87,14 +70,18 @@ const EditPage = ({ userId, onUserUpdate }) => {
     }
   };
 
-  console.log(roleData);
+  console.log('role data: ',roleData)
+
+
+
+  console.log(editRoleData);
 
   useEffect(() => {
     if (id ) {
       fetchUserData(id);
-      fetchRoleData(usersRoleId);
+      // fetchRoleData(usersRoleId);
     }
-  }, [userId, form, usersRoleId]);
+  }, [userId, form]);
 
   const handleSubmit = () => {
     form.validateFields().then((values) => {
@@ -222,19 +209,19 @@ const EditPage = ({ userId, onUserUpdate }) => {
             <Col xs={24} sm={12} md={8}>
               <div>
                 <Text strong className="text-gray-500">
-                  Name:
+                  Serial Number:
                 </Text>
                 <br />
-                <Text className="text-gray-900">{user.name}</Text>
+                <Text className="text-gray-900">{user.serialNumber}</Text>
               </div>
             </Col>
             <Col xs={24} sm={12} md={8}>
               <div>
                 <Text strong className="text-gray-500">
-                  NIC:
+                  Name:
                 </Text>
                 <br />
-                <Text className="text-gray-900">{user.nic}</Text>
+                <Text className="text-gray-900">{user.name}</Text>
               </div>
             </Col>
             <Col xs={24} sm={12} md={8}>
@@ -270,7 +257,7 @@ const EditPage = ({ userId, onUserUpdate }) => {
                   Business:
                 </Text>
                 <br />
-                <Text className="text-gray-900">{user.businessName}</Text>
+                <Text className="text-gray-900">{user.serialNumber}</Text>
               </div>
             </Col>
           </Row>
@@ -339,13 +326,13 @@ const EditPage = ({ userId, onUserUpdate }) => {
                 }
                 key="business"
               >
-                {editRoleData === "exporter" && (
+                {editRoleData === 3 && (
                   <ExporterEditForm roleData={roleData} isExisting={true} userId={id}/>
                 )}
-                {editRoleData === "entrepreneur" && (
+                {editRoleData === 1 && (
                   <EntrepreneurEditForm roleData={roleData} isExisting={true}/>
                 )}
-                {editRoleData === "trader" && (
+                {editRoleData === 2 && (
                   <TraderEditForm roleData={roleData} isExisting={true}/>
                 )}
               </TabPane>
