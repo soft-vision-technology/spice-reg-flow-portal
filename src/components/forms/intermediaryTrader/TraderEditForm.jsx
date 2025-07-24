@@ -35,7 +35,7 @@ const TraderEditForm = ({ roleData, isExisting }) => {
   const { id } = useParams();
 
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, details: "", isRaw: false, isProcessed: false },
+    {id: null, productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   // Store original data for comparison
@@ -89,6 +89,7 @@ const TraderEditForm = ({ roleData, isExisting }) => {
 
     const initialProducts = Array.isArray(roleData.businessProducts)
       ? roleData.businessProducts.map((bp) => ({
+        id: bp.id || null,
           productId:
             bp.productId?.toString() || bp.product?.id?.toString() || null,
           isRaw: bp.isRaw || false,
@@ -100,7 +101,7 @@ const TraderEditForm = ({ roleData, isExisting }) => {
     setExportProducts(
       initialProducts.length > 0
         ? initialProducts
-        : [{ productId: null, details: "", isRaw: false, isProcessed: false }]
+        : [{id:null, productId: null, details: "", isRaw: false, isProcessed: false }]
     );
     setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
   }, [roleData, form]);
@@ -125,6 +126,7 @@ const TraderEditForm = ({ roleData, isExisting }) => {
       products: exportProducts
         .filter((product) => product.productId)
         .map((product) => ({
+          id: product.id,
           productId: parseInt(product.productId),
           isRaw: product.isRaw,
           isProcessed: product.isProcessed,
@@ -207,9 +209,10 @@ const TraderEditForm = ({ roleData, isExisting }) => {
 
     // Compare products
     if (!arraysEqual(exportProducts, originalProducts)) {
-      changedData.businessProducts = exportProducts
+      changedData.products = exportProducts
         .filter((product) => product.productId && product.details)
         .map((product) => ({
+          id: product.id || null,
           productId: parseInt(product.productId),
           isRaw: product.isRaw,
           isProcessed: product.isProcessed,
@@ -226,7 +229,6 @@ const TraderEditForm = ({ roleData, isExisting }) => {
       numberOfEmployees: "numberOfEmployeeId",
       yearsTrading: "businessExperienceId",
       registrationDate: "businessStartDate",
-      businessProducts: "businessProducts",
       additionalInfo: "businessDescription",
     };
 
@@ -290,6 +292,7 @@ const TraderEditForm = ({ roleData, isExisting }) => {
           products: exportProducts
             .filter((product) => product.productId)
             .map((product) => ({
+              id: product.id || null,
               productId: parseInt(product.productId),
               isRaw: product.isRaw,
               isProcessed: product.isProcessed,
@@ -297,6 +300,7 @@ const TraderEditForm = ({ roleData, isExisting }) => {
             })),
           userId: id ? parseInt(id) : null,
         };
+        console.log(formattedData);
 
         const response = await axiosInstance.post(
           "/api/trader/",

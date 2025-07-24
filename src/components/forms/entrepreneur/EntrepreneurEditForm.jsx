@@ -38,7 +38,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
 
   console.log("data:: ", roleData);
   const [exportProducts, setExportProducts] = useState([
-    { productId: null, details: "", isRaw: false, isProcessed: false },
+    {id: null, productId: null, details: "", isRaw: false, isProcessed: false },
   ]);
 
   // Store original data for comparison
@@ -103,6 +103,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
     // Set export products
     const initialProducts = Array.isArray(roleData.businessProducts)
       ? roleData.businessProducts.map((bp) => ({
+        id: bp.id || null,
           productId:
             bp.productId?.toString() || bp.product?.id?.toString() || null,
           isRaw: bp.isRaw || false,
@@ -114,7 +115,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
     setExportProducts(
       initialProducts.length > 0
         ? initialProducts
-        : [{ productId: null, details: "", isRaw: false, isProcessed: false }]
+        : [{id:null, productId: null, details: "", isRaw: false, isProcessed: false }]
     );
     setOriginalProducts(JSON.parse(JSON.stringify(initialProducts)));
   }, [roleData, form]);
@@ -140,6 +141,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       products: exportProducts
         .filter((product) => product.productId)
         .map((product) => ({
+          id: product.id,
           productId: parseInt(product.productId),
           isRaw: product.isRaw,
           isProcessed: product.isProcessed,
@@ -226,6 +228,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       changedData.products = exportProducts
         .filter((product) => product.productId)
         .map((product) => ({
+          id: product.id || null,
           productId: parseInt(product.productId),
           isRaw: product.isRaw,
           isProcessed: product.isProcessed,
@@ -309,6 +312,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           products: exportProducts
             .filter((product) => product.productId)
             .map((product) => ({
+              id: product.id || null,
               productId: parseInt(product.productId),
               isRaw: product.isRaw,
               isProcessed: product.isProcessed,
