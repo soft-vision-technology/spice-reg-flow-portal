@@ -222,12 +222,13 @@ const ExporterPage = () => {
         startDate: formData.startDate || null,
       };
 
+      console.log(formData);
+
       const response = await axiosInstance.post(
         "/api/exporter/",
         submissionData
       );
       message.success("Exporter registration submitted successfully!");
-
       navigate("/reports");
     } catch (error) {
       console.error("Submission error:", error);

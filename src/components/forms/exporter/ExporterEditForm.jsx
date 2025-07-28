@@ -242,7 +242,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
       yearsExporting: "businessExperienceId",
       exportStartDate: "startDate",
       exportingCountries: "exportingCountries",
-      businessProducts: "businessProducts",
+      // businessProducts: "businessProducts",
     };
 
     const mappedData = {};

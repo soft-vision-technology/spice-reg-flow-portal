@@ -1,203 +1,3 @@
-// import { Button, Card, Col, Row, Spin, Tag } from "antd";
-// import { useEffect, useState } from "react";
-// import { useLocation, useNavigate, useParams } from "react-router-dom";
-// import axiosInstance from "../api/axiosInstance";
-
-// const ViewUserPage = () => {
-//   const location = useLocation();
-//   const navigate = useNavigate();
-//   const { id } = useParams();
-//   const [user, setUser] = useState(location.state?.user || null);
-//   const [loading, setLoading] = useState(false);
-
-//   useEffect(() => {
-//     if (!user && id) {
-//       setLoading(true);
-//       axiosInstance
-//         .get(`/api/users/${id}`)
-//         .then((res) => setUser(res.data))
-//         .catch(() => setUser(null))
-//         .finally(() => setLoading(false));
-//     }
-//   }, [user, id]);
-
-//   // Helper function to get business status color
-//   const getBusinessStatusColor = (status) => {
-//     switch (status) {
-//       case 'STARTING':
-//         return 'orange';
-//       case 'ACTIVE':
-//         return 'green';
-//       case 'INACTIVE':
-//         return 'red';
-//       default:
-//         return 'default';
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="flex items-center justify-center min-h-[200px]">
-//         <Spin size="large" />
-//       </div>
-//     );
-//   }
-
-//   if (!user) {
-//     return <div>No user data found for ID: {id}</div>;
-//   }
-
-//   return (
-//     <div className="max-w-4xl mx-auto mt-8">
-//       <Card title="User Details" variant={false}>
-//         {/* Personal Information */}
-//         <div className="mb-6">
-//           <h3 className="text-lg font-semibold mb-4 text-gray-700">Personal Information</h3>
-//           <Row gutter={[16, 16]}>
-//             <Col span={12}>
-//               <div>
-//                 <strong>Title:</strong> {user.title}
-//               </div>
-//             </Col>
-//             <Col span={12}>
-//               <div>
-//                 <strong>Full Name:</strong> {user.name}
-//               </div>
-//             </Col>
-//           </Row>
-//           <Row gutter={[16, 16]} className="mt-3">
-//             <Col span={12}>
-//               <div>
-//                 <strong>Initials:</strong> {user.initials}
-//               </div>
-//             </Col>
-//             <Col span={12}>
-//               <div>
-//                 <strong>NIC Number:</strong> {user.nic}
-//               </div>
-//             </Col>
-//           </Row>
-//         </div>
-
-//         {/* Contact Information */}
-//         <div className="mb-6">
-//           <h3 className="text-lg font-semibold mb-4 text-gray-700">Contact Information</h3>
-//           <Row gutter={[16, 16]}>
-//             <Col span={12}>
-//               <div>
-//                 <strong>Email:</strong> {user.email}
-//               </div>
-//             </Col>
-//             <Col span={12}>
-//               <div>
-//                 <strong>Contact Number:</strong> {user.contactNumber}
-//               </div>
-//             </Col>
-//           </Row>
-//           <Row gutter={[16, 16]} className="mt-3">
-//             <Col span={24}>
-//               <div>
-//                 <strong>Address:</strong> {user.address}
-//               </div>
-//             </Col>
-//           </Row>
-//         </div>
-
-//         {/* Location Information */}
-//         <div className="mb-6">
-//           <h3 className="text-lg font-semibold mb-4 text-gray-700">Location Information</h3>
-//           <Row gutter={[16, 16]}>
-//             <Col span={12}>
-//               <div>
-//                 <strong>Province ID:</strong> {user.provinceId}
-//               </div>
-//             </Col>
-//             <Col span={12}>
-//               <div>
-//                 <strong>District ID:</strong> {user.districtId}
-//               </div>
-//             </Col>
-//           </Row>
-//           <Row gutter={[16, 16]} className="mt-3">
-//             <Col span={12}>
-//               <div>
-//                 <strong>DS Division:</strong> {user.dsDivision}
-//               </div>
-//             </Col>
-//             <Col span={12}>
-//               <div>
-//                 <strong>GN Division:</strong> {user.gnDivision}
-//               </div>
-//             </Col>
-//           </Row>
-//         </div>
-
-//         {/* Business Information */}
-//         <div className="mb-6">
-//           <h3 className="text-lg font-semibold mb-4 text-gray-700">Business Information</h3>
-//           <Row gutter={[16, 16]}>
-//             <Col span={12}>
-//               <div>
-//                 <strong>Role ID:</strong> {user.roleId}
-//               </div>
-//             </Col>
-//             <Col span={12}>
-//               <div>
-//                 <strong>Business Status:</strong>{" "}
-//                 <Tag color={getBusinessStatusColor(user.businessStatus)}>
-//                   {user.businessStatus}
-//                 </Tag>
-//               </div>
-//             </Col>
-//           </Row>
-//           <Row gutter={[16, 16]} className="mt-3">
-//             <Col span={12}>
-//               <div>
-//                 <strong>Registration Date:</strong>{" "}
-//                 {user.createdAt
-//                   ? new Date(user.createdAt).toLocaleDateString()
-//                   : "N/A"}
-//               </div>
-//             </Col>
-//           </Row>
-//         </div>
-
-//         {/* Additional Business Details (if available) */}
-//         {(user.businessName ||
-//           user.entrepreneur?.businessName ||
-//           user.exporter?.businessName ||
-//           user.intermediaryTrader?.businessName) && (
-//           <div className="mb-6">
-//             <h3 className="text-lg font-semibold mb-4 text-gray-700">Additional Business Details</h3>
-//             <Row gutter={[16, 16]}>
-//               <Col span={24}>
-//                 <div>
-//                   <strong>Business Name:</strong>{" "}
-//                   {user.businessName ||
-//                     user.entrepreneur?.businessName ||
-//                     user.exporter?.businessName ||
-//                     user.intermediaryTrader?.businessName ||
-//                     "N/A"}
-//                 </div>
-//               </Col>
-//             </Row>
-//           </div>
-//         )}
-
-//         <Button
-//           className="mt-4"
-//           type="primary"
-//           onClick={() => navigate('/user-management')}
-//         >
-//           Back to User Management
-//         </Button>
-//       </Card>
-//     </div>
-//   );
-// };
-
-// export default ViewUserPage;
-
 import { Button, Card, Col, Row, Spin, Tag } from "antd";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -398,9 +198,9 @@ const ViewUserPage = () => {
   return (
     <div className="grid grid-cols-6 grid-rows-4 gap-6 p-8 min-h-screen bg-gray-50">
       {/* Left Panel - Basic Information */}
-      <div className="col-span-2 row-span-4 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="col-span-2 row-span-4 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {/* Header with Back Button */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-200 relative">
+        <div className="bg-amber-500/10 p-4 border-b border-gray-200 relative">
           <button
             onClick={handleGoBack}
             className="absolute top-4 left-4 w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm"
@@ -409,7 +209,7 @@ const ViewUserPage = () => {
           </button>
           <div className="flex items-center space-x-3 ml-14">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-xl font-bold text-gray-900 font-sans">
                 {user.title} {user.name}
               </h1>
               <p className="text-sm text-gray-600">
@@ -463,11 +263,11 @@ const ViewUserPage = () => {
       </div>
 
       {/* Right Panel - Business Information */}
-      <div className="col-span-4 row-span-4 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="col-span-4 row-span-4 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 border-b border-gray-200 flex items-center justify-between">
+        <div className="bg-amber-500/10 p-6 border-b border-gray-200 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <Building className="w-7 h-7 mr-3 text-green-600" />
+            <Building className="w-7 h-7 mr-3 text-amber-500" />
             Business Information
           </h1>
           <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getBusinessStatusColor(user.businessStatus)}`}>
