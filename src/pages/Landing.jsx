@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Form,
   Input,
@@ -12,15 +12,7 @@ import {
   Col,
   Typography,
 } from "antd";
-import {
-  UserOutlined,
-  LockOutlined,
-  TrophyOutlined,
-  GlobalOutlined,
-  TeamOutlined,
-  MailOutlined,
-  ArrowRightOutlined,
-} from "@ant-design/icons";
+import { LockOutlined, MailOutlined } from "@ant-design/icons";
 import {
   loginUser,
   setEmail,
@@ -456,7 +448,7 @@ const Landing = () => {
                   <button
                     type="button"
                     onClick={handleSignUp}
-                    className="text-spice-500 hover:text-spice-600 font-semibold font-serif transition-colors duration-200 bg-transparent border-none cursor-pointer"
+                    className="text-spice-500 hover:text-spice-600 font-semibold font-serif transition-colors duration-200 bg-transparent border-none cursor-not-allowed"
                     disabled={loading || isRedirecting}
                   >
                     Sign up here

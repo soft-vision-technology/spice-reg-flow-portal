@@ -15,6 +15,7 @@ import {
   Row,
   Col,
   Tabs,
+  Switch,
 } from "antd";
 import {
   EditOutlined,
@@ -115,6 +116,36 @@ const UserManagement = () => {
     // For now, just close the EditPage
     setEditUserId(null);
     // Optionally show a message or refresh user list
+  };
+
+  const handleApproveToggle = async (userId, isApproved) => {
+    const actionId = `approve-${userId}`;
+    setPendingActions((prev) => new Set([...prev, actionId]));
+
+    try {
+      await axiosInstance.patch(`/api/users/${userId}`, {
+        isApproved: isApproved,
+      });
+
+      message.success(
+        `User has been ${isApproved ? "approved" : "unapproved"} successfully`
+      );
+
+      // Optional: refetch user list to reflect changes
+      dispatch(fetchExistingEntrepreneurs());
+      dispatch(fetchExistingExporters());
+      dispatch(fetchStartingExporters());
+      dispatch(fetchExistingTraders());
+    } catch (error) {
+      console.error(error);
+      message.error("Failed to update approval status.");
+    } finally {
+      setPendingActions((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(actionId);
+        return newSet;
+      });
+    }
   };
 
   const handleEditSubmit = () => {
@@ -244,6 +275,9 @@ const UserManagement = () => {
               {record.title ? `${record.title} ${text}` : text}
             </div>
             <div className="text-sm text-gray-500">{record.email}</div>
+            <div className="text-sm text-gray-500">
+              {record.isApproved ? "Approved" : "Pending Approval"}
+            </div>
           </div>
         </div>
       ),
@@ -333,6 +367,12 @@ const UserManagement = () => {
       width: 200,
       render: (_, record) => (
         <Space size="small">
+          <Switch
+            size="small"
+            checked={record.isApproved}
+            onChange={(checked) => handleApproveToggle(record.id, checked)}
+            loading={pendingActions.has(`approve-${record.id}`)}
+          />
           <Button
             type="default"
             icon={<EyeOutlined />}

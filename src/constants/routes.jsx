@@ -21,12 +21,10 @@ const NotFound = React.lazy(() => import('../pages/NotFound'));
 const DevEnvPage = React.lazy(() => import('../pages/test_page.jsx'));
 
 // Auth pages
-const LandingPage = React.lazy(() => import('../pages/LandingPage'));
 const Landing = React.lazy(() => import('../pages/Landing.jsx'));
 
 export const routes = [
   // Public routes
-  // { path: '/', exact: true, name: 'LandingPage', element: LandingPage, protected: false },
   { path: '/', exact: true, name: 'Landing', element: Landing, protected: false},
   
   // Protected dashboard routes

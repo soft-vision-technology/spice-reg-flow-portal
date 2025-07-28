@@ -91,17 +91,20 @@ const SidebarMenu = () => {
         <Link to="/notifications">Notifications</Link>
       </Menu.Item>
 
-      <Menu.Item
-        key="/dev-env/page_"
-        icon={<CodeFilled />}
-        style={{
-          marginBottom: 50,
-          position: "absolute",
-          bottom: 1,
-        }}
-      >
-        <Link to="/dev-env/page_">dev_look</Link>
-      </Menu.Item>
+      {/* (remove in production) */}
+      {process.env.NODE_ENV === "development" && (
+        <Menu.Item
+          key="/dev-env/page_"
+          icon={<CodeFilled />}
+          style={{
+            marginBottom: 50,
+            position: "absolute",
+            bottom: 1,
+          }}
+        >
+          <Link to="/dev-env/page_">dev_look</Link>
+        </Menu.Item>
+      )}
 
       {isAdmin && (
         <Menu.Item
