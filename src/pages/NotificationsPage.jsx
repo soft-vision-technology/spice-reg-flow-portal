@@ -145,9 +145,7 @@ const NotificationsPage = () => {
     const matchesSearch =
       notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       notification.message.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const typeTag = getNotificationTypeTag(notification.type);
-
+      
     const matchesType =
       filterType === "all" ||
       notification.type.toLowerCase() === filterType.toLowerCase();
