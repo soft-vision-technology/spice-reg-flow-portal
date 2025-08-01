@@ -1,34 +1,95 @@
 import React, { useEffect, useState } from "react";
 import { Steps, Button, message } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import EntrepreneurForm from "../components/forms/entrepreneur/EntrepreneurForm";
 import { useFormContext } from "../contexts/FormContext";
 import axiosInstance from "../api/axiosInstance";
+import {
+  fetchCertificateOptions,
+  fetchExperienceOptions,
+  fetchNumEmployeeOptions,
+  fetchProductOptions,
+} from "../store/slices/utilsSlice";
 
 const { Step } = Steps;
 
 const ExistingBusinessPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
   const { registrationType, role, formData } = useFormContext();
   const [current, setCurrent] = useState(0);
 
+  // Get lookup options from utilsSlice
+  const numberOfEmployeeOptions = useSelector(
+    (state) => state.utils.numEmployeeOptions
+  );
+  const experienceOptions = useSelector(
+    (state) => state.utils.experienceOptions
+  );
+  const certificateOptions = useSelector(
+    (state) => state.utils.certificateOptions
+  );
+  const productOptions = useSelector((state) => state.utils.productOptions);
+
   useEffect(() => {
-    if (!registrationType || !role || role !=="entrepreneur") {
+    if (!registrationType || !role || role !== "entrepreneur") {
       navigate("/select");
       message.warning("Please complete the registration selection first");
       return;
     }
 
     const hasBasicInfo = formData.fullName && formData.mobileNumber && formData.nic;
-        if (!hasBasicInfo) {
-          navigate("/select");
-          message.warning("Please complete your basic information first");
-          return;
-        }
+    if (!hasBasicInfo) {
+      navigate("/select");
+      message.warning("Please complete your basic information first");
+      return;
+    }
   }, [registrationType, role, formData, navigate]);
 
+  // Fetch lookup options on component mount
+  useEffect(() => {
+    dispatch(fetchNumEmployeeOptions());
+    dispatch(fetchExperienceOptions());
+    dispatch(fetchCertificateOptions());
+    dispatch(fetchProductOptions());
+  }, [dispatch]);
+
   const isExistingBusiness = registrationType === "have-business";
+
+  // Helper functions to map IDs to names
+  const getOptionName = (options, id) => {
+    const found = options.find((opt) => String(opt.id) === String(id));
+    return found ? found.name : id;
+  };
+
+  const getProductName = (id) => {
+    const found = productOptions.find((opt) => String(opt.id) === String(id));
+    return found ? found.name : id;
+  };
+
+  const getCertificateNames = (certifications) => {
+    if (!certifications) return "-";
+    
+    if (Array.isArray(certifications)) {
+      return certifications
+        .map((id) => getOptionName(certificateOptions, id))
+        .join(", ");
+    }
+    
+    return getOptionName(certificateOptions, certifications);
+  };
+
+  const getEmployeeCountName = (id) => {
+    if (!id) return "-";
+    return getOptionName(numberOfEmployeeOptions, id);
+  };
+
+  const getExperienceName = (id) => {
+    if (!id) return "-";
+    return getOptionName(experienceOptions, id);
+  };
 
   const steps = [
     {
@@ -114,7 +175,7 @@ const ExistingBusinessPage = () => {
                 {formData.numberOfEmployees && (
                   <div>
                     <span className="font-medium">Number of Employees:</span>{" "}
-                    {formData.numberOfEmployees}
+                    {getEmployeeCountName(formData.numberOfEmployees)}
                   </div>
                 )}
                 {formData.yearsExporting && (
@@ -122,7 +183,7 @@ const ExistingBusinessPage = () => {
                     <span className="font-medium">
                       Years in Export Business:
                     </span>{" "}
-                    {formData.yearsExporting}
+                    {getExperienceName(formData.yearsExporting)}
                   </div>
                 )}
                 {formData.businessExperience && (
@@ -134,9 +195,7 @@ const ExistingBusinessPage = () => {
                 {formData.certifications && (
                   <div>
                     <span className="font-medium">Certifications:</span>{" "}
-                    {Array.isArray(formData.certifications) 
-                      ? formData.certifications.join(", ")
-                      : formData.certifications}
+                    {getCertificateNames(formData.certifications)}
                   </div>
                 )}
                 {formData.additionalInfo && (
@@ -156,10 +215,22 @@ const ExistingBusinessPage = () => {
                   <div className="space-y-2">
                     {formData.products.map((product, index) => (
                       <div key={index} className="text-sm bg-gray-50 p-2 rounded">
-                        <div><strong>Product Name:</strong> {product.productId}</div>
-                        <div><strong>Particulars:</strong> ${product.value?.toLocaleString()}</div>
-                        <div><strong>Type:</strong> {product.isRaw ? "Raw" : ""} {product.isProcessed ? "Value Added" : ""}</div>
-                        {product.details && <div><strong>Details:</strong> {product.details}</div>}
+                        <div>
+                          <strong>Product Name:</strong> {getProductName(product.productId)}
+                        </div>
+                        <div>
+                          <strong>Particulars:</strong> {product.value ? `$${product.value.toLocaleString()}` : "-"}
+                        </div>
+                        <div>
+                          <strong>Type:</strong>{" "}
+                          {product.isRaw && "Raw"} {product.isProcessed && "Value Added"}
+                          {!product.isRaw && !product.isProcessed && "-"}
+                        </div>
+                        {product.details && (
+                          <div>
+                            <strong>Details:</strong> {product.details}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -229,7 +300,10 @@ const ExistingBusinessPage = () => {
 
       const response = await axiosInstance.post("/api/entrepreneur/", submissionData);
       message.success("Entrepreneur registration submitted successfully!");
-      navigate("/reports");
+      setInterval(() => {
+        navigate("/select" );
+        window.location.reload();
+      },2000);
     } catch (error) {
       console.error("Submission error:", error);
       console.error("Error details:", error.response?.data);
