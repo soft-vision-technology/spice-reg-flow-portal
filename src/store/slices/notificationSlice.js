@@ -5,14 +5,13 @@ export const fetchNotifications = createAsyncThunk(
   "notifications/fetchNotifications",
   async () => {
     const res = await axiosInstance.get("/api/notification/get/unread");
-    return res.data.map((n) => ({
+    const notifications = res.data.map((n) => ({
       id: n.id,
       title: n.type,
       message: n.details,
       time: formatTime(n.createdAt),
       timestamp: new Date(n.createdAt),
       read: n.isRead,
-      // Set priority and type based on requestApprovalId
       priority: n.requestApprovalId ? "high" : "low",
       type: n.requestApprovalId ? "approval" : "information",
       sendUrl: n.sendUrl,
@@ -20,6 +19,9 @@ export const fetchNotifications = createAsyncThunk(
       adminId: n.adminId,
       readTime: n.readTime,
     }));
+    
+    // Sort by timestamp in descending order (newest first)
+    return notifications.sort((a, b) => b.timestamp - a.timestamp);
   }
 );
 
@@ -27,7 +29,7 @@ export const fetchReadNotifications = createAsyncThunk(
   "notifications/fetchReadNotifications",
   async () => {
     const res = await axiosInstance.get("/api/notification/get/read");
-    return res.data.map((n) => ({
+    const notifications = res.data.map((n) => ({
       id: n.id,
       title: n.type,
       message: n.details,
@@ -41,6 +43,9 @@ export const fetchReadNotifications = createAsyncThunk(
       adminId: n.adminId,
       readTime: n.readTime,
     }));
+    
+    // Sort by timestamp in descending order (newest first)
+    return notifications.sort((a, b) => b.timestamp - a.timestamp);
   }
 );
 
