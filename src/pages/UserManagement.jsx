@@ -420,16 +420,6 @@ const UserManagement = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Print Certificates Button */}
-              <Button
-                type="primary"
-                icon={<PrinterOutlined />}
-                onClick={() => setCertificateDrawerVisible(true)}
-                style={{ backgroundColor: "#e67324", borderColor: "#e67324" }}
-              >
-                Print Certificates
-              </Button>
-
               {/* Pending Actions Indicator */}
               {pendingActionsCount > 0 && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
