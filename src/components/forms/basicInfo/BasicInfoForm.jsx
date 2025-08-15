@@ -83,12 +83,27 @@ const BasicInfoForm = () => {
     items: serialMenuItems,
   };
 
+  const handleKeyDown = (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault(); // Stop form submit
+
+    const formElements = Array.from(
+      e.currentTarget.querySelectorAll("input, textarea, select")
+    ).filter(el => !el.disabled && el.type !== "hidden");
+
+    const index = formElements.indexOf(e.target);
+    if (index > -1 && index < formElements.length - 1) {
+      formElements[index + 1].focus();
+    }
+  }
+};
+
   return (
     <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
       <h3 className="text-lg sm:text-xl font-medium text-earth-700 mb-4 sm:mb-6">
         Basic Information
       </h3>
-      <Form layout="vertical" onValuesChange={handleChange} form={form}>
+      <Form layout="vertical" onValuesChange={handleChange} form={form} onKeyDown={handleKeyDown}>
         {/* Title and Initials Row */}
         <Row gutter={[12, 16]}>
           <Col xs={24} sm={12}>
