@@ -19,7 +19,16 @@ const NotificationSection = () => {
   const notifications = useSelector((state) => state.notifications.items);
 
   useEffect(() => {
+    // Fetch notifications immediately
     dispatch(fetchNotifications());
+
+    // Set up interval to refresh every 5 seconds
+    const intervalId = setInterval(() => {
+      dispatch(fetchNotifications());
+    }, 5000); // 5000ms = 5 seconds
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
   }, [dispatch]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;

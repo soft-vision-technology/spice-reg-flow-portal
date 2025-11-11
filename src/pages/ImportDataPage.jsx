@@ -43,7 +43,7 @@ const ImportDataPage = () => {
   const [expanded, setExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  const [isProcessing, setIsProcessing] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [processStartTime, setProcessStartTime] = useState();
 
   // Single cell editing state

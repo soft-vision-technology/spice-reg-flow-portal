@@ -267,15 +267,7 @@ const TraderEditForm = ({ roleData, isExisting }) => {
       // Map field names to API format
       const mappedChanges = mapFieldNames(changedFields);
 
-      const approvalRequest = {
-        type: "editData",
-        requestName: `Intermediary Trader: ${roleData?.user?.name}`,
-        requestData: mappedChanges,
-        requestedUrl: `trader/${roleData.id || location?.state?.result}`,
-      };
-
-      console.log("Submitting changes:", approvalRequest);
-
+      // If no roleData, this is a new trader, not an edit
       if (!roleData) {
         // Use all form values for new trader
         const allValues = await form.validateFields();
@@ -292,7 +284,6 @@ const TraderEditForm = ({ roleData, isExisting }) => {
           products: exportProducts
             .filter((product) => product.productId)
             .map((product) => ({
-              id: product.id || null,
               productId: parseInt(product.productId),
               isRaw: product.isRaw,
               isProcessed: product.isProcessed,
@@ -311,6 +302,16 @@ const TraderEditForm = ({ roleData, isExisting }) => {
         alert("Success!");
         return response;
       }
+
+      // Create approval request for editing existing trader
+      const approvalRequest = {
+        type: "editData",
+        requestName: `Intermediary Trader: ${roleData?.user?.name}`,
+        requestData: mappedChanges,
+        requestedUrl: `trader/${roleData.id}`,
+      };
+
+      console.log("Submitting changes:", approvalRequest);
 
       const response = await axiosInstance.post(
         "/api/approval/create",

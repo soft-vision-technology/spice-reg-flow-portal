@@ -16,6 +16,7 @@ import {
   Col,
   Tabs,
   Switch,
+  Input, // Add Input import
 } from "antd";
 import {
   EditOutlined,
@@ -29,6 +30,7 @@ import {
   PlusSquareOutlined,
   ShopOutlined,
   GlobalOutlined,
+  SearchOutlined, // Add SearchOutlined icon
 } from "@ant-design/icons";
 import CertificatePrintDrawer from "../components/custom/CertificatePrintDrawer";
 import { useDispatch, useSelector } from "react-redux";
@@ -57,6 +59,7 @@ const UserManagement = () => {
   const [activeTab, setActiveTab] = useState("entrepreneurs");
   const [form] = Form.useForm();
   const [editUserId, setEditUserId] = useState(null);
+  const [searchText, setSearchText] = useState("");
   const dispatch = useDispatch();
   const {
     startingExporters,
@@ -93,6 +96,27 @@ const UserManagement = () => {
       default:
         return [];
     }
+  };
+
+  // Filter data based on search text
+  const getFilteredData = (role) => {
+    const data = getDataByRole(role);
+    if (!searchText) return data;
+
+    return data.filter((user) => {
+      const searchLower = searchText.toLowerCase();
+      const businessData =
+        user.exporter || user.entrepreneur || user.intermediaryTrader;
+
+      return (
+        user.name?.toLowerCase().includes(searchLower) ||
+        user.email?.toLowerCase().includes(searchLower) ||
+        user.contactNumber?.toLowerCase().includes(searchLower) ||
+        businessData?.businessName?.toLowerCase().includes(searchLower) ||
+        user.district?.name?.toLowerCase().includes(searchLower) ||
+        user.province?.name?.toLowerCase().includes(searchLower)
+      );
+    });
   };
 
   // --- Edit, View, Delete handlers using API ---
@@ -466,7 +490,6 @@ const UserManagement = () => {
 
         {/* Tabbed Tables */}
         <Card className="shadow-sm">
-          {/* Flex container for Tabs + Add Button */}
           <div className="flex justify-between items-center mb-4">
             <Tabs
               activeKey={activeTab}
@@ -474,6 +497,14 @@ const UserManagement = () => {
               type="card"
               tabBarExtraContent={
                 <div className="flex gap-2">
+                  <Input
+                    placeholder="Search users..."
+                    prefix={<SearchOutlined />}
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    style={{ width: 250 }}
+                    allowClear
+                  />
                   <Button
                     className="bg-spice-500"
                     type="primary"
@@ -497,7 +528,7 @@ const UserManagement = () => {
                 tab={
                   <span>
                     <Tag color="purple" className="mr-1">
-                      {getDataByRole("Entrepreneur").length}
+                      {getFilteredData("Entrepreneur").length}
                     </Tag>
                     Entrepreneurs
                   </span>
@@ -506,7 +537,7 @@ const UserManagement = () => {
               >
                 <Table
                   columns={getColumns("Entrepreneur")}
-                  dataSource={getDataByRole("Entrepreneur")}
+                  dataSource={getFilteredData("Entrepreneur")}
                   rowKey="id"
                   loading={loading}
                   pagination={{
@@ -516,17 +547,15 @@ const UserManagement = () => {
                     showTotal: (total, range) =>
                       `${range[0]}-${range[1]} of ${total} entrepreneurs`,
                   }}
-                  // scroll={{ x: 1600 }}
                   size="small"
                 />
               </TabPane>
 
-              {/* Exporters */}
               <TabPane
                 tab={
                   <span>
                     <Tag color="blue" className="mr-1">
-                      {getDataByRole("Exporter").length}
+                      {getFilteredData("Exporter").length}
                     </Tag>
                     Exporters
                   </span>
@@ -535,7 +564,7 @@ const UserManagement = () => {
               >
                 <Table
                   columns={getColumns("Exporter")}
-                  dataSource={getDataByRole("Exporter")}
+                  dataSource={getFilteredData("Exporter")}
                   rowKey="id"
                   loading={loading}
                   pagination={{
@@ -545,17 +574,15 @@ const UserManagement = () => {
                     showTotal: (total, range) =>
                       `${range[0]}-${range[1]} of ${total} exporters`,
                   }}
-                  // scroll={{ x: 1600 }}
                   size="small"
                 />
               </TabPane>
 
-              {/* Traders */}
               <TabPane
                 tab={
                   <span>
                     <Tag color="green" className="mr-1">
-                      {getDataByRole("IntermediaryTrader").length}
+                      {getFilteredData("IntermediaryTrader").length}
                     </Tag>
                     Traders
                   </span>
@@ -564,7 +591,7 @@ const UserManagement = () => {
               >
                 <Table
                   columns={getColumns("IntermediaryTrader")}
-                  dataSource={getDataByRole("IntermediaryTrader")}
+                  dataSource={getFilteredData("IntermediaryTrader")}
                   rowKey="id"
                   loading={loading}
                   pagination={{
@@ -574,7 +601,6 @@ const UserManagement = () => {
                     showTotal: (total, range) =>
                       `${range[0]}-${range[1]} of ${total} traders`,
                   }}
-                  // scroll={{ x: 1600 }}
                   size="small"
                 />
               </TabPane>
