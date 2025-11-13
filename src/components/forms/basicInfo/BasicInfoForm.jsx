@@ -384,7 +384,7 @@ const BasicInfoForm = () => {
                 </Form.Item>
               </Space.Compact>
               {lastSerialDigits && (
-                <div style={{ marginTop: '4px', fontSize: '12px', fontStyle: 'italic', fontWeight: 'bold', color: '#6b7280', textAlign: 'right' }}>
+                <div style={{ marginTop: '4px', fontSize: '12px', fontStyle: 'italic', fontWeight: 500 ,color: '#6b7280', textAlign: 'right' }}>
                   *last entered number {lastSerialDigits}
                 </div>
               )}
