@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Select, Col, Row, Checkbox, Dropdown, Button } from "antd";
+import { Form, Input, Select, Col, Row, Checkbox, Dropdown, Button, Space } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
 import {
@@ -14,6 +14,7 @@ import {
   fetchBasicInfo,
 } from "../../../store/slices/basicInfoSlice";
 import { useDispatch, useSelector } from "react-redux";
+import axiosInstance from "../../../api/axiosInstance";
 
 const { Option } = Select;
 
@@ -21,6 +22,7 @@ const BasicInfoForm = () => {
   const dispatch = useDispatch();
   const { updateFormData } = useFormContext();
   const [selectedProvince, setSelectedProvince] = useState(null);
+  const [lastSerialDigits, setLastSerialDigits] = useState(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -51,19 +53,49 @@ const BasicInfoForm = () => {
   };
 
   // Handle serial number selection from dropdown
-  const handleSerialSelection = (serial) => {
-    form.setFieldsValue({
-      prefix: serial.prefix,
-      suffix: serial.suffix,
-    });
-    
-    // Trigger form change to update context
-    const currentValues = form.getFieldsValue();
-    updateFormData({
-      ...currentValues,
-      prefix: serial.prefix,
-      suffix: serial.suffix,
-    });
+  const handleSerialSelection = async (serial) => {
+    try {
+      // Fetch the last serial number for the selected prefix/suffix
+      const response = await axiosInstance.get(`/api/serial_number/last/serial-number`, {
+        params: {
+          prefix: serial.prefix,
+          suffix: serial.suffix
+        }
+      });
+      
+      const lastDigits = response.data.lastDigits || response.data;
+      
+      // Store last digits for placeholder display
+      setLastSerialDigits(lastDigits);
+      
+      form.setFieldsValue({
+        prefix: serial.prefix,
+        suffix: serial.suffix,
+      });
+      
+      // Trigger form change to update context
+      const currentValues = form.getFieldsValue();
+      updateFormData({
+        ...currentValues,
+        prefix: serial.prefix,
+        suffix: serial.suffix,
+      });
+    } catch (error) {
+      console.error('Failed to fetch last serial number:', error);
+      setLastSerialDigits(null);
+      // Still set prefix and suffix even if API fails
+      form.setFieldsValue({
+        prefix: serial.prefix,
+        suffix: serial.suffix,
+      });
+      
+      const currentValues = form.getFieldsValue();
+      updateFormData({
+        ...currentValues,
+        prefix: serial.prefix,
+        suffix: serial.suffix,
+      });
+    }
   };
 
   // Create dropdown menu items
@@ -295,7 +327,7 @@ const BasicInfoForm = () => {
         </Row>
         
         <Row gutter={[24, 24]}>
-          <Col xs={24} sm={12}>
+          <Col xs={24} sm={24}>
             <Form.Item
               label={
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -318,10 +350,10 @@ const BasicInfoForm = () => {
                 },
               ]}
             >
-              <Input.Group compact>
+              <Space.Compact compact>
                 <Form.Item
                   name="prefix"
-                  style={{ display: "inline-block", width: "35%" }}
+                  style={{ width: "70%" }}
                 >
                   <Input
                     placeholder="Prefix"
@@ -332,7 +364,7 @@ const BasicInfoForm = () => {
                 </Form.Item>
                 <Form.Item
                   name="suffix"
-                  style={{ display: "inline-block", width: "35%" }}
+                  style={{ width: "70%" }}
                 >
                   <Input
                     placeholder="Suffix"
@@ -343,11 +375,19 @@ const BasicInfoForm = () => {
                 </Form.Item>
                 <Form.Item
                   name="serialNumber"
-                  style={{ display: "inline-block", width: "30%" }}
+                  style={{ width: "70%" }}
                 >
-                  <Input placeholder="Number" size="large" />
+                  <Input 
+                    placeholder={lastSerialDigits} 
+                    size="large" 
+                  />
                 </Form.Item>
-              </Input.Group>
+              </Space.Compact>
+              {lastSerialDigits && (
+                <div style={{ marginTop: '4px', fontSize: '12px', fontStyle: 'italic', fontWeight: 'bold', color: '#6b7280', textAlign: 'right' }}>
+                  *last entered number {lastSerialDigits}
+                </div>
+              )}
             </Form.Item>
           </Col>
           {/* <Col xs={24} sm={12}>
