@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import axiosInstance from "../api/axiosInstance";
 import {
   Button,
   Upload,
@@ -45,6 +46,7 @@ const ImportDataPage = () => {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [processStartTime, setProcessStartTime] = useState();
+  const [importResults, setImportResults] = useState([]); // [{row, status, error}]
 
   // Single cell editing state
   const [editingCell, setEditingCell] = useState(null); // {row: 0, col: 'columnKey'}
@@ -202,48 +204,92 @@ const ImportDataPage = () => {
     }
   };
 
+  // Map table row to user payload
+  const mapRowToUserPayload = (row) => {
+    // Map Excel columns to API payload keys and types
+    const mapping = {
+      title: "title",
+      initials: "initials",
+      name: "name",
+      nic: "nic",
+      address: "address",
+      email: "email",
+      contactNumber: "contactNumber",
+      provinceId: "provinceId",
+      districtId: "districtId",
+      dsDivision: "dsDivision",
+      gnDivision: "gnDivision",
+      businessStatus: "businessStatus",
+      roleId: "roleId",
+      isActive: "isActive",
+      isApproved: "isApproved",
+      serialNumber: "serialNumber",
+    };
+    const booleanFields = ["isActive", "isApproved"];
+    const numberFields = ["provinceId", "districtId", "roleId"];
+    const payload = {};
+    columns.forEach((col, idx) => {
+      const rawKey = col.title.trim();
+      const key = rawKey.replace(/\s+/g, "").replace(/_/g, "").toLowerCase();
+      const apiKey = mapping[key] || rawKey;
+      let value = row[idx];
+      if (apiKey === "nic") {
+        // Always send nic as string
+        payload[apiKey] = value !== undefined && value !== null ? String(value) : "";
+      } else if (booleanFields.includes(apiKey)) {
+        // Accept 'true', 'false', '1', '0', or boolean
+        if (typeof value === "string") {
+          value = value.trim().toLowerCase();
+          payload[apiKey] = value === "true" || value === "1";
+        } else {
+          payload[apiKey] = Boolean(value);
+        }
+      } else if (numberFields.includes(apiKey)) {
+        payload[apiKey] = value === "" ? undefined : Number(value);
+      } else {
+        payload[apiKey] = value;
+      }
+    });
+    // Ensure all required keys exist, even if blank
+    Object.keys(mapping).forEach((k) => {
+      const apiKey = mapping[k];
+      if (!(apiKey in payload)) {
+        if (booleanFields.includes(apiKey)) payload[apiKey] = false;
+        else if (numberFields.includes(apiKey)) payload[apiKey] = undefined;
+        else payload[apiKey] = "";
+      }
+    });
+    return payload;
+  };
+
+  // Post each user row one by one
   const handleProcessData = async () => {
     if (excelData.length === 0) {
       message.warning("No data to process. Please upload an Excel file first.");
       return;
     }
-
     setLoading(true);
-    try {
-      // Commented API call - uncomment and modify as needed
-      /*
-      const response = await fetch('/api/import-excel-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          data: excelData,
-          fileName: fileName,
-          columns: columns.map(col => col.title),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to process data');
+    setImportResults([]);
+    let results = [];
+    for (let i = 0; i < excelData.length; i++) {
+      const row = excelData[i];
+      try {
+        const payload = mapRowToUserPayload(row);
+        // POST to /api/users/
+        await axiosInstance.post("/api/users/", payload);
+        results.push({ row: i + 1, status: "success" });
+      } catch (error) {
+        results.push({ row: i + 1, status: "error", error: error?.response?.data?.message || error.message });
       }
-
-      const result = await response.json();
-      message.success(`Successfully processed ${excelData.length} records`);
-      
-      // Navigate to success page or back to form
-      navigate('/success', { state: { result } });
-      */
-
-      // Simulate API call for demo
-      setTimeout(() => {
-        message.success(`Successfully processed ${excelData.length} records`);
-        setLoading(false);
-      }, 2000);
-    } catch (error) {
-      console.error("Error processing data:", error);
-      message.error("Failed to process the data. Please try again.");
-      setLoading(false);
+    }
+    setImportResults(results);
+    setLoading(false);
+    const successCount = results.filter(r => r.status === "success").length;
+    const errorCount = results.filter(r => r.status === "error").length;
+    if (errorCount === 0) {
+      message.success(`Successfully imported all ${successCount} records.`);
+    } else {
+      message.warning(`Imported ${successCount} records, ${errorCount} failed.`);
     }
   };
 
@@ -605,7 +651,7 @@ const ImportDataPage = () => {
         </Card>
       )}
 
-      {/* Action Buttons */}
+      {/* Action Buttons & Import Results */}
       {excelData.length > 0 && (
         <Card>
           <Title level={4} className="mb-4">
@@ -643,6 +689,31 @@ const ImportDataPage = () => {
             type="info"
             showIcon
           />
+
+          {/* Import Results Table */}
+          {importResults.length > 0 && (
+            <div className="mt-6">
+              <Title level={5}>Import Results</Title>
+              <Table
+                dataSource={importResults.map((r, idx) => ({
+                  key: idx,
+                  row: r.row,
+                  status: r.status,
+                  error: r.error || ""
+                }))}
+                columns={[
+                  { title: "Row", dataIndex: "row", key: "row", width: 80 },
+                  { title: "Status", dataIndex: "status", key: "status", width: 120,
+                    render: (text) => text === "success" ? <span style={{color: 'green'}}>Success</span> : <span style={{color: 'red'}}>Error</span>
+                  },
+                  { title: "Error Message", dataIndex: "error", key: "error", width: 300 },
+                ]}
+                pagination={false}
+                size="small"
+                bordered
+              />
+            </div>
+          )}
         </Card>
       )}
 

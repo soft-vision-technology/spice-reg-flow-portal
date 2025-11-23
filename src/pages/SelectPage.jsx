@@ -104,7 +104,7 @@ const SelectPage = () => {
         roleId: roleId,
         isActive: false,
         isApproved: false,
-        serialNumber: completeSerialNumber,
+        serialNumber: completeSerialNumber || null,
       };
 
       console.log("=== API DATA DEBUG ===");

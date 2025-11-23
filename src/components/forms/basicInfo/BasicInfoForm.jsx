@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Form, Input, Select, Col, Row, Checkbox, Dropdown, Button, Space } from "antd";
+import { useEffect, useState } from "react";
+import { Form, Input, Select, Col, Row, Dropdown, Button, Space } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
 import {
@@ -8,11 +8,6 @@ import {
   fetchSerialNumber,
   selectSerialOptions,
 } from "../../../store/slices/utilsSlice";
-import {
-  updateBasicInfo,
-  saveBasicInfo,
-  fetchBasicInfo,
-} from "../../../store/slices/basicInfoSlice";
 import { useDispatch, useSelector } from "react-redux";
 import axiosInstance from "../../../api/axiosInstance";
 
@@ -159,7 +154,7 @@ const BasicInfoForm = () => {
                 { required: false, message: "Please enter your initials" },
               ]}
             >
-              <Input placeholder="T. N." size="large" />
+              <Input placeholder="Enter Initials" size="large" />
             </Form.Item>
           </Col>
         </Row>
@@ -174,7 +169,7 @@ const BasicInfoForm = () => {
                 { required: false, message: "Please enter your full name" },
               ]}
             >
-              <Input placeholder="John Doe" size="large" />
+              <Input placeholder="Enter Full Name" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -189,7 +184,7 @@ const BasicInfoForm = () => {
                 },
               ]}
             >
-              <Input placeholder="123456789V or 123456789012" size="large" />
+              <Input placeholder="Enter NIC" size="large" />
             </Form.Item>
           </Col>
         </Row>
@@ -204,7 +199,7 @@ const BasicInfoForm = () => {
             >
               <Input.TextArea
                 rows={3}
-                placeholder="123 Spice Road, Colombo"
+                placeholder="Enter Address"
                 className="resize-none"
               />
             </Form.Item>
@@ -222,7 +217,7 @@ const BasicInfoForm = () => {
                 { type: "email", message: "Please enter a valid email" },
               ]}
             >
-              <Input placeholder="john.doe@example.com" size="large" />
+              <Input placeholder="Enter Email Address" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -237,7 +232,7 @@ const BasicInfoForm = () => {
                 // },
               ]}
             >
-              <Input placeholder="0712345678" size="large" />
+              <Input placeholder="Enter Mobile Number" size="large" />
             </Form.Item>
           </Col>
         </Row>
@@ -253,7 +248,7 @@ const BasicInfoForm = () => {
               ]}
             >
               <Select
-                placeholder="Select province"
+                placeholder="Select Province"
                 onChange={handleProvinceChange}
                 allowClear
                 size="large"
@@ -281,7 +276,7 @@ const BasicInfoForm = () => {
               ]}
             >
               <Select
-                placeholder="Select district"
+                placeholder="Select District"
                 disabled={!selectedProvince}
                 size="large"
                 showSearch
@@ -310,7 +305,7 @@ const BasicInfoForm = () => {
                 { required: false, message: "Please enter your DS Division" },
               ]}
             >
-              <Input placeholder="Gampaha" size="large" />
+              <Input placeholder="Enter DS Division" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -321,7 +316,7 @@ const BasicInfoForm = () => {
                 { required: false, message: "Please enter your GN Division" },
               ]}
             >
-              <Input placeholder="Ethgala" size="large" />
+              <Input placeholder="Enter GN Division" size="large" />
             </Form.Item>
           </Col>
         </Row>

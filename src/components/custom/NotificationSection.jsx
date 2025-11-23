@@ -25,7 +25,7 @@ const NotificationSection = () => {
     // Set up interval to refresh every 5 seconds
     const intervalId = setInterval(() => {
       dispatch(fetchNotifications());
-    }, 5000); // 5000ms = 5 seconds
+    }, 900000); // 900000ms = 15 minutes
 
     // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
