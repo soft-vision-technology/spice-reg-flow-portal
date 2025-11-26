@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => ({
       '/api': {
         target: 'http://62.171.169.191:5000',
         changeOrigin: true,
-        secure: false, // Allow self-signed or insecure certificates (if HTTPS is used)
+        secure: true, // Allow self-signed or insecure certificates (if HTTPS is used)
         rewrite: (path) => path.replace(/^\/api/, '') // optional: strip /api from the URL
       }
     }
