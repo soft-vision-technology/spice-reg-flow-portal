@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     proxy: {
       // Forward all requests starting with /api to your backend
       '/api': {
-        target: 'http://62.171.169.191:5000',
+        target: 'http://62.171.171.211:3015',
         changeOrigin: true,
         secure: false, // Allow self-signed or insecure certificates (if HTTPS is used)
         rewrite: (path) => path.replace(/^\/api/, '') // optional: strip /api from the URL
