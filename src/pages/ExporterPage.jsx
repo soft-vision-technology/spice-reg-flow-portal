@@ -1,16 +1,33 @@
 import React, { useEffect, useState } from "react";
 import { Steps, Button, message } from "antd";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ExporterForm from "../components/forms/exporter/ExporterForm";
 import { useFormContext } from "../contexts/FormContext";
 import axiosInstance from "../api/axiosInstance";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCertificateOptions, fetchExperienceOptions, fetchNumEmployeeOptions, fetchProductOptions } from "../store/slices/utilsSlice";
 
 const { Step } = Steps;
 
 const ExporterPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { registrationType, role, formData } = useFormContext();
   const [current, setCurrent] = useState(0);
+
+  // Get lookup options from utilsSlice - Fixed selector names
+  const numberOfEmployeeOptions = useSelector(
+    (state) => state.utils.numEmployeeOptions  // Fixed: was numberOfEmployeeOptions
+  );
+  const experienceOptions = useSelector(
+    (state) => state.utils.experienceOptions
+  );
+  const certificateOptions = useSelector(
+    (state) => state.utils.certificateOptions
+  );
+  const productOptions = useSelector(
+    (state) => state.utils.productOptions
+  );
 
   useEffect(() => {
     // Check if user has completed the registration type and role selection
@@ -30,8 +47,48 @@ const ExporterPage = () => {
     }
   }, [registrationType, role, formData, navigate]);
 
+  useEffect(() => {
+    dispatch(fetchNumEmployeeOptions());
+    dispatch(fetchExperienceOptions());
+    dispatch(fetchCertificateOptions());
+    dispatch(fetchProductOptions());
+  }, [dispatch]);
+
   // Determine if this is for existing business or startup
   const isExistingBusiness = registrationType === "have-business";
+
+  // Helper functions to map IDs to names
+  const getOptionName = (options, id) => {
+    const found = options.find((opt) => String(opt.id) === String(id));
+    return found ? found.name : id;
+  };
+
+  const getProductName = (id) => {
+    const found = productOptions.find((opt) => String(opt.id) === String(id));
+    return found ? found.name : id;
+  };
+
+  const getCertificateNames = (certifications) => {
+    if (!certifications) return "-";
+    
+    if (Array.isArray(certifications)) {
+      return certifications
+        .map((id) => getOptionName(certificateOptions, id))
+        .join(", ");
+    }
+    
+    return getOptionName(certificateOptions, certifications);
+  };
+
+  const getEmployeeCountName = (id) => {
+    if (!id) return "-";
+    return getOptionName(numberOfEmployeeOptions, id);
+  };
+
+  const getExperienceName = (id) => {
+    if (!id) return "-";
+    return getOptionName(experienceOptions, id);
+  };
 
   const steps = [
     {
@@ -55,19 +112,19 @@ const ExporterPage = () => {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Name:</span>{" "}
-                  {formData.fullName || "N/A"}
+                  {formData.fullName || "-"}
                 </div>
                 <div>
                   <span className="font-medium">Email:</span>{" "}
-                  {formData.email || "N/A"}
+                  {formData.email || "-"}
                 </div>
                 <div>
                   <span className="font-medium">Mobile:</span>{" "}
-                  {formData.mobileNumber || "N/A"}
+                  {formData.mobileNumber || "-"}
                 </div>
                 <div>
                   <span className="font-medium">NIC:</span>{" "}
-                  {formData.nic || "N/A"}
+                  {formData.nic || "-"}
                 </div>
               </div>
             </div>
@@ -111,13 +168,13 @@ const ExporterPage = () => {
                 {formData.businessExperienceId && (
                   <div>
                     <span className="font-medium">Years of Experience:</span>{" "}
-                    {formData.businessExperienceId}
+                    {getExperienceName(formData.businessExperienceId)}
                   </div>
                 )}
                 {formData.numberOfEmployeeId && (
                   <div>
                     <span className="font-medium">Number of Employees:</span>{" "}
-                    {formData.numberOfEmployeeId}
+                    {getEmployeeCountName(formData.numberOfEmployeeId)}
                   </div>
                 )}
                 {formData.exportingCountries &&
@@ -139,6 +196,12 @@ const ExporterPage = () => {
                     {formData.productRange}
                   </div>
                 )}
+                {formData.certificateId && (
+                  <div>
+                    <span className="font-medium">Certifications:</span>{" "}
+                    {getCertificateNames(formData.certificateId)}
+                  </div>
+                )}
                 {formData.businessDescription && (
                   <div className="col-span-2">
                     <span className="font-medium">Business Description:</span>{" "}
@@ -147,17 +210,33 @@ const ExporterPage = () => {
                 )}
               </div>
 
-              {/* Products Summary */}
+              {/* Products Summary - Fixed to show product names */}
               {formData.products && formData.products.length > 0 && (
                 <div className="mt-4">
                   <h5 className="font-medium text-gray-600 mb-2">
                     Export Products:
                   </h5>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     {formData.products.map((product, index) => (
-                      <div key={index} className="text-sm">
-                        Product ID: {product.productId}, Value: Rs.
-                        {product.value?.toLocaleString()}
+                      <div key={index} className="text-sm bg-gray-50 p-2 rounded">
+                        <div>
+                          <strong>Product Name:</strong> {getProductName(product.productId)}
+                        </div>
+                        <div>
+                          <strong>Value:</strong> {product.value ? `Rs. ${product.value.toLocaleString()}` : "-"}
+                        </div>
+                        {product.isRaw !== undefined && (
+                          <div>
+                            <strong>Type:</strong>{" "}
+                            {product.isRaw && "Raw"} {product.isProcessed && "Value Added"}
+                            {!product.isRaw && !product.isProcessed && "-"}
+                          </div>
+                        )}
+                        {product.details && (
+                          <div>
+                            <strong>Details:</strong> {product.details}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -229,7 +308,10 @@ const ExporterPage = () => {
         submissionData
       );
       message.success("Exporter registration submitted successfully!");
-      navigate("/reports");
+      setInterval(() => {
+        navigate("/select" );
+        window.location.reload();
+      },2000);
     } catch (error) {
       console.error("Submission error:", error);
       message.error("Failed to submit registration. Please try again.");

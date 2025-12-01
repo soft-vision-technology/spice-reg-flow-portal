@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Form, Input, Select, Col, Row, Checkbox, Dropdown, Button } from "antd";
+import { useEffect, useState } from "react";
+import { Form, Input, Select, Col, Row, Dropdown, Button, Space } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { useFormContext } from "../../../contexts/FormContext";
 import {
@@ -8,12 +8,8 @@ import {
   fetchSerialNumber,
   selectSerialOptions,
 } from "../../../store/slices/utilsSlice";
-import {
-  updateBasicInfo,
-  saveBasicInfo,
-  fetchBasicInfo,
-} from "../../../store/slices/basicInfoSlice";
 import { useDispatch, useSelector } from "react-redux";
+import axiosInstance from "../../../api/axiosInstance";
 
 const { Option } = Select;
 
@@ -21,6 +17,7 @@ const BasicInfoForm = () => {
   const dispatch = useDispatch();
   const { updateFormData } = useFormContext();
   const [selectedProvince, setSelectedProvince] = useState(null);
+  const [lastSerialDigits, setLastSerialDigits] = useState(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -51,19 +48,49 @@ const BasicInfoForm = () => {
   };
 
   // Handle serial number selection from dropdown
-  const handleSerialSelection = (serial) => {
-    form.setFieldsValue({
-      prefix: serial.prefix,
-      suffix: serial.suffix,
-    });
-    
-    // Trigger form change to update context
-    const currentValues = form.getFieldsValue();
-    updateFormData({
-      ...currentValues,
-      prefix: serial.prefix,
-      suffix: serial.suffix,
-    });
+  const handleSerialSelection = async (serial) => {
+    try {
+      // Fetch the last serial number for the selected prefix/suffix
+      const response = await axiosInstance.get(`/api/serial_number/last/serial-number`, {
+        params: {
+          prefix: serial.prefix,
+          suffix: serial.suffix
+        }
+      });
+      
+      const lastDigits = response.data.lastDigits || response.data;
+      
+      // Store last digits for placeholder display
+      setLastSerialDigits(lastDigits);
+      
+      form.setFieldsValue({
+        prefix: serial.prefix,
+        suffix: serial.suffix,
+      });
+      
+      // Trigger form change to update context
+      const currentValues = form.getFieldsValue();
+      updateFormData({
+        ...currentValues,
+        prefix: serial.prefix,
+        suffix: serial.suffix,
+      });
+    } catch (error) {
+      console.error('Failed to fetch last serial number:', error);
+      setLastSerialDigits(null);
+      // Still set prefix and suffix even if API fails
+      form.setFieldsValue({
+        prefix: serial.prefix,
+        suffix: serial.suffix,
+      });
+      
+      const currentValues = form.getFieldsValue();
+      updateFormData({
+        ...currentValues,
+        prefix: serial.prefix,
+        suffix: serial.suffix,
+      });
+    }
   };
 
   // Create dropdown menu items
@@ -83,12 +110,27 @@ const BasicInfoForm = () => {
     items: serialMenuItems,
   };
 
+  const handleKeyDown = (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault(); // Stop form submit
+
+    const formElements = Array.from(
+      e.currentTarget.querySelectorAll("input, textarea, select")
+    ).filter(el => !el.disabled && el.type !== "hidden");
+
+    const index = formElements.indexOf(e.target);
+    if (index > -1 && index < formElements.length - 1) {
+      formElements[index + 1].focus();
+    }
+  }
+};
+
   return (
     <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
       <h3 className="text-lg sm:text-xl font-medium text-earth-700 mb-4 sm:mb-6">
         Basic Information
       </h3>
-      <Form layout="vertical" onValuesChange={handleChange} form={form}>
+      <Form layout="vertical" onValuesChange={handleChange} form={form} onKeyDown={handleKeyDown}>
         {/* Title and Initials Row */}
         <Row gutter={[12, 16]}>
           <Col xs={24} sm={12}>
@@ -112,7 +154,7 @@ const BasicInfoForm = () => {
                 { required: false, message: "Please enter your initials" },
               ]}
             >
-              <Input placeholder="T. N." size="large" />
+              <Input placeholder="Enter Initials" size="large" />
             </Form.Item>
           </Col>
         </Row>
@@ -127,7 +169,7 @@ const BasicInfoForm = () => {
                 { required: false, message: "Please enter your full name" },
               ]}
             >
-              <Input placeholder="John Doe" size="large" />
+              <Input placeholder="Enter Full Name" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -142,7 +184,7 @@ const BasicInfoForm = () => {
                 },
               ]}
             >
-              <Input placeholder="123456789V or 123456789012" size="large" />
+              <Input placeholder="Enter NIC" size="large" />
             </Form.Item>
           </Col>
         </Row>
@@ -157,7 +199,7 @@ const BasicInfoForm = () => {
             >
               <Input.TextArea
                 rows={3}
-                placeholder="123 Spice Road, Colombo"
+                placeholder="Enter Address"
                 className="resize-none"
               />
             </Form.Item>
@@ -175,7 +217,7 @@ const BasicInfoForm = () => {
                 { type: "email", message: "Please enter a valid email" },
               ]}
             >
-              <Input placeholder="john.doe@example.com" size="large" />
+              <Input placeholder="Enter Email Address" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -190,7 +232,7 @@ const BasicInfoForm = () => {
                 // },
               ]}
             >
-              <Input placeholder="0712345678" size="large" />
+              <Input placeholder="Enter Mobile Number" size="large" />
             </Form.Item>
           </Col>
         </Row>
@@ -206,7 +248,7 @@ const BasicInfoForm = () => {
               ]}
             >
               <Select
-                placeholder="Select province"
+                placeholder="Select Province"
                 onChange={handleProvinceChange}
                 allowClear
                 size="large"
@@ -234,7 +276,7 @@ const BasicInfoForm = () => {
               ]}
             >
               <Select
-                placeholder="Select district"
+                placeholder="Select District"
                 disabled={!selectedProvince}
                 size="large"
                 showSearch
@@ -263,7 +305,7 @@ const BasicInfoForm = () => {
                 { required: false, message: "Please enter your DS Division" },
               ]}
             >
-              <Input placeholder="Gampaha" size="large" />
+              <Input placeholder="Enter DS Division" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
@@ -274,13 +316,13 @@ const BasicInfoForm = () => {
                 { required: false, message: "Please enter your GN Division" },
               ]}
             >
-              <Input placeholder="Ethgala" size="large" />
+              <Input placeholder="Enter GN Division" size="large" />
             </Form.Item>
           </Col>
         </Row>
         
         <Row gutter={[24, 24]}>
-          <Col xs={24} sm={12}>
+          <Col xs={24} sm={24}>
             <Form.Item
               label={
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -303,10 +345,10 @@ const BasicInfoForm = () => {
                 },
               ]}
             >
-              <Input.Group compact>
+              <Space.Compact compact>
                 <Form.Item
                   name="prefix"
-                  style={{ display: "inline-block", width: "35%" }}
+                  style={{ width: "70%" }}
                 >
                   <Input
                     placeholder="Prefix"
@@ -317,7 +359,7 @@ const BasicInfoForm = () => {
                 </Form.Item>
                 <Form.Item
                   name="suffix"
-                  style={{ display: "inline-block", width: "35%" }}
+                  style={{ width: "70%" }}
                 >
                   <Input
                     placeholder="Suffix"
@@ -328,11 +370,19 @@ const BasicInfoForm = () => {
                 </Form.Item>
                 <Form.Item
                   name="serialNumber"
-                  style={{ display: "inline-block", width: "30%" }}
+                  style={{ width: "70%" }}
                 >
-                  <Input placeholder="Number" size="large" />
+                  <Input 
+                    placeholder={lastSerialDigits} 
+                    size="large" 
+                  />
                 </Form.Item>
-              </Input.Group>
+              </Space.Compact>
+              {lastSerialDigits && (
+                <div style={{ marginTop: '4px', fontSize: '12px', fontStyle: 'italic', fontWeight: 500 ,color: '#6b7280', textAlign: 'right' }}>
+                  *last entered number {lastSerialDigits}
+                </div>
+              )}
             </Form.Item>
           </Col>
           {/* <Col xs={24} sm={12}>
