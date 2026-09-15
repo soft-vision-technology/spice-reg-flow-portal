@@ -19,7 +19,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../../api/axiosInstance";
 import TextArea from "antd/es/input/TextArea";
 
-const ExporterEditForm = ({ roleData, isExisting }) => {
+const ExporterEditForm = ({ roleData, isExisting, user }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,10 +34,12 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
   const [originalProducts, setOriginalProducts] = useState([]);
 
   const load = async () => {
-    await dispatch(fetchCertificateOptions());
-    await dispatch(fetchNumEmployeeOptions());
-    await dispatch(fetchExperienceOptions());
-    await dispatch(fetchProductOptions());
+    await Promise.all([
+      dispatch(fetchCertificateOptions()),
+      dispatch(fetchNumEmployeeOptions()),
+      dispatch(fetchExperienceOptions()),
+      dispatch(fetchProductOptions()),
+    ]);
   };
 
   useEffect(() => {
@@ -129,8 +131,8 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
       exportStartYear: allValues.exportStartDate
         ? dayjs(allValues.exportStartDate).format("YYYY")
         : null,
-      certificateId: allValues.exportCertifications
-        ? parseInt(allValues.exportCertifications)
+      certificateId: Array.isArray(allValues.certifications)
+        ? allValues.certifications.map((c) => parseInt(c))
         : null,
       startDate: allValues.exportStartDate
         ? dayjs(allValues.exportStartDate).toISOString()
@@ -288,7 +290,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
         const formattedData = {
           businessName: mappedAll.businessName || null,
           businessRegNo: mappedAll.businessRegNo || null,
-          yearsExporting: mappedAll.businessExperienceId || null,
+          businessExperienceId: mappedAll.businessExperienceId || null,
           startDate: mappedAll.startDate || null,
           numberOfEmployeeId: mappedAll.numberOfEmployeeId || null,
           exportingCountries: mappedAll.exportingCountries || null,
@@ -297,7 +299,6 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
           products: exportProducts
             .filter((product) => product.productId)
             .map((product) => ({
-              id: product.id || null,
               productId: parseInt(product.productId),
               isRaw: product.isRaw,
               isProcessed: product.isProcessed,
@@ -319,7 +320,7 @@ const ExporterEditForm = ({ roleData, isExisting }) => {
 
       const approvalRequest = {
         type: "editData",
-        requestName: `Exporter: ${roleData?.user?.name}`,
+        requestName: `Exporter: ${user?.name}`,
         requestData: mappedChanges,
         requestedUrl: `exporter/${roleData.id}`,
       };

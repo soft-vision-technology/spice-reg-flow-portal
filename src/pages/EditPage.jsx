@@ -77,11 +77,10 @@ const EditPage = ({ userId, onUserUpdate }) => {
   console.log(editRoleData);
 
   useEffect(() => {
-    if (id ) {
+    if (id) {
       fetchUserData(id);
-      // fetchRoleData(usersRoleId);
     }
-  }, [userId, form]);
+  }, [id]);
 
   const handleSubmit = () => {
     form.validateFields().then((values) => {
@@ -257,7 +256,12 @@ const EditPage = ({ userId, onUserUpdate }) => {
                   Business:
                 </Text>
                 <br />
-                <Text className="text-gray-900">{user.serialNumber}</Text>
+                <Text className="text-gray-900">
+                  {user.entrepreneur?.businessName ||
+                    user.exporter?.businessName ||
+                    user.intermediaryTrader?.businessName ||
+                    "-"}
+                </Text>
               </div>
             </Col>
           </Row>
@@ -327,13 +331,13 @@ const EditPage = ({ userId, onUserUpdate }) => {
                 key="business"
               >
                 {editRoleData === 3 && (
-                  <ExporterEditForm roleData={roleData} isExisting={true} userId={id}/>
+                  <ExporterEditForm roleData={roleData} isExisting={true} userId={id} user={user}/>
                 )}
                 {editRoleData === 1 && (
-                  <EntrepreneurEditForm roleData={roleData} isExisting={true}/>
+                  <EntrepreneurEditForm roleData={roleData} isExisting={true} user={user}/>
                 )}
                 {editRoleData === 2 && (
-                  <TraderEditForm roleData={roleData} isExisting={true}/>
+                  <TraderEditForm roleData={roleData} isExisting={true} user={user}/>
                 )}
               </TabPane>
             </Tabs>

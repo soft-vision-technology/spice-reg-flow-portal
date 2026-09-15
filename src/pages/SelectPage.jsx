@@ -34,23 +34,25 @@ const SelectPage = () => {
       nic: formData.nic,
       title: formData.title,
       address: formData.address,
+      province: formData.province,
+      district: formData.district,
       // email: formData.email, // <-- Remove email from required fields
     };
 
     // Check for missing required fields
-    // const missingFields = Object.keys(requiredFields).filter(
-    //   (field) => !requiredFields[field]
-    // );
+    const missingFields = Object.keys(requiredFields).filter(
+      (field) => !requiredFields[field]
+    );
 
-    // if (missingFields.length > 0) {
-    //   console.error("Missing required fields:", missingFields);
-    //   message.error(
-    //     `Please complete the following required fields: ${missingFields.join(
-    //       ", "
-    //     )}`
-    //   );
-    //   return;
-    // }
+    if (missingFields.length > 0) {
+      console.error("Missing required fields:", missingFields);
+      message.error(
+        `Please complete the following required fields: ${missingFields.join(
+          ", "
+        )}`
+      );
+      return;
+    }
 
     // Check serial number - combine all parts if they exist
     const serialNumber = formData.serialNumber || "";

@@ -26,6 +26,7 @@ const RegistrationDashboard = () => {
   const [statCardData, setStatCardData] = useState({});
   const [registrationStatus, setRegistrationStatus] = useState({});
   const [timeSeriesData, setTimeSeriesData] = useState([]);
+  const [weeklyTimeSeriesData, setWeeklyTimeSeriesData] = useState([]);
   const [sectorData, setSectorData] = useState([]);
   const [districtData, setDistrictData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -116,6 +117,23 @@ const RegistrationDashboard = () => {
     }
   };
 
+  const fetchWeeklyRegistrationTrends = async () => {
+    try {
+      const response = await axiosInstance.get(
+        "/api/system/chart/weekly_registered"
+      );
+
+      if (response.status === 200) {
+        setWeeklyTimeSeriesData(response.data.weeklyApprovedUsers || []);
+      } else {
+        throw new Error("Failed to fetch weekly time series data");
+      }
+    } catch (err) {
+      console.error("Error fetching weekly time series data:", err);
+      setWeeklyTimeSeriesData([]);
+    }
+  };
+
   const fetchRegistrationStatus = async () => {
     try {
       setLoading(true);
@@ -142,6 +160,7 @@ const RegistrationDashboard = () => {
     fetchDistrictData();
     fetchSectorData();
     fetchRegistrationTrends();
+    fetchWeeklyRegistrationTrends();
     fetchRegistrationStatus();
   }, []);
 
@@ -265,7 +284,7 @@ const RegistrationDashboard = () => {
             </h5>
             <TrendingUp className="text-[#E67324] text-lg" />
           </div>
-          <RegistrationsOverTimeArea data={timeSeriesData} />
+          <RegistrationsOverTimeArea data={timeSeriesData} weeklyData={weeklyTimeSeriesData} />
         </Card>
 
         {/* Sector Performance */}

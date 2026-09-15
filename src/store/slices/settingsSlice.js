@@ -95,7 +95,7 @@ export const updateItem = createAsyncThunk(
           endpoint = `/api/number_of_employees/${id}`;
           break;
         case "serial":
-          endpoint = `api/serial_number/${id}`;
+          endpoint = `/api/serial_number/${id}`;
           break;
         default:
           endpoint = `/api/products/${id}`;
