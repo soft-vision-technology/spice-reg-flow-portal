@@ -28,7 +28,7 @@ import axiosInstance from "../../../api/axiosInstance";
 import dayjs from "dayjs";
 import TextArea from "antd/es/input/TextArea";
 
-const EntrepreneurEditForm = ({ roleData, isExisting }) => {
+const EntrepreneurEditForm = ({ roleData, isExisting, user }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -46,10 +46,12 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
   const [originalProducts, setOriginalProducts] = useState([]);
 
   const load = async () => {
-    await dispatch(fetchCertificateOptions());
-    await dispatch(fetchNumEmployeeOptions());
-    await dispatch(fetchExperienceOptions());
-    await dispatch(fetchProductOptions());
+    await Promise.all([
+      dispatch(fetchCertificateOptions()),
+      dispatch(fetchNumEmployeeOptions()),
+      dispatch(fetchExperienceOptions()),
+      dispatch(fetchProductOptions()),
+    ]);
   };
 
   useEffect(() => {
@@ -127,8 +129,8 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       businessRegNo: allValues.businessRegNo || null,
       businessAddress: allValues.businessAddress || null,
       numberOfEmployees: allValues.numberOfEmployees || null,
-      certificateId: allValues.exportCertifications
-        ? parseInt(allValues.exportCertifications)
+      certificateId: Array.isArray(allValues.certifications)
+        ? allValues.certifications.map((c) => parseInt(c))
         : null,
       yearsExporting: allValues.yearsExporting || null,
       businessExperience: allValues.businessExperience || null,
@@ -312,7 +314,6 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
           products: exportProducts
             .filter((product) => product.productId)
             .map((product) => ({
-              id: product.id || null,
               productId: parseInt(product.productId),
               isRaw: product.isRaw,
               isProcessed: product.isProcessed,
@@ -321,7 +322,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
         };
 
         const response = await axiosInstance.post(
-          "/api/entreprenuer/",
+          "/api/entrepreneur/",
           formattedData
         );
         console.log(response.data);
@@ -333,7 +334,7 @@ const EntrepreneurEditForm = ({ roleData, isExisting }) => {
       // Prepare approval request
       const approvalRequest = {
         type: "editData",
-        requestName: `Entrepreneur: ${roleData?.user?.name}`,
+        requestName: `Entrepreneur: ${user?.name}`,
         requestData: mappedChanges,
         requestedUrl: `entrepreneur/${roleData.id}`,
       };

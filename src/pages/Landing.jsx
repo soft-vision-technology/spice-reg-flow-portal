@@ -501,7 +501,7 @@ const Landing = () => {
           <p className="text-white text-xs">
             <span className="font-semibold">© 2025 </span>
             <a
-              href="http://softvision.lk"
+              href="https://softvision.lk"
               target="_blank"
               rel="noopener noreferrer"
               className="text-white hover:text-white/80 transition-colors duration-200"

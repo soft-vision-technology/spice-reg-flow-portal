@@ -26,7 +26,7 @@ import dayjs from "dayjs";
 import axiosInstance from "../../../api/axiosInstance";
 import TextArea from "antd/es/input/TextArea";
 
-const TraderEditForm = ({ roleData, isExisting }) => {
+const TraderEditForm = ({ roleData, isExisting, user }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,9 +43,11 @@ const TraderEditForm = ({ roleData, isExisting }) => {
   const [originalProducts, setOriginalProducts] = useState({});
 
   const load = async () => {
-    await dispatch(fetchNumEmployeeOptions());
-    await dispatch(fetchExperienceOptions());
-    await dispatch(fetchProductOptions());
+    await Promise.all([
+      dispatch(fetchNumEmployeeOptions()),
+      dispatch(fetchExperienceOptions()),
+      dispatch(fetchProductOptions()),
+    ]);
   };
 
   useEffect(() => {
@@ -210,7 +212,7 @@ const TraderEditForm = ({ roleData, isExisting }) => {
     // Compare products
     if (!arraysEqual(exportProducts, originalProducts)) {
       changedData.products = exportProducts
-        .filter((product) => product.productId && product.details)
+        .filter((product) => product.productId)
         .map((product) => ({
           id: product.id || null,
           productId: parseInt(product.productId),
@@ -267,15 +269,7 @@ const TraderEditForm = ({ roleData, isExisting }) => {
       // Map field names to API format
       const mappedChanges = mapFieldNames(changedFields);
 
-      const approvalRequest = {
-        type: "editData",
-        requestName: `Intermediary Trader: ${roleData?.user?.name}`,
-        requestData: mappedChanges,
-        requestedUrl: `trader/${roleData.id || location?.state?.result}`,
-      };
-
-      console.log("Submitting changes:", approvalRequest);
-
+      // If no roleData, this is a new trader, not an edit
       if (!roleData) {
         // Use all form values for new trader
         const allValues = await form.validateFields();
@@ -287,12 +281,13 @@ const TraderEditForm = ({ roleData, isExisting }) => {
           businessAddress: mappedAll.businessAddress || null,
           numberOfEmployeeId: mappedAll.numberOfEmployeeId || null,
           businessExperienceId: mappedAll.businessExperienceId || null,
-          businessStartDate: mappedAll.businessStartDate || null,
+          ...(mappedAll.businessStartDate
+            ? { businessStartDate: mappedAll.businessStartDate }
+            : {}),
           businessDescription: mappedAll.businessDescription || null,
           products: exportProducts
             .filter((product) => product.productId)
             .map((product) => ({
-              id: product.id || null,
               productId: parseInt(product.productId),
               isRaw: product.isRaw,
               isProcessed: product.isProcessed,
@@ -311,6 +306,16 @@ const TraderEditForm = ({ roleData, isExisting }) => {
         alert("Success!");
         return response;
       }
+
+      // Create approval request for editing existing trader
+      const approvalRequest = {
+        type: "editData",
+        requestName: `Intermediary Trader: ${user?.name}`,
+        requestData: mappedChanges,
+        requestedUrl: `trader/${roleData.id}`,
+      };
+
+      console.log("Submitting changes:", approvalRequest);
 
       const response = await axiosInstance.post(
         "/api/approval/create",

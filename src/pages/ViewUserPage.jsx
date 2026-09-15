@@ -60,13 +60,13 @@ const ViewUserPage = () => {
   const getBusinessStatusColor = (status) => {
     switch (status) {
       case "STARTING":
-        return "orange";
+        return "bg-amber-100 text-amber-800 border-amber-200";
       case "ACTIVE":
-        return "green";
+        return "bg-emerald-100 text-emerald-800 border-emerald-200";
       case "INACTIVE":
-        return "red";
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return "default";
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -89,11 +89,11 @@ const ViewUserPage = () => {
   };
 
   const InfoItem = ({ icon: Icon, label, value }) => (
-    <div className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-      <Icon className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
+    <div className="flex items-start space-x-3 p-3 hover:bg-slate-50 rounded-lg transition-colors">
+      <Icon className="w-5 h-5 text-slate-500 mt-0.5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-600">{label}</p>
-        <p className="text-sm text-gray-900 break-words">{value || "N/A"}</p>
+        <p className="text-sm font-medium text-slate-600">{label}</p>
+        <p className="text-sm text-slate-900 break-words">{value || "N/A"}</p>
       </div>
     </div>
   );
@@ -113,20 +113,20 @@ const ViewUserPage = () => {
               roleData?.businessProducts.map((product, index) => (
                 <div
                   key={product.id}
-                  className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border"
+                  className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors"
                 >
                   <div>
-                    <h4 className="font-medium text-gray-900">
+                    <h4 className="font-medium text-slate-900">
                       {product.product?.name ?? "Unnamed Product"}
                     </h4>
-                    <p className="text-sm text-gray-600">{product.value}</p>
+                    <p className="text-sm text-slate-600">{product.value}</p>
                   </div>
 
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
                       product.isProcessed
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        : "bg-amber-100 text-amber-800 border border-amber-200"
                     }`}
                   >
                     {product.isProcessed
@@ -138,7 +138,7 @@ const ViewUserPage = () => {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No products found</p>
+              <p className="text-slate-500">No products found</p>
             )}
           </div>
         );
@@ -149,44 +149,44 @@ const ViewUserPage = () => {
               matchedCertificates.map((cert) => (
                 <div
                   key={cert.id}
-                  className="p-4 bg-white rounded-lg shadow-sm border"
+                  className="p-4 bg-white rounded-lg shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors"
                 >
-                  <h4 className="font-medium text-gray-900">{cert.name}</h4>
-                  <p className="text-sm text-gray-600">No issuer info</p>
-                  <p className="text-sm text-gray-600">No expiry date</p>
+                  <h4 className="font-medium text-slate-900">{cert.name}</h4>
+                  <p className="text-sm text-slate-600">No issuer info</p>
+                  <p className="text-sm text-slate-600">No expiry date</p>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No certificates found</p>
+              <p className="text-slate-500">No certificates found</p>
             )}
           </div>
         );
       case "other":
         return (
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-white rounded-lg shadow-sm border text-center">
-              <p className="text-2xl font-bold text-blue-600">
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 text-center hover:bg-blue-100 transition-colors">
+              <p className="text-2xl font-bold text-blue-700">
                 {roleData?.numberOfEmployee?.name || "N/A"}
               </p>
-              <p className="text-sm text-gray-600">Number of Employees</p>
+              <p className="text-sm text-blue-600 font-medium">Number of Employees</p>
             </div>
-            <div className="p-4 bg-white rounded-lg shadow-sm border text-center">
-              <p className="text-2xl font-bold text-green-600">
+            <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200 text-center hover:bg-emerald-100 transition-colors">
+              <p className="text-2xl font-bold text-emerald-700">
                 {roleData?.businessStartDate || "N/A"}
               </p>
-              <p className="text-sm text-gray-600"></p>
+              <p className="text-sm text-emerald-600 font-medium">Business Start Date</p>
             </div>
-            <div className="p-4 bg-white rounded-lg shadow-sm border text-center">
-              <p className="text-2xl font-bold text-yellow-600">
+            <div className="p-4 bg-amber-50 rounded-lg border border-amber-200 text-center hover:bg-amber-100 transition-colors">
+              <p className="text-2xl font-bold text-amber-700">
                 {user.otherInfo?.customerRating || "N/A"}
               </p>
-              <p className="text-sm text-gray-600"></p>
+              <p className="text-sm text-amber-600 font-medium">Customer Rating</p>
             </div>
-            <div className="p-4 bg-white rounded-lg shadow-sm border text-center">
-              <p className="text-2xl font-bold text-purple-600">
+            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200 text-center hover:bg-purple-100 transition-colors">
+              <p className="text-2xl font-bold text-purple-700">
                 {roleData?.businessExperience?.name || "N/A"}
               </p>
-              <p className="text-sm text-gray-600">Business Experience</p>
+              <p className="text-sm text-purple-600 font-medium">Business Experience</p>
             </div>
           </div>
         );
@@ -196,27 +196,27 @@ const ViewUserPage = () => {
   };
 
   return (
-    <div className="grid grid-cols-6 grid-rows-4 gap-6 p-8 min-h-screen bg-gray-50">
+    <div className="grid grid-cols-6 grid-rows-4 gap-6 p-8 min-h-screen bg-slate-50">
       {/* Left Panel - Basic Information */}
-      <div className="col-span-2 row-span-4 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="col-span-2 row-span-4 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
         {/* Header with Back Button */}
-        <div className="bg-amber-500/10 p-4 border-b border-gray-200 relative">
+        <div className="bg-amber-500/10 p-4 border-b border-slate-200 relative">
           <button
             onClick={handleGoBack}
-            className="absolute top-4 left-4 w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm"
+            className="absolute top-4 left-4 w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors border border-slate-200 shadow-sm"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
           </button>
           <div className="flex items-center space-x-3 ml-14">
             <div>
-              <h1 className="text-xl font-bold text-gray-900 font-sans">
+              <h1 className="text-xl font-bold text-slate-900 font-sans">
                 {user.title} {user.name}
               </h1>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-slate-600">
                 {user.serialNumber || "No Serial Number"}
                 {user.isApproved ? (
-                  <span className="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></div>
+                  <span className="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></div>
                     Approved
                   </span>
                 ) : (
@@ -231,8 +231,8 @@ const ViewUserPage = () => {
         </div>
         {/* Personal Information */}
         <div className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <User className="w-5 h-5 mr-2 text-gray-600" />
+          <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+            <User className="w-5 h-5 mr-2 text-slate-600" />
             Personal Information
           </h2>
           <div className="space-y-1">
@@ -246,8 +246,8 @@ const ViewUserPage = () => {
         </div>
         {/* Contact Information */}
         <div className="px-6 pb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <Mail className="w-5 h-5 mr-2 text-gray-600" />
+          <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+            <Mail className="w-5 h-5 mr-2 text-slate-600" />
             Contact Information
           </h2>
           <div className="space-y-1">
@@ -263,10 +263,10 @@ const ViewUserPage = () => {
       </div>
 
       {/* Right Panel - Business Information */}
-      <div className="col-span-4 row-span-4 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="col-span-4 row-span-4 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
         {/* Header */}
-        <div className="bg-amber-500/10 p-6 border-b border-gray-200 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+        <div className="bg-amber-500/10 p-6 border-b border-slate-200 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center">
             <Building className="w-7 h-7 mr-3 text-amber-500" />
             Business Information
           </h1>
@@ -276,36 +276,14 @@ const ViewUserPage = () => {
         </div>
 
         <div className="p-6">
-          {/* Business Status and Role */}
-          {/* <div className="grid grid-cols-2 gap-6 mb-8">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-gray-600 mb-2">
-                Business Status
-              </h3>
-              <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getBusinessStatusColor(
-                  user.businessStatus
-                )}`}
-              >
-                {user.businessStatus}
-              </span>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-gray-600 mb-2">Role</h3>
-              <p className="text-sm font-semibold text-gray-900">
-                {user.roleId}
-              </p>
-            </div>
-          </div> */}
-
           {/* Business Details */}
           <div className="grid grid-cols-2 gap-6 mb-8">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">
                 Business Details
               </h3>
               <div className="space-y-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <p className="text-sm font-medium text-blue-800 mb-1">
                     Business Name
                   </p>
@@ -317,7 +295,7 @@ const ViewUserPage = () => {
                       "N/A"}
                   </p>
                 </div>
-                <div className="p-4 bg-purple-50 rounded-lg">
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                   <p className="text-sm font-medium text-purple-800 mb-1">
                     Registration Date
                   </p>
@@ -333,36 +311,36 @@ const ViewUserPage = () => {
 
             {/* Location Information */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">
                 Location Details
               </h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-green-50 rounded-lg">
-                    <p className="text-xs font-medium text-green-700 mb-1">
+                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <p className="text-xs font-medium text-emerald-700 mb-1">
                       Province
                     </p>
-                    <p className="text-sm text-green-900">
+                    <p className="text-sm text-emerald-900">
                       {user.province.name}
                     </p>
                   </div>
-                  <div className="p-3 bg-green-50 rounded-lg">
-                    <p className="text-xs font-medium text-green-700 mb-1">
+                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <p className="text-xs font-medium text-emerald-700 mb-1">
                       District
                     </p>
-                    <p className="text-sm text-green-900">
+                    <p className="text-sm text-emerald-900">
                       {user.district.name}
                     </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-amber-50 rounded-lg">
+                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
                     <p className="text-xs font-medium text-amber-700 mb-1">
                       DS Division
                     </p>
                     <p className="text-sm text-amber-900">{user.dsDivision}</p>
                   </div>
-                  <div className="p-3 bg-amber-50 rounded-lg">
+                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
                     <p className="text-xs font-medium text-amber-700 mb-1">
                       GN Division
                     </p>
@@ -374,8 +352,8 @@ const ViewUserPage = () => {
           </div>
 
           {/* Additional Information with Tabs */}
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-slate-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">
               Additional Information
             </h3>
 
@@ -390,7 +368,7 @@ const ViewUserPage = () => {
                     className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex-1 justify-center ${
                       activeTab === tab.id
                         ? "bg-blue-100 text-blue-700 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                     }`}
                   >
                     <IconComponent className="w-4 h-4" />

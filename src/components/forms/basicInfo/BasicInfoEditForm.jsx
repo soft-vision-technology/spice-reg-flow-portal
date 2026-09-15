@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Select, Col, Row, Button } from "antd";
+import { Form, Input, Select, Col, Row, Button, Space } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { useFormContext } from "../../../contexts/FormContext";
 import { fetchProvince, selectProvinceOptions } from "../../../store/slices/utilsSlice";
@@ -29,13 +29,19 @@ const BasicInfoEditForm = ({ user }) => {
   useEffect(() => {
     if (!user) return;
 
+    // Split serialNumber into parts (e.g., "SAPMB/ENP/0006" -> ["SAPMB", "ENP", "0006"])
+    const serialParts = user.serialNumber ? user.serialNumber.split('/') : ['', '', ''];
+    const [prefix = '', suffix = '', number = ''] = serialParts;
+
     const initialFormData = {
       title: user.title,
       initials: user.initials?.trim(),
       fullName: user.name,
       nic: user.nic,
       address: user.address,
-      email: user.email,
+      prefix: prefix,
+      suffix: suffix,
+      serialNumber: number,
       mobileNumber: user.contactNumber,
       province: user.provinceId,
       district: user.districtId,
@@ -54,6 +60,9 @@ const BasicInfoEditForm = ({ user }) => {
       nic: user.nic,
       address: user.address,
       email: user.email,
+      prefix: prefix,
+      suffix: suffix,
+      serialNumber: number,
       mobileNumber: user.contactNumber,
       province: user.provinceId,
       district: user.districtId,
@@ -124,6 +133,17 @@ const BasicInfoEditForm = ({ user }) => {
       if (Object.keys(changedFields).length === 0) {
         console.log('No changes detected');
         return;
+      }
+
+      // Combine serial number parts if any of them changed
+      if (changedFields.prefix || changedFields.suffix || changedFields.serialNumber) {
+        const prefix = values.prefix || '';
+        const suffix = values.suffix || '';
+        const number = values.serialNumber || '';
+        changedFields.serialNumber = `${prefix}/${suffix}/${number}`;
+        // Remove individual parts from changedFields
+        delete changedFields.prefix;
+        delete changedFields.suffix;
       }
 
       // Map field names to API format
@@ -298,6 +318,55 @@ const BasicInfoEditForm = ({ user }) => {
           <Col xs={24} sm={12}>
             <Form.Item label="GN Division" name="gnDivision">
               <Input placeholder="Ethgala" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={[24, 24]}>
+          <Col xs={24} sm={24}>
+            <Form.Item
+              label={
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>Serial Number</span>
+                </div>
+              }
+              rules={[
+                {
+                  required: false,
+                  message: "Please Complete the Serial Number",
+                },
+              ]}
+            >
+              <Space.Compact compact>
+                <Form.Item
+                  name="prefix"
+                  style={{ width: "70%" }}
+                >
+                  <Input
+                    placeholder="Prefix"
+                    size="large"
+                    readOnly
+                    style={{ backgroundColor: '#f5f5f5' }}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="suffix"
+                  style={{ width: "70%" }}
+                >
+                  <Input
+                    placeholder="Suffix"
+                    size="large"
+                    readOnly
+                    style={{ backgroundColor: '#f5f5f5' }}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="serialNumber"
+                  style={{ width: "70%" }}
+                >
+                  <Input placeholder="Number" size="large" />
+                </Form.Item>
+              </Space.Compact>
             </Form.Item>
           </Col>
         </Row>
